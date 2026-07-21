@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/screens/onboarding/onboarding_input_name_screen.dart';
+import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 
 import '../screens/main_screen.dart';
 import '../screens/onboarding/splash_screen.dart';
-import '../screens/onboarding/welcome_screen.dart';
+import '../screens/onboarding/onboarding_welcome_screen.dart';
 
 class Routes {
   static const String main = '/';
   static const String splash = '/splash';
   static const String welcome = '/welcome';
+  static const String intro = '/intro';
+  static const String inputName = '/input-name';
 }
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -17,7 +21,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.splash:
       return MaterialPageRoute(builder: (_) => const SplashScreen());
     case Routes.welcome:
-      return MaterialPageRoute(builder: (_) => const WelcomeScreen());
+      return MaterialPageRoute(builder: (_) => const OnboardingWelcomeScreen());
+    case Routes.intro:
+      return MaterialPageRoute(builder: (_) => const OnboardingIntroScreen());
+    case Routes.inputName:
+      return MaterialPageRoute(builder: (_) => const OnboardingInputNameScreen());
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(

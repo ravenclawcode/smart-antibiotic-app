@@ -14,10 +14,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSplash();
+    _loadingSplash();
   }
 
-  Future<void> _checkSplash() async {
+  Future<void> _loadingSplash() async {
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
