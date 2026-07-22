@@ -33,14 +33,17 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.inputName:
       return MaterialPageRoute(
         builder: (_) => const OnboardingInputNameScreen(),
+        settings: settings,
       );
     case Routes.reminderType:
       return MaterialPageRoute(
         builder: (_) => const OnboardingReminderTypeScreen(),
+        settings: settings,
       );
     case Routes.reminderSound:
       return MaterialPageRoute(
         builder: (_) => const OnboardingReminderSoundScreen(),
+        settings: settings,
       );
     case Routes.permission:
       return MaterialPageRoute(

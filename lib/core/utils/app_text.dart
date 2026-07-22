@@ -17,12 +17,13 @@ class AppTextStyles {
 
   static TextStyle get titleSmall => GoogleFonts.nunito(
         fontSize: 20,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.normal,
         color: AppColors.textPrimary,
       );
 
   static TextStyle get bodyLarge => GoogleFonts.nunito(
         fontSize: 18,
+        fontWeight: FontWeight.bold,
         color: AppColors.textWhite,
       );
 

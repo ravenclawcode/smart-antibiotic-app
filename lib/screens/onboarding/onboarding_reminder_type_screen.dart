@@ -46,6 +46,11 @@ class _OnboardingReminderTypeScreenState
 
   @override
   Widget build(BuildContext context) {
+    final previousArgs =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+        {};
+    final String nameInputted = previousArgs['nameInputted'] ?? '';
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -64,7 +69,12 @@ class _OnboardingReminderTypeScreenState
                       onSelect: selectType,
                     ),
                     const Spacer(),
-                    _buildActionButton(context, isCheck),
+                    _buildActionButton(
+                      context,
+                      isCheck,
+                      reminderTypeController,
+                      nameInputted,
+                    ),
                     const SizedBox(height: 30),
                   ],
                 ),
@@ -97,7 +107,7 @@ Widget _buildHeader(BuildContext context) {
             ),
           ),
           SizedBox(width: 10),
-          Expanded(child: CustomProgressBarOnboarding(value: 0.50)),
+          Expanded(child: CustomProgressBarOnboarding(value: 0.66)),
         ],
       ),
     ],
@@ -194,13 +204,25 @@ Widget _buildOptionCard({
   );
 }
 
-Widget _buildActionButton(BuildContext context, bool isCheck) {
+Widget _buildActionButton(
+  BuildContext context,
+  bool isCheck,
+  TextEditingController reminderTypeController,
+  String nameInputted,
+) {
   return isCheck
       ? CustomButton(
           onTap: () {
-            Navigator.pushNamed(context, '/reminder-sound');
+            Navigator.pushNamed(
+              context,
+              '/reminder-sound',
+              arguments: {
+                'nameInputted': nameInputted,
+                'reminderType': reminderTypeController.text,
+              },
+            );
           },
           label: 'Lanjut',
         )
-      : CustomButtonOff(label: 'Lanjut');
+      : const CustomButtonOff(label: 'Lanjut');
 }

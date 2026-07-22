@@ -39,15 +39,27 @@ class _OnboardingInputNameScreenState extends State<OnboardingInputNameScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26),
-          child: Column(
-            children: [
-              SizedBox(height: 14),
-              _buildHeader(context),
-              SizedBox(height: 40),
-              _buildContent(formKey, nameController),
-              Spacer(),
-              _buildActionButton(context, formKey, isFormFilled),
-              SizedBox(height: 30),
+          child: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 14),
+                    _buildHeader(context),
+                    const SizedBox(height: 40),
+                    _buildContent(formKey, nameController),
+                    const Spacer(),
+                    _buildActionButton(
+                      context,
+                      formKey,
+                      isFormFilled,
+                      nameController,
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -76,7 +88,7 @@ Widget _buildHeader(BuildContext context) {
             ),
           ),
           SizedBox(width: 10),
-          Expanded(child: CustomProgressBarOnboarding(value: 0.25)),
+          Expanded(child: CustomProgressBarOnboarding(value: 0.33)),
         ],
       ),
     ],
@@ -109,12 +121,17 @@ Widget _buildActionButton(
   BuildContext context,
   GlobalKey<FormState> formKey,
   bool isFormFilled,
+  TextEditingController nameController,
 ) {
   return isFormFilled
       ? CustomButton(
           onTap: () {
             if (formKey.currentState?.validate() ?? false) {
-              Navigator.pushNamed(context, '/reminder-type');
+              Navigator.pushNamed(
+                context,
+                '/reminder-type',
+                arguments: {'nameInputted': nameController.text.trim()},
+              );
             }
           },
           label: 'Lanjut',
