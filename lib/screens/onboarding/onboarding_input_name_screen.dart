@@ -114,7 +114,7 @@ Widget _buildActionButton(
       ? CustomButton(
           onTap: () {
             if (formKey.currentState?.validate() ?? false) {
-              Navigator.pushNamed(context, '/lorem-ipsum');
+              Navigator.pushNamed(context, '/reminder-type');
             }
           },
           label: 'Lanjut',

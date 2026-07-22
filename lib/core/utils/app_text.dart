@@ -28,7 +28,7 @@ class AppTextStyles {
 
   static TextStyle get bodyMedium => GoogleFonts.nunito(
         fontSize: 16,
-        color: AppColors.textPrimary,
+        color: AppColors.textSecondary,
       );
 
   static TextStyle get bodySmall => GoogleFonts.nunito(

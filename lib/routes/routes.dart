@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_input_name_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
+import 'package:smart_antibiotic/screens/onboarding/onboarding_permission_screen.dart';
+import 'package:smart_antibiotic/screens/onboarding/onboarding_reminder_sound_screen.dart';
+import 'package:smart_antibiotic/screens/onboarding/onboarding_reminder_type_screen.dart';
 
 import '../screens/main_screen.dart';
 import '../screens/onboarding/splash_screen.dart';
@@ -12,6 +15,9 @@ class Routes {
   static const String welcome = '/welcome';
   static const String intro = '/intro';
   static const String inputName = '/input-name';
+  static const String reminderType = '/reminder-type';
+  static const String reminderSound = '/reminder-sound';
+  static const String permission = '/permission';
 }
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -25,7 +31,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.intro:
       return MaterialPageRoute(builder: (_) => const OnboardingIntroScreen());
     case Routes.inputName:
-      return MaterialPageRoute(builder: (_) => const OnboardingInputNameScreen());
+      return MaterialPageRoute(
+        builder: (_) => const OnboardingInputNameScreen(),
+      );
+    case Routes.reminderType:
+      return MaterialPageRoute(
+        builder: (_) => const OnboardingReminderTypeScreen(),
+      );
+    case Routes.reminderSound:
+      return MaterialPageRoute(
+        builder: (_) => const OnboardingReminderSoundScreen(),
+      );
+    case Routes.permission:
+      return MaterialPageRoute(
+        builder: (_) => const OnboardingPermissionScreen(),
+      );
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(
