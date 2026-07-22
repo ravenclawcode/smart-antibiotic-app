@@ -20,7 +20,10 @@ class CustomButtonOff extends StatelessWidget {
           borderRadius: BorderRadius.circular(40),
         ),
         alignment: Alignment.center,
-        child: Text(label, style: AppTextStyles.bodyLarge),
+        child: Text(
+          label,
+          style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textWhite),
+        ),
       ),
     );
   }

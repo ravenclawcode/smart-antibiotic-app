@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/screens/home/home_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_input_name_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_permission_screen.dart';
@@ -18,6 +19,7 @@ class Routes {
   static const String reminderType = '/reminder-type';
   static const String reminderSound = '/reminder-sound';
   static const String permission = '/permission';
+  static const String home = '/home';
 }
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -49,6 +51,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => const OnboardingPermissionScreen(),
       );
+    case Routes.home:
+      return MaterialPageRoute(builder: (_) => const HomeScreen());
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(
