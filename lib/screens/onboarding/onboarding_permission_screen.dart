@@ -1,11 +1,11 @@
 import 'dart:async'; // Impor Timer
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:smart_antibiotic/core/utils/app_assets.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
 
-import '../../core/utils/app_text.dart';
-import '../../core/utils/custom_button.dart';
+import '../../utils/app_text.dart';
+import '../../utils/custom_button.dart';
 
 class OnboardingPermissionScreen extends StatefulWidget {
   const OnboardingPermissionScreen({super.key});

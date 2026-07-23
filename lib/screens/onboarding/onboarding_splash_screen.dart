@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../core/utils/app_assets.dart';
-import '../../core/utils/app_text.dart';
+import '../../utils/app_assets.dart';
+import '../../utils/app_text.dart';
 
 class OnboardingSplashScreen extends StatefulWidget {
   const OnboardingSplashScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:smart_antibiotic/core/utils/app_assets.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
-import 'package:smart_antibiotic/core/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_text.dart';
 
 class CustomLoading extends StatefulWidget {
   const CustomLoading({super.key});

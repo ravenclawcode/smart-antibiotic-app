@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool value;
@@ -21,7 +21,10 @@ class CustomCheckbox extends StatelessWidget {
         decoration: BoxDecoration(
           color: value ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.primary, width: 2),
+          border: Border.all(
+            color: value ? AppColors.primary : const Color(0xFFD6D6D6),
+            width: 1.5,
+          ),
         ),
         child: value
             ? Icon(

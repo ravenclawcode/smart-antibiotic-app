@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/utils/app_text.dart';
-import '../../core/utils/custom_input_form_name.dart';
+import '../../utils/app_text.dart';
+import '../../utils/custom_input_form_name.dart';
 
 class OnboardingInputNameContent extends StatefulWidget {
   final GlobalKey<FormState> formKey;

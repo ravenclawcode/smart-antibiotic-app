@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
-import 'package:smart_antibiotic/core/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_text.dart';
 
-class CustomButton extends StatelessWidget {
-  final VoidCallback? onTap;
+class CustomButtonOff extends StatelessWidget {
   final String label;
-  const CustomButton({super.key, required this.onTap, required this.label});
+  const CustomButtonOff({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -14,11 +13,10 @@ class CustomButton extends StatelessWidget {
       hoverColor: Colors.transparent,
       highlightColor: Colors.transparent,
       overlayColor: WidgetStateProperty.all(Colors.transparent),
-      onTap: onTap,
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: AppColors.secondary,
           borderRadius: BorderRadius.circular(40),
         ),
         alignment: Alignment.center,

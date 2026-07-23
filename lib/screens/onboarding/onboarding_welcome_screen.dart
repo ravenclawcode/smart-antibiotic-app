@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/app_text.dart';
 
 class OnboardingWelcomeScreen extends StatefulWidget {
   const OnboardingWelcomeScreen({super.key});

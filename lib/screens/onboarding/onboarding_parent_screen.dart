@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
-import 'package:smart_antibiotic/core/utils/custom_button.dart';
-import 'package:smart_antibiotic/core/utils/custom_button_off.dart';
-import 'package:smart_antibiotic/core/utils/custom_loading.dart';
-import 'package:smart_antibiotic/core/utils/custom_progress_bar_onboarding.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/custom_button.dart';
+import 'package:smart_antibiotic/utils/custom_button_off.dart';
+import 'package:smart_antibiotic/utils/custom_loading.dart';
+import 'package:smart_antibiotic/utils/custom_progress_bar_onboarding.dart';
 
 import 'onboarding_input_name_screen.dart';
 import 'onboarding_reminder_sound_screen.dart';
@@ -22,8 +22,8 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
 
   int _currentPage = 0;
   String _nameInputted = '';
-  String _selectedType = 'fullscreen';
-  String _selectedSound = 'Nada Standar';
+  String _selectedType = '';
+  String _selectedSound = '';
   bool _isLoading = false;
 
   double get _progressValue => (_currentPage + 1) / 3;
@@ -101,8 +101,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
                   Expanded(
                     child: PageView(
                       controller: _pageController,
-                      physics:
-                          const NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
@@ -152,6 +151,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
           focusColor: Colors.transparent,
           hoverColor: Colors.transparent,
           highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
           onTap: _previousPage,
           child: Padding(
             padding: const EdgeInsets.only(right: 6),

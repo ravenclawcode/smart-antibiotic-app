@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
 
 class CustomProgressBarOnboarding extends StatefulWidget {
   final num value;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_assets.dart';
-import '../../core/utils/app_colors.dart';
-import '../../core/utils/app_text.dart';
-import '../../core/utils/custom_checkbox.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
+import '../../utils/app_colors.dart';
+import '../../utils/app_text.dart';
+import '../../utils/custom_checkbox.dart';
 
 class OnboardingReminderTypeContent extends StatelessWidget {
   final String selectedType;
@@ -24,8 +24,8 @@ class OnboardingReminderTypeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFullScreenSelected = selectedType == 'fullscreen';
-    final isCompactSelected = selectedType == 'compact';
+    final isFullScreenSelected = selectedType == 'Layar Penuh';
+    final isCompactSelected = selectedType == 'Ringkas';
 
     return SingleChildScrollView(
       child: Column(
@@ -48,7 +48,7 @@ class OnboardingReminderTypeContent extends StatelessWidget {
                       'Pengingat layar penuh agar lebih mudah terlihat',
                   imageAsset: imgFullScreen,
                   isSelected: isFullScreenSelected,
-                  onTap: () => _handleTap('fullscreen'),
+                  onTap: () => _handleTap('Layar Penuh'),
                 ),
               ),
               const SizedBox(width: 16),
@@ -58,7 +58,7 @@ class OnboardingReminderTypeContent extends StatelessWidget {
                   description: 'Pengingat ringkas untuk yang sudah terbiasa',
                   imageAsset: imgSmall,
                   isSelected: isCompactSelected,
-                  onTap: () => _handleTap('compact'),
+                  onTap: () => _handleTap('Ringkas'),
                 ),
               ),
             ],
