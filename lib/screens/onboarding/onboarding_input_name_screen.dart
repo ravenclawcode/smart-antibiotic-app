@@ -1,140 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/core/utils/app_colors.dart';
-import 'package:smart_antibiotic/core/utils/custom_input_form_name.dart';
-import 'package:smart_antibiotic/core/utils/custom_progress_bar_onboarding.dart';
-
 import '../../core/utils/app_text.dart';
-import '../../core/utils/custom_button.dart';
-import '../../core/utils/custom_button_off.dart';
+import '../../core/utils/custom_input_form_name.dart';
 
-class OnboardingInputNameScreen extends StatefulWidget {
-  const OnboardingInputNameScreen({super.key});
+class OnboardingInputNameContent extends StatefulWidget {
+  final GlobalKey<FormState> formKey;
+  final String initialValue;
+  final ValueChanged<String> onNameChanged;
+
+  const OnboardingInputNameContent({
+    super.key,
+    required this.formKey,
+    required this.initialValue,
+    required this.onNameChanged,
+  });
 
   @override
-  State<OnboardingInputNameScreen> createState() =>
-      _OnboardingInputNameScreenState();
+  State<OnboardingInputNameContent> createState() =>
+      _OnboardingInputNameContentState();
 }
 
-class _OnboardingInputNameScreenState extends State<OnboardingInputNameScreen> {
-  final formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-
-  bool get isFormFilled => nameController.text.trim().isNotEmpty;
+class _OnboardingInputNameContentState
+    extends State<OnboardingInputNameContent> {
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    nameController.addListener(() => setState(() {}));
+    _controller = TextEditingController(text: widget.initialValue);
+    _controller.addListener(() {
+      widget.onNameChanged(_controller.text);
+    });
   }
 
   @override
   void dispose() {
-    nameController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 26),
-          child: CustomScrollView(
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 14),
-                    _buildHeader(context),
-                    const SizedBox(height: 40),
-                    _buildContent(formKey, nameController),
-                    const Spacer(),
-                    _buildActionButton(
-                      context,
-                      formKey,
-                      isFormFilled,
-                      nameController,
-                    ),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
-            ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'Siapa nama Anda?',
+            style: AppTextStyles.titleLarge,
+            textAlign: TextAlign.center,
           ),
-        ),
+          const SizedBox(height: 30),
+          Form(
+            key: widget.formKey,
+            child: Column(
+              children: [CustomInputFormName(controller: _controller)],
+            ),
+          ),
+        ],
       ),
     );
   }
-}
-
-Widget _buildHeader(BuildContext context) {
-  return Column(
-    children: [
-      Row(
-        children: [
-          InkWell(
-            focusColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            onTap: () => Navigator.pop(context),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 26,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          SizedBox(width: 10),
-          Expanded(child: CustomProgressBarOnboarding(value: 0.33)),
-        ],
-      ),
-    ],
-  );
-}
-
-Widget _buildContent(
-  GlobalKey<FormState> formKey,
-  TextEditingController nameController,
-) {
-  return Column(
-    children: [
-      Text(
-        'Siapa nama Anda?',
-        style: AppTextStyles.titleLarge,
-        textAlign: TextAlign.center,
-      ),
-      SizedBox(height: 30),
-      Form(
-        key: formKey,
-        child: Column(
-          children: [CustomInputFormName(controller: nameController)],
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildActionButton(
-  BuildContext context,
-  GlobalKey<FormState> formKey,
-  bool isFormFilled,
-  TextEditingController nameController,
-) {
-  return isFormFilled
-      ? CustomButton(
-          onTap: () {
-            if (formKey.currentState?.validate() ?? false) {
-              Navigator.pushNamed(
-                context,
-                '/reminder-type',
-                arguments: {'nameInputted': nameController.text.trim()},
-              );
-            }
-          },
-          label: 'Lanjut',
-        )
-      : CustomButtonOff(label: 'Lanjut');
 }

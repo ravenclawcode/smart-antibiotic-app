@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Antibiotik',
-      initialRoute: Routes.splash,
+      initialRoute: '/onboarding-splash',
       onGenerateRoute: generateRoute,
       theme: ThemeData(colorScheme: ColorScheme.light()),
     );

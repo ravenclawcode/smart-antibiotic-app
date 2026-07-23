@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/core/utils/app_text.dart';
 
-import '../../routes/routes.dart';
-
 class OnboardingWelcomeScreen extends StatefulWidget {
   const OnboardingWelcomeScreen({super.key});
 
@@ -12,18 +10,33 @@ class OnboardingWelcomeScreen extends StatefulWidget {
 }
 
 class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
+  double _opacity = 0.0;
+
   @override
   void initState() {
     super.initState();
-    _fontAnimated();
+    _startAnimation();
   }
 
-  Future<void> _fontAnimated() async {
-    await Future.delayed(const Duration(seconds: 2));
-
+  Future<void> _startAnimation() async {
+    await Future.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
 
-    Navigator.pushReplacementNamed(context, Routes.intro);
+    setState(() {
+      _opacity = 1.0;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 1800));
+    if (!mounted) return;
+
+    setState(() {
+      _opacity = 0.0;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, '/onboarding-intro');
   }
 
   @override
@@ -32,7 +45,14 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 26),
-          child: Center(child: _buildContent()),
+          child: Center(
+            child: AnimatedOpacity(
+              opacity: _opacity,
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeInOut,
+              child: _buildContent(),
+            ),
+          ),
         ),
       ),
     );
