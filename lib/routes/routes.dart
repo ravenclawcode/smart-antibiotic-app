@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/screens/chatbot/chatbot_screen.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_parent_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
 
 import '../screens/main_screen.dart';
@@ -18,6 +21,9 @@ class Routes {
   static const String onboardingPermission = '/onboarding-permission';
 
   static const String home = '/home';
+  static const String medicine = '/medicine';
+  static const String settings = '/settings';
+  static const String chatbot = '/chatbot';
 }
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -38,6 +44,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case Routes.home:
       return MaterialPageRoute(builder: (_) => const HomeScreen());
+    case Routes.medicine:
+      return MaterialPageRoute(builder: (_) => const MedicineScreen());
+    case Routes.settings:
+      return MaterialPageRoute(builder: (_) => const SettingsScreen());
+    case Routes.chatbot:
+      return MaterialPageRoute(builder: (_) => const ChatbotScreen());
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(

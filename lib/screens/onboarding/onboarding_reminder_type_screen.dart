@@ -106,7 +106,9 @@ class OnboardingReminderTypeContent extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             description,
-            style: AppTextStyles.bodyMedium,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),

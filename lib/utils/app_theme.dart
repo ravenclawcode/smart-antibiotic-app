@@ -6,7 +6,12 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(primary: AppColors.primary),
+      colorScheme: ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: AppColors.surfacePrimary,
+      ),
+      scaffoldBackgroundColor: AppColors.surfacePrimary,
       textTheme: GoogleFonts.nunitoTextTheme(),
     );
   }

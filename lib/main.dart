@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'routes/routes.dart';
+import 'utils/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,9 +15,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Antibiotik',
-      initialRoute: '/onboarding-splash',
+      initialRoute: '/',
       onGenerateRoute: generateRoute,
-      theme: ThemeData(colorScheme: ColorScheme.light()),
+      theme: AppTheme.lightTheme,
     );
   }
 }

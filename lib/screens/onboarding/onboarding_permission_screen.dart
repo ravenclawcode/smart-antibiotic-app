@@ -69,7 +69,7 @@ class _OnboardingPermissionScreenState
 
       if (newStatus.isGranted) {
         if (mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
         }
       } else {
         if (mounted) {
