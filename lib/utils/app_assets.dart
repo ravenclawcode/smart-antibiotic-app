@@ -33,3 +33,4 @@ const icLoading = 'assets/icons/ic_loading.png';
 const icHome = 'assets/icons/ic_home.png';
 const icMedicine = 'assets/icons/ic_medicine.png';
 const icSettings = 'assets/icons/ic_settings.png';
+const icDelete = 'assets/icons/ic_delete.png';

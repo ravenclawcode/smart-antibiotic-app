@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
-class ChatbotScreen extends StatefulWidget {
-  const ChatbotScreen({super.key});
+class MedicineHistoryScreen extends StatelessWidget {
+  const MedicineHistoryScreen({super.key});
 
-  @override
-  State<ChatbotScreen> createState() => _ChatbotScreenState();
-}
-
-class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Column(children: [_buildHeader(context)]));
@@ -51,24 +45,12 @@ Widget _buildHeader(BuildContext context) {
             ),
             SizedBox(width: 18),
             Text(
-              'Asisten Virtual',
+              'Riwayat Obat',
               style: AppTextStyles.titleLarge.copyWith(
                 color: AppColors.textWhite,
               ),
             ),
             Spacer(),
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () {},
-              child: Image.asset(
-                icDelete,
-                cacheHeight: 20,
-                color: AppColors.surfacePrimary,
-              ),
-            ),
           ],
         ),
       ),

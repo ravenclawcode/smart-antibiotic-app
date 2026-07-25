@@ -4,9 +4,9 @@
     <!-- Permission untuk Display Over Other Apps -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <application
-        android:label="smart_antibiotic"
+        android:label="Smart Antibiotik"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

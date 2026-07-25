@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/screens/chatbot/chatbot_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_screen.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_parent_screen.dart';
+import 'package:smart_antibiotic/screens/quiz/quiz_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_alarm_optimization_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_comments_and_feedback.dart';
+import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_preference_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_screen.dart';
+import '../screens/medicine/medicine_history_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
 
 import '../screens/main_screen.dart';
@@ -21,8 +28,22 @@ class Routes {
   static const String onboardingPermission = '/onboarding-permission';
 
   static const String home = '/home';
+
   static const String medicine = '/medicine';
+  static const String medicineHistory = '/medicine-history';
+
+  static const String education = '/education';
+
+  static const String quiz = '/quiz';
+
   static const String settings = '/settings';
+  static const String settingsEditProfile = '/settings-edit-profile';
+  static const String settingsPreferences = '/settings-preference';
+  static const String settingsAlarmOptimization =
+      '/settings-alarm-optimization';
+  static const String settingsCommentsAndFeedback =
+      '/settings-comments-and-feedback';
+
   static const String chatbot = '/chatbot';
 }
 
@@ -46,8 +67,30 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => const HomeScreen());
     case Routes.medicine:
       return MaterialPageRoute(builder: (_) => const MedicineScreen());
+    case Routes.education:
+      return MaterialPageRoute(builder: (_) => const EducationScreen());
+    case Routes.quiz:
+      return MaterialPageRoute(builder: (_) => const QuizScreen());
+    case Routes.medicineHistory:
+      return MaterialPageRoute(builder: (_) => const MedicineHistoryScreen());
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());
+    case Routes.settingsEditProfile:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsEditProfilScreen(),
+      );
+    case Routes.settingsPreferences:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsPreferenceScreen(),
+      );
+    case Routes.settingsAlarmOptimization:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsAlarmOptimizationScreen(),
+      );
+    case Routes.settingsCommentsAndFeedback:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsCommentsAndFeedback(),
+      );
     case Routes.chatbot:
       return MaterialPageRoute(builder: (_) => const ChatbotScreen());
     default:
