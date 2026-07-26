@@ -60,9 +60,18 @@ class _OnboardingPermissionScreenState
 
     if (status.isGranted) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Izin sudah diberikan!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Izin sudah diberikan!',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textWhite,
+              ),
+            ),
+          ),
+        );
+
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } else {
       final newStatus = await Permission.systemAlertWindow.request();
@@ -76,7 +85,10 @@ class _OnboardingPermissionScreenState
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Izin diperlukan agar pengingat/alarm bisa tampil.',
+                'Izin diperlukan agar pengingat bisa tampil.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
             ),
           );

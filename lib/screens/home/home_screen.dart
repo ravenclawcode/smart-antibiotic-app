@@ -123,10 +123,12 @@ Widget _buildHeader(BuildContext context) {
                   color: AppColors.accent,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Image.asset(
-                  icSettings,
-                  color: AppColors.textWhite,
-                  cacheHeight: 20,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    icSettings,
+                    color: AppColors.textWhite,
+                  ),
                 ),
               ),
             ),

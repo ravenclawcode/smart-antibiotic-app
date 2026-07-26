@@ -82,7 +82,7 @@ Widget _buildHeader(BuildContext context) {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Tingkatkan pengetahuanmu tentang antibiotik melalui kuis',
+                  'Tingkatkan pengetahuanmu tentang\nantibiotik melalui kuis',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textWhite,
                   ),

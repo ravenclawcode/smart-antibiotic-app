@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_text.dart';
-import '../../utils/custom_input_form_name.dart';
+import '../../utils/custom_input_name_form.dart';
 
 class OnboardingInputNameContent extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -53,7 +53,7 @@ class _OnboardingInputNameContentState
           Form(
             key: widget.formKey,
             child: Column(
-              children: [CustomInputFormName(controller: _controller)],
+              children: [CustomInputNameForm(controller: _controller)],
             ),
           ),
         ],

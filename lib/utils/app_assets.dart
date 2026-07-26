@@ -34,3 +34,4 @@ const icHome = 'assets/icons/ic_home.png';
 const icMedicine = 'assets/icons/ic_medicine.png';
 const icSettings = 'assets/icons/ic_settings.png';
 const icDelete = 'assets/icons/ic_delete.png';
+const icPerson = 'assets/icons/ic_person.png';

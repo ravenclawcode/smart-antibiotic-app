@@ -2,31 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
-class CustomInputFormName extends StatefulWidget {
+class CustomInputGenderForm extends StatefulWidget {
   final TextEditingController controller;
-
-  const CustomInputFormName({super.key, required this.controller});
+  const CustomInputGenderForm({super.key, required this.controller});
 
   @override
-  State<CustomInputFormName> createState() => _CustomInputFormNameState();
+  State<CustomInputGenderForm> createState() => _CustomInputGenderFormState();
 }
 
-class _CustomInputFormNameState extends State<CustomInputFormName> {
+class _CustomInputGenderFormState extends State<CustomInputGenderForm> {
+  final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
+
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      keyboardType: TextInputType.name,
-      maxLines: 1,
-      textAlign: TextAlign.center,
-      cursorColor: AppColors.primary,
-      cursorErrorColor: AppColors.primary,
+    String? currentValue = _genderOptions.contains(widget.controller.text)
+        ? widget.controller.text
+        : null;
+    return DropdownButtonFormField<String>(
+      initialValue: currentValue,
+      items: _genderOptions.map((String value) {
+        return DropdownMenuItem<String>(value: value, child: Text(value));
+      }).toList(),
+      hint: Text('Pilih jenis kelamin', style: AppTextStyles.hint),
+      style: AppTextStyles.bodyMedium,
+      icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         filled: true,
         fillColor: AppColors.surfaceSecondary,
-        hintText: 'Masukkan nama Anda',
-        hintStyle: AppTextStyles.hint,
+        hintText: 'Pilih jenis kelamin',
         errorStyle: AppTextStyles.error,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -45,11 +49,10 @@ class _CustomInputFormNameState extends State<CustomInputFormName> {
           borderSide: BorderSide(width: 2, color: AppColors.surfaceSecondary),
         ),
       ),
-      validator: (value) {
-        if (value != null && value.trim().length < 3) {
-          return 'Nama pengguna minimal 3 karakter';
-        }
-        return null;
+      onChanged: (String? value) {
+        setState(() {
+          widget.controller.text = value ?? '';
+        });
       },
     );
   }

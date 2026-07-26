@@ -65,7 +65,7 @@ Widget _buildHeader(BuildContext context) {
               onTap: () {},
               child: Image.asset(
                 icDelete,
-                cacheHeight: 20,
+                height: 20,
                 color: AppColors.surfacePrimary,
               ),
             ),

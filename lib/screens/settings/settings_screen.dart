@@ -93,7 +93,7 @@ Widget _buildOptionMenu(BuildContext context) {
   final item = [
     {
       'title': 'Edit Profil',
-      'subtitle': 'Nama, umur, Jenis kelamin',
+      'subtitle': 'Nama, umur, jenis kelamin',
       'status': '',
       'route': '/settings-edit-profile',
     },

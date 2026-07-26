@@ -8,8 +8,10 @@ import 'package:smart_antibiotic/screens/onboarding/onboarding_parent_screen.dar
 import 'package:smart_antibiotic/screens/quiz/quiz_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_alarm_optimization_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_comments_and_feedback.dart';
+import 'package:smart_antibiotic/screens/settings/settings_detail_alarm_optimization_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_detail_app_permissions_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
-import 'package:smart_antibiotic/screens/settings/settings_preference_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_edit_preference_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_screen.dart';
 import '../screens/medicine/medicine_history_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
@@ -43,6 +45,12 @@ class Routes {
       '/settings-alarm-optimization';
   static const String settingsCommentsAndFeedback =
       '/settings-comments-and-feedback';
+  static const String settingsDetailAlarmOptimization =
+      '/settings-detail-alarm-optimization';
+  static const String settingsDetailAlarmPermissions =
+      '/settings-detail-alarm-permissions';
+  static const String settingsDetailAppPermissions =
+      '/settings-detail-app-permissions';
 
   static const String chatbot = '/chatbot';
 }
@@ -76,12 +84,20 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());
     case Routes.settingsEditProfile:
+      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => const SettingsEditProfilScreen(),
+        builder: (_) => SettingsEditProfilScreen(
+          initialValue: args?['initialValue'] ?? 'Syifa',
+          onNameChanged: args?['onNameChanged'] ?? (value) {},
+        ),
       );
     case Routes.settingsPreferences:
+      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => const SettingsPreferenceScreen(),
+        builder: (_) => SettingsEditPreferenceScreen(
+          selectedType: args?['selectedType'] ?? 'Layar Penuh',
+          onSelectType: args?['onSelectType'] ?? (value) {},
+        ),
       );
     case Routes.settingsAlarmOptimization:
       return MaterialPageRoute(
@@ -90,6 +106,18 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.settingsCommentsAndFeedback:
       return MaterialPageRoute(
         builder: (_) => const SettingsCommentsAndFeedback(),
+      );
+    case Routes.settingsDetailAlarmOptimization:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsDetailAlarmOptimizationScreen(),
+      );
+    case Routes.settingsDetailAlarmPermissions:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsDetailAlarmOptimizationScreen(),
+      );
+    case Routes.settingsDetailAppPermissions:
+      return MaterialPageRoute(
+        builder: (_) => const SettingsDetailAppPermissionsScreen(),
       );
     case Routes.chatbot:
       return MaterialPageRoute(builder: (_) => const ChatbotScreen());
