@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
@@ -29,61 +28,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: AppColors.surfaceCool,
-        body: Column(
-          children: [
-            _buildHeader(context),
-            CustomCalendar(
-              selectedDate: selectedDate,
-              currentWeekStart: currentWeekStart,
-              onDateSelected: (date) {
-                setState(() => selectedDate = date);
-              },
-              onWeekChanged: (newWeekStart) {
-                setState(() => currentWeekStart = newWeekStart);
-              },
-              onResetToToday: (today, weekStart) {
-                setState(() {
-                  selectedDate = today;
-                  currentWeekStart = weekStart;
-                });
-              },
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16),
-                      _buildMedicineList(selectedDate),
-                      SizedBox(height: 26),
-                      _buildEducationList(context),
-                      SizedBox(height: 26),
-                      _buildQuisList(context),
-                      SizedBox(height: 26),
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: AppColors.surfaceCool,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          CustomCalendar(
+            selectedDate: selectedDate,
+            currentWeekStart: currentWeekStart,
+            onDateSelected: (date) {
+              setState(() => selectedDate = date);
+            },
+            onWeekChanged: (newWeekStart) {
+              setState(() => currentWeekStart = newWeekStart);
+            },
+            onResetToToday: (today, weekStart) {
+              setState(() {
+                selectedDate = today;
+                currentWeekStart = weekStart;
+              });
+            },
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 16),
+                    _buildMedicineList(selectedDate),
+                    SizedBox(height: 26),
+                    _buildEducationList(context),
+                    SizedBox(height: 26),
+                    _buildQuisList(context),
+                    SizedBox(height: 26),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => Navigator.pushNamed(context, '/chatbot'),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
           ),
-          child: Image.asset(imgChatbot),
-        ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pushNamed(context, '/chatbot'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        child: Image.asset(imgChatbot),
       ),
     );
   }
@@ -125,10 +115,7 @@ Widget _buildHeader(BuildContext context) {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Image.asset(
-                    icSettings,
-                    color: AppColors.textWhite,
-                  ),
+                  child: Image.asset(icSettings, color: AppColors.textWhite),
                 ),
               ),
             ),

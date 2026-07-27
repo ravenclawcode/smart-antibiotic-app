@@ -4,7 +4,7 @@ import 'package:smart_antibiotic/utils/app_colors.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
-    return ThemeData(
+    final baseTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
@@ -12,7 +12,9 @@ class AppTheme {
         surface: AppColors.surfacePrimary,
       ),
       scaffoldBackgroundColor: AppColors.surfacePrimary,
-      textTheme: GoogleFonts.nunitoTextTheme(),
+    );
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.nunitoTextTheme(baseTheme.textTheme),
     );
   }
 }

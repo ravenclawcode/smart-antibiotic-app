@@ -9,6 +9,7 @@ import 'package:smart_antibiotic/screens/quiz/quiz_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_alarm_optimization_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_comments_and_feedback.dart';
 import 'package:smart_antibiotic/screens/settings/settings_detail_alarm_optimization_screen.dart';
+import 'package:smart_antibiotic/screens/settings/settings_detail_alarm_permissions_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_detail_app_permissions_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_edit_preference_screen.dart';
@@ -113,7 +114,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case Routes.settingsDetailAlarmPermissions:
       return MaterialPageRoute(
-        builder: (_) => const SettingsDetailAlarmOptimizationScreen(),
+        builder: (_) => const SettingsDetailAlarmPermissionsScreen(),
       );
     case Routes.settingsDetailAppPermissions:
       return MaterialPageRoute(

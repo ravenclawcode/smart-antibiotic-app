@@ -26,6 +26,16 @@ const imgKuis3 = 'assets/images/img_kuis3.png';
 const imgTaken = 'assets/images/img_taken.png';
 const imgSkipped = 'assets/images/img_skipped.png';
 const imgMissed = 'assets/images/img_missed.png';
+const imgNotificationBanner = 'assets/images/img_notification_banner.png';
+const imgReminderBanner = 'assets/images/img_reminder_banner.png';
+const imgPermissionStep1Banner =
+    'assets/images/img_permission_step1_banner.png';
+const imgPermissionStep2Banner =
+    'assets/images/img_permission_step2_banner.png';
+const imgPermissionStep3Banner =
+    'assets/images/img_permission_step3_banner.png';
+const imgPermissionStep4Banner =
+    'assets/images/img_permission_step4_banner.png';
 
 // Icons
 const icLogo = 'assets/icons/ic_logo.png';

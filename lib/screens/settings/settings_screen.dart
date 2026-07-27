@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -13,31 +14,38 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(context),
-          SizedBox(height: 26),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Color(0xFFE7ECF0)),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: Column(
+          children: [
+            _buildHeader(context),
+            SizedBox(height: 26),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Color(0xFFE7ECF0)),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                child: _buildOptionMenu(context),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-              child: _buildOptionMenu(context),
             ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Smart Antibiotik v1.0.0',
-            style: AppTextStyles.bodySmall.copyWith(
-              fontSize: 13,
-              color: AppColors.textMuted,
+            SizedBox(height: 16),
+            Text(
+              'Smart Antibiotik v1.0.0',
+              style: AppTextStyles.bodySmall.copyWith(
+                fontSize: 13,
+                color: AppColors.textMuted,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

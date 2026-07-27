@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 
 import '../../utils/app_colors.dart';
@@ -9,13 +10,20 @@ class SettingsAlarmOptimizationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(context),
-          SizedBox(height: 26),
-          _buildContent(context),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: Column(
+          children: [
+            _buildHeader(context),
+            SizedBox(height: 26),
+            _buildContent(context),
+          ],
+        ),
       ),
     );
   }
