@@ -54,7 +54,7 @@ Widget _buildHeader(BuildContext context) {
           ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 26),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: SafeArea(
             bottom: false,
             child: Column(

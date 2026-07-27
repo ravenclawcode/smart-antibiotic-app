@@ -131,7 +131,7 @@ Widget _buildHeader(BuildContext context) {
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 26),
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Row(
@@ -156,7 +156,7 @@ Widget _buildHeader(BuildContext context) {
                 ),
               ),
             ),
-            SizedBox(width: 18),
+            SizedBox(width: 14),
             Text(
               'Edit Profil',
               style: AppTextStyles.titleLarge.copyWith(

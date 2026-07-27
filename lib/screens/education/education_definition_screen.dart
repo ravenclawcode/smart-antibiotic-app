@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
-class MedicineHistoryScreen extends StatelessWidget {
-  const MedicineHistoryScreen({super.key});
+class EducationDefinitionScreen extends StatelessWidget {
+  const EducationDefinitionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ Widget _buildHeader(BuildContext context) {
             ),
             SizedBox(width: 14),
             Text(
-              'Riwayat Obat',
+              'Apa itu Antibiotik?',
               style: AppTextStyles.titleLarge.copyWith(
                 color: AppColors.textWhite,
               ),

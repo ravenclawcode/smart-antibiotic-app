@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
-class MedicineHistoryScreen extends StatelessWidget {
-  const MedicineHistoryScreen({super.key});
+class EducationUsageScreen extends StatelessWidget {
+  const EducationUsageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +21,8 @@ class MedicineHistoryScreen extends StatelessWidget {
 }
 
 Widget _buildHeader(BuildContext context) {
+  final isSmallScreen = MediaQuery.of(context).size.width < 360;
+
   return Container(
     height: 115,
     width: double.infinity,
@@ -52,13 +54,17 @@ Widget _buildHeader(BuildContext context) {
               ),
             ),
             SizedBox(width: 14),
-            Text(
-              'Riwayat Obat',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            Expanded(
+              child: Text(
+                'Cara Penggunaan Antibiotik',
+                style: AppTextStyles.titleLarge.copyWith(
+                  fontSize: isSmallScreen ? 24 : 21,
+                  color: AppColors.textWhite,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Spacer(),
           ],
         ),
       ),

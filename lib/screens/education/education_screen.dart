@@ -54,7 +54,7 @@ Widget _buildHeader(BuildContext context) {
           ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 26),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: SafeArea(
             bottom: false,
             child: Column(
@@ -112,42 +112,42 @@ Widget _buildEducationList(BuildContext context) {
       'image': imgEdu1,
       'cardColor': Color(0xFFE3EFFD),
       'textColor': Color(0xFF1A61CB),
-      'onTap': () {},
+      'route': '/education-definition',
     },
     {
       'title': 'Jenis-Jenis\nAntibiotik',
       'image': imgEdu2,
       'cardColor': Color(0xFFE2F5F1),
       'textColor': Color(0xFF076151),
-      'onTap': () {},
+      'route': '/education-type',
     },
     {
       'title': 'Kapan\nDiperlukan?',
       'image': imgEdu3,
       'cardColor': Color(0xFFFEECD5),
       'textColor': Color(0xFF8D4402),
-      'onTap': () {},
+      'route': '/education-indications',
     },
     {
       'title': 'Cara\nPenggunaan\nAntibiotik',
       'image': imgEdu4,
       'cardColor': Color(0xFFE7E5FE),
       'textColor': Color(0xFF4A29A3),
-      'onTap': () {},
+      'route': '/education-usage',
     },
     {
       'title': 'Resistensi\nAntibiotik',
       'image': imgEdu5,
       'cardColor': Color(0xFFFEE1E3),
       'textColor': Color(0xFFAA2125),
-      'onTap': () {},
+      'route': '/education-resistance',
     },
     {
       'title': 'Kategori\nAntibiotik',
       'image': imgEdu6,
       'cardColor': Color(0xFFE1F6F9),
       'textColor': Color(0xFF0C6C79),
-      'onTap': () {},
+      'route': '/education-category',
     },
   ];
 
@@ -169,7 +169,7 @@ Widget _buildEducationList(BuildContext context) {
         image: Image.asset(item['image'] as String),
         colorCard: item['cardColor'] as Color,
         colorText: item['textColor'] as Color,
-        onTap: item['onTap'] as VoidCallback?,
+        onTap: () => Navigator.pushNamed(context, item['route'] as String),
       );
     },
   );

@@ -215,7 +215,8 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu1),
               colorCard: Color(0xFFE3EFFD),
               colorText: Color(0xFF1A61CB),
-              onTap: () {},
+              onTap: () =>
+                  Navigator.pushNamed(context, '/education-definition'),
             ),
             SizedBox(width: 10),
             CustomEducationCard(
@@ -223,7 +224,7 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu2),
               colorCard: Color(0xFFE2F5F1),
               colorText: Color(0xFF076151),
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, '/education-type'),
             ),
             SizedBox(width: 10),
             CustomEducationCard(
@@ -231,7 +232,8 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu3),
               colorCard: Color(0xFFFEECD5),
               colorText: Color(0xFF8D4402),
-              onTap: () {},
+              onTap: () =>
+                  Navigator.pushNamed(context, '/education-indications'),
             ),
             SizedBox(width: 10),
             CustomEducationCard(
@@ -239,7 +241,7 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu4),
               colorCard: Color(0xFFE7E5FE),
               colorText: Color(0xFF4A29A3),
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, '/education-usage'),
             ),
             SizedBox(width: 10),
             CustomEducationCard(
@@ -247,7 +249,8 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu5),
               colorCard: Color(0xFFFEE1E3),
               colorText: Color(0xFFAA2125),
-              onTap: () {},
+              onTap: () =>
+                  Navigator.pushNamed(context, '/education-resistance'),
             ),
             SizedBox(width: 10),
             CustomEducationCard(
@@ -255,7 +258,7 @@ Widget _buildEducationList(BuildContext context) {
               image: Image.asset(imgEdu6),
               colorCard: Color(0xFFE1F6F9),
               colorText: Color(0xFF0C6C79),
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, '/education-category'),
             ),
           ],
         ),

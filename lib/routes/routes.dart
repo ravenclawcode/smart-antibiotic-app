@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/screens/chatbot/chatbot_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_category_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_definition_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_indications_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_resistance_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_types_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_usage_screen.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
@@ -36,6 +42,12 @@ class Routes {
   static const String medicineHistory = '/medicine-history';
 
   static const String education = '/education';
+  static const String educationDefinition = '/education-definition';
+  static const String educationType = '/education-type';
+  static const String educationIndications = '/education-indications';
+  static const String educationUsage = '/education-usage';
+  static const String educationResistance = '/education-resistance';
+  static const String educationCategory = '/education-category';
 
   static const String quiz = '/quiz';
 
@@ -60,6 +72,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case Routes.main:
       return MaterialPageRoute(builder: (_) => const MainScreen());
+
     case Routes.onboardingSplash:
       return MaterialPageRoute(builder: (_) => const OnboardingSplashScreen());
     case Routes.onboardingWelcome:
@@ -72,16 +85,40 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => const OnboardingPermissionScreen(),
       );
+
     case Routes.home:
       return MaterialPageRoute(builder: (_) => const HomeScreen());
+
     case Routes.medicine:
       return MaterialPageRoute(builder: (_) => const MedicineScreen());
-    case Routes.education:
-      return MaterialPageRoute(builder: (_) => const EducationScreen());
-    case Routes.quiz:
-      return MaterialPageRoute(builder: (_) => const QuizScreen());
+
     case Routes.medicineHistory:
       return MaterialPageRoute(builder: (_) => const MedicineHistoryScreen());
+
+    case Routes.education:
+      return MaterialPageRoute(builder: (_) => const EducationScreen());
+    case Routes.educationDefinition:
+      return MaterialPageRoute(
+        builder: (_) => const EducationDefinitionScreen(),
+      );
+    case Routes.educationType:
+      return MaterialPageRoute(builder: (_) => const EducationTypesScreen());
+    case Routes.educationIndications:
+      return MaterialPageRoute(
+        builder: (_) => const EducationIndicationsScreen(),
+      );
+    case Routes.educationUsage:
+      return MaterialPageRoute(builder: (_) => const EducationUsageScreen());
+    case Routes.educationResistance:
+      return MaterialPageRoute(
+        builder: (_) => const EducationResistanceScreen(),
+      );
+    case Routes.educationCategory:
+      return MaterialPageRoute(builder: (_) => const EducationCategoryScreen());
+
+    case Routes.quiz:
+      return MaterialPageRoute(builder: (_) => const QuizScreen());
+
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());
     case Routes.settingsEditProfile:
@@ -120,8 +157,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => const SettingsDetailAppPermissionsScreen(),
       );
+
     case Routes.chatbot:
       return MaterialPageRoute(builder: (_) => const ChatbotScreen());
+
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(
