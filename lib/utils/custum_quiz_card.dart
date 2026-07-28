@@ -55,7 +55,7 @@ class CustomQuizCard extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: AppTextStyles.bodySmall.copyWith(
+                  style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),

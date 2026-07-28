@@ -21,7 +21,7 @@ class _CustomInputNameFormState extends State<CustomInputNameForm> {
       textAlign: TextAlign.center,
       cursorColor: AppColors.primary,
       cursorErrorColor: AppColors.primary,
-      style: AppTextStyles.bodyMedium,
+      style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.normal),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         filled: true,

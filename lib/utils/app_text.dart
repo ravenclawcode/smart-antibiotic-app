@@ -49,7 +49,7 @@ class AppTextStyles {
   );
 
   static TextStyle get hint => GoogleFonts.nunito(
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: FontWeight.w300,
     color: AppColors.textMuted,
   );

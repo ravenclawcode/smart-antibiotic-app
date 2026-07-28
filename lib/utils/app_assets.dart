@@ -36,6 +36,22 @@ const imgPermissionStep3Banner =
     'assets/images/img_permission_step3_banner.png';
 const imgPermissionStep4Banner =
     'assets/images/img_permission_step4_banner.png';
+const imgLight = 'assets/images/img_light.png';
+const imgShield = 'assets/images/img_shield.png';
+const imgAlert = 'assets/images/img_alert.png';
+const imgResistance = 'assets/images/img_resistance.png';
+const imgBarrier = 'assets/images/img_barrier.png';
+const imgMicrobe = 'assets/images/img_microbe.png';
+const imgDNA = 'assets/images/img_dna.png';
+const imgMolecule = 'assets/images/img_molecule.png';
+const imgThroat = 'assets/images/img_throat.png';
+const imgKidney = 'assets/images/img_kidney.png';
+const imgSkin = 'assets/images/img_skin.png';
+const imgLungs = 'assets/images/img_lungs.png';
+const imgDoctor = 'assets/images/img_doctor.png';
+const imgCalendar = 'assets/images/img_calendar.png';
+const imgPills = 'assets/images/img_pills.png';
+const imgPeople = 'assets/images/img_people.png';
 
 // Icons
 const icLogo = 'assets/icons/ic_logo.png';
@@ -45,3 +61,4 @@ const icMedicine = 'assets/icons/ic_medicine.png';
 const icSettings = 'assets/icons/ic_settings.png';
 const icDelete = 'assets/icons/ic_delete.png';
 const icPerson = 'assets/icons/ic_person.png';
+const icSearch = 'assets/icons/ic_search.png';
