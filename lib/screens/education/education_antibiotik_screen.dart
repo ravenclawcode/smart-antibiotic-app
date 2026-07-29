@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_antibiotic/utils/custom_antibiotik_card.dart';
 
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
-import '../../utils/custom_education_card.dart';
 
-class EducationScreen extends StatelessWidget {
-  const EducationScreen({super.key});
+class EducationAntibiotikScreen extends StatelessWidget {
+  const EducationAntibiotikScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class EducationScreen extends StatelessWidget {
             SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildEducationList(context),
+              child: _buildList(),
             ),
           ],
         ),
@@ -35,7 +35,7 @@ class EducationScreen extends StatelessWidget {
 
 Widget _buildHeader(BuildContext context) {
   return Container(
-    height: 220,
+    height: 186,
     width: double.infinity,
     clipBehavior: Clip.hardEdge,
     decoration: BoxDecoration(color: AppColors.primary),
@@ -83,20 +83,20 @@ Widget _buildHeader(BuildContext context) {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'Antibiotik',
+                  'Penisilin',
                   style: AppTextStyles.titleLarge.copyWith(
                     color: AppColors.textWhite,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Jelajahi informasi penting tentang\nantibiotik secara bertahap',
+                  '4 Obat',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 18,
                     color: AppColors.textWhite,
                   ),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 2),
               ],
             ),
           ),
@@ -106,71 +106,45 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildEducationList(BuildContext context) {
-  final items = [
+Widget _buildList() {
+  final item = [
     {
-      'title': 'Apa itu\nAntibiotik?',
-      'image': imgEdu1,
-      'cardColor': Color(0xFFE3EFFD),
-      'textColor': Color(0xFF1A61CB),
-      'route': '/education-definition',
+      'title': 'Amoxicillin',
+      'image': Image.asset(imgManyPills),
+      'route': '/education-detail',
     },
     {
-      'title': 'Jenis-Jenis\nAntibiotik',
-      'image': imgEdu2,
-      'cardColor': Color(0xFFE2F5F1),
-      'textColor': Color(0xFF076151),
-      'route': '/education-type',
+      'title': 'Ampicillin',
+      'image': Image.asset(imgManyPills),
+      'route': '/lorem-ipsum',
     },
     {
-      'title': 'Kapan\nDiperlukan?',
-      'image': imgEdu3,
-      'cardColor': Color(0xFFFEECD5),
-      'textColor': Color(0xFF8D4402),
-      'route': '/education-indications',
+      'title': 'Piperacillin',
+      'image': Image.asset(imgManyPills),
+      'route': '/lorem-ipsum',
     },
     {
-      'title': 'Cara\nPenggunaan\nAntibiotik',
-      'image': imgEdu4,
-      'cardColor': Color(0xFFE7E5FE),
-      'textColor': Color(0xFF4A29A3),
-      'route': '/education-usage',
-    },
-    {
-      'title': 'Resistensi\nAntibiotik',
-      'image': imgEdu5,
-      'cardColor': Color(0xFFFEE1E3),
-      'textColor': Color(0xFFAA2125),
-      'route': '/education-resistance',
-    },
-    {
-      'title': 'Kategori\nAntibiotik',
-      'image': imgEdu6,
-      'cardColor': Color(0xFFE1F6F9),
-      'textColor': Color(0xFF0C6C79),
-      'route': '/education-category',
+      'title': 'Oxacillin',
+      'image': Image.asset(imgManyPills),
+      'route': '/lorem-ipsum',
     },
   ];
 
-  return GridView.builder(
+  return ListView.builder(
     shrinkWrap: true,
     physics: NeverScrollableScrollPhysics(),
-    padding: EdgeInsets.all(0),
-    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 0.70,
-    ),
-    itemCount: items.length,
+    itemCount: item.length,
+    padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
-      final item = items[index];
-      return CustomEducationCard(
-        title: item['title'] as String,
-        image: Image.asset(item['image'] as String),
-        colorCard: item['cardColor'] as Color,
-        colorText: item['textColor'] as Color,
-        onTap: () => Navigator.pushNamed(context, item['route'] as String),
+      final menu = item[index];
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: CustomAntibiotikCard(
+          title: menu['title'] as String,
+          image: menu['image'] as Image,
+          onTap: () => Navigator.pushNamed(context, menu['route'] as String),
+        ),
       );
     },
   );

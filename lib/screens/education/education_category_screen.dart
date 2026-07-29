@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
+import 'package:smart_antibiotic/utils/custom_category_card.dart';
 import 'package:smart_antibiotic/utils/custom_search_bar.dart';
 
 import '../../utils/app_colors.dart';
@@ -31,7 +33,13 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: Column(children: [_buildHeader(context, searchController)]),
+        body: Column(
+          children: [
+            _buildHeader(context, searchController),
+            SizedBox(height: 20),
+            _buildList(),
+          ],
+        ),
       ),
     );
   }
@@ -84,11 +92,42 @@ Widget _buildHeader(
                 Spacer(),
               ],
             ),
-            SizedBox(height: 14),
+            SizedBox(height: 16),
             CustomSearchBar(controller: searchController),
           ],
         ),
       ),
     ),
+  );
+}
+
+Widget _buildList() {
+  final item = [
+    {
+      'title': 'Penisilin',
+      'subtitle': '4 obat',
+      'image': Image.asset(imgManyPills),
+      'route': '/education-antibiotik',
+    },
+  ];
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: item.length,
+    padding: EdgeInsets.zero,
+    itemBuilder: (context, index) {
+      final menu = item[index];
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+        child: CustomCategoryCard(
+          title: menu['title'] as String,
+          subtitle: menu['subtitle'] as String,
+          image: menu['image'] as Image,
+          onTap: () => Navigator.pushNamed(context, menu['route'] as String),
+        ),
+      );
+    },
   );
 }

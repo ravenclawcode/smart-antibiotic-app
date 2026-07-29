@@ -6,7 +6,7 @@ import 'package:smart_antibiotic/utils/app_text.dart';
 import '../../utils/custom_calendar.dart';
 import '../../utils/custom_education_card.dart';
 import '../../utils/custom_medicine_card.dart';
-import '../../utils/custum_quiz_card.dart';
+import '../../utils/custom_quiz_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,7 +176,12 @@ Widget _buildEducationList(BuildContext context) {
     children: [
       Row(
         children: [
-          Text('Antibiotik', style: AppTextStyles.bodyLarge),
+          Text(
+            'Antibiotik',
+            style: AppTextStyles.titleSmall.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           Spacer(),
           InkWell(
             focusColor: Colors.transparent,
@@ -272,7 +277,12 @@ Widget _buildQuisList(BuildContext context) {
     children: [
       Row(
         children: [
-          Text('Kuis', style: AppTextStyles.bodyLarge),
+          Text(
+            'Kuis',
+            style: AppTextStyles.titleSmall.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           Spacer(),
           InkWell(
             focusColor: Colors.transparent,

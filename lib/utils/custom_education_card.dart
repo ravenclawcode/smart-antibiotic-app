@@ -38,8 +38,7 @@ class CustomEducationCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: AppTextStyles.bodySmall.copyWith(
-                fontSize: 14,
+              style: AppTextStyles.bodyMedium.copyWith(
                 color: colorText,
                 fontWeight: FontWeight.bold,
               ),

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
-import '../../utils/custum_quiz_card.dart';
+import '../../utils/custom_quiz_card.dart';
 
 class QuizScreen extends StatelessWidget {
   const QuizScreen({super.key});
@@ -19,14 +19,7 @@ class QuizScreen extends StatelessWidget {
       ),
       child: Scaffold(
         body: Column(
-          children: [
-            _buildHeader(context),
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildQuisList(context),
-            ),
-          ],
+          children: [_buildHeader(context), _buildQuisList(context)],
         ),
       ),
     );
@@ -92,10 +85,11 @@ Widget _buildHeader(BuildContext context) {
                 Text(
                   'Tingkatkan pengetahuanmu tentang\nantibiotik melalui kuis',
                   style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
                     color: AppColors.textWhite,
                   ),
                 ),
-                SizedBox(height: 14),
+                SizedBox(height: 12),
               ],
             ),
           ),
@@ -106,39 +100,39 @@ Widget _buildHeader(BuildContext context) {
 }
 
 Widget _buildQuisList(BuildContext context) {
-  return Column(
-    children: [
-      SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        clipBehavior: Clip.none,
-        child: Column(
-          children: [
-            CustomQuizCard(
-              title: 'Level 1',
-              subtitle: 'Lorem Ipsum',
-              image: Image.asset(imgKuis1),
-              color: AppColors.surfaceSecondary,
-              onTap: () {},
-            ),
-            SizedBox(height: 10),
-            CustomQuizCard(
-              title: 'Level 2',
-              subtitle: 'Lorem Ipsum',
-              image: Image.asset(imgKuis2),
-              color: AppColors.surfaceSecondary,
-              onTap: () {},
-            ),
-            SizedBox(height: 10),
-            CustomQuizCard(
-              title: 'Level 3',
-              subtitle: 'Lorem Ipsum',
-              image: Image.asset(imgKuis3),
-              color: AppColors.surfaceSecondary,
-              onTap: () {},
-            ),
-          ],
-        ),
+  return SingleChildScrollView(
+    scrollDirection: Axis.vertical,
+    clipBehavior: Clip.none,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          SizedBox(height: 20),
+          CustomQuizCard(
+            title: 'Level 1',
+            subtitle: 'Lorem Ipsum',
+            image: Image.asset(imgKuis1),
+            color: AppColors.surfaceSecondary,
+            onTap: () {},
+          ),
+          SizedBox(height: 10),
+          CustomQuizCard(
+            title: 'Level 2',
+            subtitle: 'Lorem Ipsum',
+            image: Image.asset(imgKuis2),
+            color: AppColors.surfaceSecondary,
+            onTap: () {},
+          ),
+          SizedBox(height: 10),
+          CustomQuizCard(
+            title: 'Level 3',
+            subtitle: 'Lorem Ipsum',
+            image: Image.asset(imgKuis3),
+            color: AppColors.surfaceSecondary,
+            onTap: () {},
+          ),
+        ],
       ),
-    ],
+    ),
   );
 }

@@ -113,13 +113,13 @@ Widget _buildOptionMenu(BuildContext context) {
     },
     {
       'title': 'Pengoptimalan Alarm',
-      'subtitle': 'Alarm tidak bunyi? periksa pengaturan',
+      'subtitle': 'Tidak bunyi? periksa pengaturan',
       'status': '2 / 3 selesai',
       'route': '/settings-alarm-optimization',
     },
     {
       'title': 'Komentar & Masukan',
-      'subtitle': 'Tanyakan seputar obat atau beri masukan',
+      'subtitle': 'Tanyakan seputar obat atau masukan',
       'status': '',
       'route': '/settings-comments-and-feedback',
     },
@@ -143,7 +143,7 @@ Widget _buildOptionMenu(BuildContext context) {
         overlayColor: WidgetStateProperty.all(Colors.transparent),
         onTap: () => Navigator.pushNamed(context, menu['route'] as String),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(5, 8, 5, isLastItem ? 7 : 0),
+          padding: EdgeInsets.fromLTRB(2, 8, 5, isLastItem ? 7 : 0),
           child: Column(
             children: [
               Row(
@@ -157,8 +157,8 @@ Widget _buildOptionMenu(BuildContext context) {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           text: TextSpan(
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontWeight: FontWeight.bold,
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              fontSize: 17,
                               color: AppColors.textPrimary,
                             ),
                             children: [
@@ -182,11 +182,9 @@ Widget _buildOptionMenu(BuildContext context) {
                             ],
                           ),
                         ),
-                        SizedBox(height: 2),
                         Text(
                           menu['subtitle'] as String,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 15,
                             color: AppColors.textSecondary,
                           ),
                           maxLines: 1,

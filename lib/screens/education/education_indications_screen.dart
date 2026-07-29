@@ -114,7 +114,6 @@ Widget _buildContent(BuildContext context) {
                       Text(
                         'Tidak efektif untuk:',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/screens/chatbot/chatbot_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_antibiotik_detail_screen.dart';
+import 'package:smart_antibiotic/screens/education/education_antibiotik_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_category_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_definition_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_indications_screen.dart';
@@ -48,6 +50,8 @@ class Routes {
   static const String educationUsage = '/education-usage';
   static const String educationResistance = '/education-resistance';
   static const String educationCategory = '/education-category';
+  static const String educationAntibiotik = '/education-antibiotik';
+  static const String educationDetail = '/education-detail';
 
   static const String quiz = '/quiz';
 
@@ -115,6 +119,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case Routes.educationCategory:
       return MaterialPageRoute(builder: (_) => const EducationCategoryScreen());
+    case Routes.educationAntibiotik:
+      return MaterialPageRoute(
+        builder: (_) => const EducationAntibiotikScreen(),
+      );
+    case Routes.educationDetail:
+      return MaterialPageRoute(
+        builder: (_) => const EducationAntibiotikDetailScreen(),
+      );
 
     case Routes.quiz:
       return MaterialPageRoute(builder: (_) => const QuizScreen());

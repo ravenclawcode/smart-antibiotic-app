@@ -148,7 +148,6 @@ Widget _buildContent() {
                       Text(
                         'Ingat!',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

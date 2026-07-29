@@ -52,6 +52,7 @@ const imgDoctor = 'assets/images/img_doctor.png';
 const imgCalendar = 'assets/images/img_calendar.png';
 const imgPills = 'assets/images/img_pills.png';
 const imgPeople = 'assets/images/img_people.png';
+const imgManyPills = 'assets/images/img_many_pills.png';
 
 // Icons
 const icLogo = 'assets/icons/ic_logo.png';
