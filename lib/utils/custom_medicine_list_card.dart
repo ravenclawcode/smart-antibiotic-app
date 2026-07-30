@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
-class CustomAntibiotikCard extends StatelessWidget {
+class CustomMedicineListCard extends StatelessWidget {
   final String title;
   final Widget image;
   final VoidCallback? onTap;
 
-  const CustomAntibiotikCard({
+  const CustomMedicineListCard({
     super.key,
     required this.title,
     required this.image,
@@ -23,23 +23,15 @@ class CustomAntibiotikCard extends StatelessWidget {
       splashColor: Colors.transparent,
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
+          color: AppColors.surfacePrimary,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: Color(0xFFE0EEFB),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: image,
-            ),
-            SizedBox(width: 10),
+            Padding(padding: const EdgeInsets.all(8), child: image),
+            SizedBox(width: 6),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

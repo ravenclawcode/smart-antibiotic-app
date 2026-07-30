@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_antibiotic/utils/custom_video_card.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -98,6 +99,7 @@ class _EducationAntibiotikDetailScreenState
                 sectionKeys: _sectionKeys,
               ),
             ),
+            SizedBox(height: 26),
           ],
         ),
       ),
@@ -218,7 +220,7 @@ Widget _buildContent({
       children: [
         ListView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount: items.length,
           itemBuilder: (context, index) {
@@ -227,98 +229,103 @@ Widget _buildContent({
             final String rawDescription = poin['description']!;
             final List<String> lines = rawDescription.split('\n');
 
+            final isVideoSection = title == 'Video';
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   key: sectionKeys[title],
-                  padding: EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.only(top: 20),
                   child: Container(
                     height: 36,
                     width: double.infinity,
                     color: AppColors.surfaceAccent,
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(title, style: AppTextStyles.bodyLarge),
                     ),
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 16),
+
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: lines.asMap().entries.map((entry) {
-                      final lineIndex = entry.key;
-                      final line = entry.value;
-                      final trimmedLine = line.trim();
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: isVideoSection
+                      ? CustomVideoCard(title: rawDescription)
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: lines.asMap().entries.map((entry) {
+                            final lineIndex = entry.key;
+                            final line = entry.value;
+                            final trimmedLine = line.trim();
 
-                      if (trimmedLine.isEmpty) {
-                        return SizedBox(height: 8);
-                      }
+                            if (trimmedLine.isEmpty) {
+                              return const SizedBox(height: 8);
+                            }
 
-                      if (trimmedLine.startsWith('•')) {
-                        final cleanText = trimmedLine.replaceFirst(
-                          RegExp(r'^•\s*'),
-                          '',
-                        );
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 4),
-                          child: _buildBulletItem(cleanText),
-                        );
-                      }
+                            if (trimmedLine.startsWith('•')) {
+                              final cleanText = trimmedLine.replaceFirst(
+                                RegExp(r'^•\s*'),
+                                '',
+                              );
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: _buildBulletItem(cleanText),
+                              );
+                            }
 
-                      if (title == 'Ringkasan' && lineIndex == 0) {
-                        final firstSpaceIndex = trimmedLine.indexOf(' ');
+                            if (title == 'Ringkasan' && lineIndex == 0) {
+                              final firstSpaceIndex = trimmedLine.indexOf(' ');
 
-                        if (firstSpaceIndex != -1) {
-                          final firstWord = trimmedLine.substring(
-                            0,
-                            firstSpaceIndex,
-                          );
-                          final remainingText = trimmedLine.substring(
-                            firstSpaceIndex,
-                          );
+                              if (firstSpaceIndex != -1) {
+                                final firstWord = trimmedLine.substring(
+                                  0,
+                                  firstSpaceIndex,
+                                );
+                                final remainingText = trimmedLine.substring(
+                                  firstSpaceIndex,
+                                );
 
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 4),
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: firstWord,
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: firstWord,
+                                          style: AppTextStyles.bodyMedium
+                                              .copyWith(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        TextSpan(
+                                          text: remainingText,
+                                          style: AppTextStyles.bodyMedium
+                                              .copyWith(fontSize: 18),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  TextSpan(
-                                    text: remainingText,
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
+                                );
+                              }
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                line,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                          );
-                        }
-                      }
-
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          line,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 18,
-                          ),
+                            );
+                          }).toList(),
                         ),
-                      );
-                    }).toList(),
-                  ),
                 ),
-                SizedBox(height: 26),
+                const SizedBox(height: 4),
               ],
             );
           },

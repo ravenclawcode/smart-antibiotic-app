@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/custom_dialog_medicine.dart';
 
 import '../../utils/custom_calendar.dart';
 import '../../utils/custom_education_card.dart';
@@ -18,6 +19,38 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DateTime selectedDate = DateTime.now();
   late DateTime currentWeekStart;
+
+  void _showMedicineDialog({
+    required String time,
+    required Widget image,
+    required String name,
+    required String dosage,
+    required String notes,
+    required bool isTaken,
+    required bool isSkipped,
+    required bool isMissed,
+    required Widget imgStatus,
+    String? statusText,
+    String? notesText,
+  }) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => CustomDialogMedicine(
+        time: time,
+        image: image,
+        name: name,
+        dosage: dosage,
+        notes: notes,
+        isTaken: isTaken,
+        isSkipped: isSkipped,
+        isMissed: isMissed,
+        imgStatus: imgStatus,
+        statusText: statusText,
+        notesText: notesText,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -57,7 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 16),
-                    _buildMedicineList(selectedDate),
+                    _buildMedicineList(
+                      context,
+                      _showMedicineDialog,
+                      selectedDate,
+                    ),
                     SizedBox(height: 26),
                     _buildEducationList(context),
                     SizedBox(height: 26),
@@ -126,7 +163,14 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildMedicineList(DateTime selectedDate) {
+Widget _buildMedicineList(
+  BuildContext context,
+  Function showMedicineDialog,
+  DateTime selectedDate,
+) {
+  final dateFormatted =
+      "${selectedDate.day} ${_getMonthName(selectedDate.month)}";
+
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -138,9 +182,22 @@ Widget _buildMedicineList(DateTime selectedDate) {
         notes: '',
         isTaken: false,
         isSkipped: false,
-        imgStatus: SizedBox(),
+        isMissed: false,
+        imgStatus: const SizedBox(),
+        onTap: () => showMedicineDialog(
+          time: '09.00',
+          image: Image.asset(imgTablet, width: 44),
+          name: 'Amoxicillin',
+          dosage: 'Minum 1 Tablet',
+          notes: '',
+          isTaken: false,
+          isSkipped: false,
+          isMissed: false,
+          imgStatus: const SizedBox(),
+        ),
       ),
-      SizedBox(height: 12),
+      const SizedBox(height: 12),
+
       CustomMedicineCard(
         time: '16.00',
         image: Image.asset(imgTablet, width: 30),
@@ -149,24 +206,76 @@ Widget _buildMedicineList(DateTime selectedDate) {
         notes: '',
         isTaken: true,
         isSkipped: false,
+        isMissed: false,
         imgStatus: Image.asset(imgTaken, width: 12),
-        statusText:
-            'Diminum pukul 16.00, ${selectedDate.day} ${_getMonthName(selectedDate.month)}',
+        statusText: 'Diminum pukul 16.00, $dateFormatted',
+        onTap: () => showMedicineDialog(
+          time: '16.00',
+          image: Image.asset(imgTablet, width: 44),
+          name: 'Amoxicillin',
+          dosage: 'Minum 1 Tablet',
+          notes: '',
+          isTaken: true,
+          isSkipped: false,
+          isMissed: false,
+          imgStatus: Image.asset(imgTaken, width: 14),
+          statusText: 'Diminum pukul 16.00, $dateFormatted',
+        ),
       ),
-      // SizedBox(height: 12),
-      // MedicineCard(
-      //   time: '20.00',
-      //   image: Image.asset(imgTablet, width: 30),
-      //   name: 'Amoxicillin',
-      //   dosage: 'Minum 1 Tablet',
-      //   notes: '',
-      //   isTaken: true,
-      //   isSkipped: true,
-      //   imgStatus: Image.asset(imgSkipped, width: 12),
-      //   notesText: 'Lupa / sedang sibuk / tertidur',
-      //   statusText:
-      //       'Dilewati pukul 17.00, ${selectedDate.day} ${_getMonthName(selectedDate.month)}',
-      // ),
+      const SizedBox(height: 12),
+
+      CustomMedicineCard(
+        time: '20.00',
+        image: Image.asset(imgTablet, width: 30),
+        name: 'Amoxicillin',
+        dosage: 'Minum 1 Tablet',
+        notes: '',
+        isTaken: false,
+        isSkipped: true,
+        isMissed: false,
+        imgStatus: Image.asset(imgSkipped, width: 12),
+        notesText: 'Lupa / sedang sibuk / tertidur',
+        statusText: 'Dilewati pukul 20.00, $dateFormatted',
+        onTap: () => showMedicineDialog(
+          time: '20.00',
+          image: Image.asset(imgTablet, width: 44),
+          name: 'Amoxicillin',
+          dosage: 'Minum 1 Tablet',
+          notes: '',
+          isTaken: false,
+          isSkipped: true,
+          isMissed: false,
+          imgStatus: Image.asset(imgSkipped, width: 14),
+          notesText: 'Lupa / sedang sibuk / tertidur',
+          statusText: 'Dilewati pukul 20.00, $dateFormatted',
+        ),
+      ),
+      const SizedBox(height: 12),
+
+      CustomMedicineCard(
+        time: '23.00',
+        image: Image.asset(imgTablet, width: 30),
+        name: 'Amoxicillin',
+        dosage: 'Minum 1 Tablet',
+        notes: '',
+        isTaken: false,
+        isSkipped: false,
+        isMissed: true,
+        imgStatus: Image.asset(imgMissed, width: 12),
+        statusText: 'Terlewat',
+        onTap: () => showMedicineDialog(
+          time: '23.00',
+          image: Image.asset(imgTablet, width: 44),
+          name: 'Amoxicillin',
+          dosage: 'Minum 1 Tablet',
+          notes: '',
+          isTaken: false,
+          isSkipped: false,
+          isMissed: true,
+          imgStatus: Image.asset(imgMissed, width: 14),
+          statusText: 'Terlewat',
+        ),
+      ),
     ],
   );
 }
