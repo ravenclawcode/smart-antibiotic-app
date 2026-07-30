@@ -82,7 +82,7 @@ Widget _buildContent(BuildContext context) {
       children: [
         Text(
           'Harap berikan semua izin agar pengingat dapat bekerja dengan optimal',
-          style: AppTextStyles.bodyMedium,
+          style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
         ),
         SizedBox(height: 16),
         _buildOptionMenu(context),
@@ -95,19 +95,19 @@ Widget _buildOptionMenu(BuildContext context) {
   final item = [
     {
       'title': 'Izinkan "Notifikasi Push"',
-      'icon': Image.asset(imgTaken, height: 16),
+      'icon': Image.asset(imgTaken, height: 20),
       'route': '/settings-detail-alarm-optimization',
       'essential': '',
     },
     {
       'title': 'Izinkan "Tampil di atas aplikasi lain"',
-      'icon': Image.asset(imgTaken, height: 16),
+      'icon': Image.asset(imgTaken, height: 20),
       'route': '/settings-detail-alarm-permissions',
       'essential': '',
     },
     {
       'title': 'Kecualikan Smart Antibiotik dari optimasi baterai',
-      'icon': Image.asset(imgMissed, height: 16),
+      'icon': Image.asset(imgMissed, height: 20),
       'route': '/settings-detail-app-permissions',
       'essential': '',
     },
@@ -147,9 +147,7 @@ Widget _buildOptionMenu(BuildContext context) {
                         children: [
                           Text(
                             menu['title'] as String,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTextStyles.bodyLarge.copyWith(),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -179,8 +177,8 @@ Widget _buildOptionMenu(BuildContext context) {
                               ),
                               child: Text(
                                 'Mengapa ini penting?',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  fontSize: 15,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontSize: 18,
                                   color: AppColors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                   decoration: TextDecoration.underline,

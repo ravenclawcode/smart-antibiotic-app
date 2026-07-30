@@ -69,3 +69,4 @@ const icDosage = 'assets/icons/ic_dosage.png';
 const icClock = 'assets/icons/ic_clock.png';
 const icNotes = 'assets/icons/ic_notes.png';
 const icReschedule = 'assets/icons/ic_reschedule.png';
+const icSend = 'assets/icons/ic_send.png';

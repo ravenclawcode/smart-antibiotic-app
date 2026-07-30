@@ -71,6 +71,7 @@ Widget _buildContent() {
         Text(
           'Agar pengingat minum obat dapat muncul di layar tepat saat dibutuhkan, Smart Antibiotik memerlukan izin "Tampilkan di atas aplikasi lain". Dengan izin ini, pengingat akan tetap terlihat meskipun Anda sedang menggunakan aplikasi lain, sehingga Anda tidak melewatkan jadwal minum obat.',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             color: AppColors.textSecondary,
             height: 1.6,
           ),
@@ -84,6 +85,7 @@ Widget _buildContent() {
         Text(
           'Jika izin ini tidak diaktifkan, Anda mungkin hanya akan mendengar suara alarm pengingat tanpa melihat notifikasinya di layar. Untuk membantu Anda mengelola pengingat dengan lebih mudah dan mengurangi risiko melewatkan jadwal minum obat, aktifkan izin "Tampilkan di atas aplikasi lain" agar pengingat selalu muncul saat diperlukan.',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             color: AppColors.textSecondary,
             height: 1.6,
           ),

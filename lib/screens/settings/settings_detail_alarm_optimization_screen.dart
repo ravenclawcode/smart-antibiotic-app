@@ -71,6 +71,7 @@ Widget _buildContent() {
         Text(
           'Smart Antibiotik memerlukan izin notifikasi untuk mengirimkan pengingat minum obat tepat waktu. Dengan mengaktifkan notifikasi, Anda juga akan menerima pengingat obat.',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             color: AppColors.textSecondary,
             height: 1.6,
           ),
@@ -84,6 +85,7 @@ Widget _buildContent() {
         Text(
           'Jika notifikasi tidak diaktifkan, Anda mungkin akan melewatkan pengingat penting untuk minum obat.',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             color: AppColors.textSecondary,
             height: 1.6,
           ),

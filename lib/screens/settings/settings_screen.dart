@@ -113,13 +113,13 @@ Widget _buildOptionMenu(BuildContext context) {
     },
     {
       'title': 'Pengoptimalan Alarm',
-      'subtitle': 'Tidak bunyi? periksa pengaturan',
+      'subtitle': 'Solusi jika alarm tidak bunyi',
       'status': '2 / 3 selesai',
       'route': '/settings-alarm-optimization',
     },
     {
       'title': 'Komentar & Masukan',
-      'subtitle': 'Tanyakan seputar obat atau masukan',
+      'subtitle': 'Tanya info obat atau beri masukan',
       'status': '',
       'route': '/settings-comments-and-feedback',
     },
@@ -143,7 +143,7 @@ Widget _buildOptionMenu(BuildContext context) {
         overlayColor: WidgetStateProperty.all(Colors.transparent),
         onTap: () => Navigator.pushNamed(context, menu['route'] as String),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(2, 8, 5, isLastItem ? 7 : 0),
+          padding: EdgeInsets.fromLTRB(0, 6, 0, isLastItem ? 8 : 0),
           child: Column(
             children: [
               Row(
@@ -158,7 +158,7 @@ Widget _buildOptionMenu(BuildContext context) {
                           overflow: TextOverflow.ellipsis,
                           text: TextSpan(
                             style: AppTextStyles.bodyLarge.copyWith(
-                              fontSize: 17,
+                              fontSize: 18,
                               color: AppColors.textPrimary,
                             ),
                             children: [
@@ -185,9 +185,10 @@ Widget _buildOptionMenu(BuildContext context) {
                         Text(
                           menu['subtitle'] as String,
                           style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 17,
                             color: AppColors.textSecondary,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],

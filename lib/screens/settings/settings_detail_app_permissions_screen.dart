@@ -72,6 +72,7 @@ Widget _buildContent() {
         Text(
           'Jika fitur hemat baterai atau optimasi baterai diaktifkan, sistem dapat menghentikan Smart Antibiotik berjalan di latar belakang sehingga alarm dan pengingat minum obat mungkin tidak berbunyi tepat waktu.',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             color: AppColors.textSecondary,
             height: 1.6,
           ),
@@ -85,6 +86,7 @@ Widget _buildContent() {
         Text(
           'Android di Atas 12',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.6,
           ),
@@ -101,15 +103,13 @@ Widget _buildContent() {
                 border: Border.all(color: Color(0xFFE7ECF0)),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '1',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child: Text('1', style: AppTextStyles.bodyMedium),
             ),
             SizedBox(width: 10),
-            Text('Buka Pengaturan > Baterai', style: AppTextStyles.bodyMedium),
+            Text(
+              'Buka Pengaturan > Baterai',
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+            ),
           ],
         ),
         SizedBox(height: 14),
@@ -126,17 +126,12 @@ Widget _buildContent() {
                 border: Border.all(color: Color(0xFFE7ECF0)),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '2',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child: Text('2', style: AppTextStyles.bodyMedium),
             ),
             SizedBox(width: 10),
             Text(
               'Baterai > Pilih "Tidak dibatasi"',
-              style: AppTextStyles.bodyMedium,
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
             ),
           ],
         ),
@@ -146,6 +141,7 @@ Widget _buildContent() {
         Text(
           'Android di bawah 11 atau Perangkat lain',
           style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             height: 1.6,
           ),
@@ -162,15 +158,13 @@ Widget _buildContent() {
                 border: Border.all(color: Color(0xFFE7ECF0)),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '1',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child: Text('1', style: AppTextStyles.bodyMedium),
             ),
             SizedBox(width: 10),
-            Text('Pengaturan > Ketuk Baterai', style: AppTextStyles.bodyMedium),
+            Text(
+              'Pengaturan > Ketuk Baterai',
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+            ),
           ],
         ),
         SizedBox(height: 14),
@@ -185,18 +179,13 @@ Widget _buildContent() {
                 border: Border.all(color: Color(0xFFE7ECF0)),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '2',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child: Text('2', style: AppTextStyles.bodyMedium),
             ),
             SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Optimalkan penggunaan baterai > Ketuk Semua',
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
             ),
           ],
@@ -215,18 +204,13 @@ Widget _buildContent() {
                 border: Border.all(color: Color(0xFFE7ECF0)),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '3',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              child: Text('3', style: AppTextStyles.bodyMedium),
             ),
             SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Cari aplikasi Anda > Nonaktifkan "Optimalkan penggunaan baterai"',
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
             ),
           ],
