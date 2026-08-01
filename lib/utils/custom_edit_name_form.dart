@@ -21,7 +21,7 @@ class _CustomEditNameFormState extends State<CustomEditNameForm> {
       textAlign: TextAlign.left,
       cursorColor: AppColors.primary,
       cursorErrorColor: AppColors.primary,
-      style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.normal),
+      style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         filled: true,

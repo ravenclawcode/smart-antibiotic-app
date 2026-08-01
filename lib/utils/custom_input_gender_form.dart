@@ -24,7 +24,7 @@ class _CustomInputGenderFormState extends State<CustomInputGenderForm> {
         return DropdownMenuItem<String>(value: value, child: Text(value));
       }).toList(),
       hint: Text('Pilih jenis kelamin', style: AppTextStyles.hint),
-      style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.normal),
+      style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
       icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),

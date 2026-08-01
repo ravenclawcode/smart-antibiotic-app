@@ -32,9 +32,7 @@ class CustomInputFeedbackForm extends StatelessWidget {
               controller: controller,
               maxLines: 5,
               minLines: 4,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.normal,
-              ),
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               decoration: InputDecoration(
                 hintText: 'Tulis pertanyaan atau masukanmu disini...',
                 hintStyle: AppTextStyles.hint,

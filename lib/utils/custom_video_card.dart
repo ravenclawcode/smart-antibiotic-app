@@ -53,7 +53,7 @@ class CustomVideoCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.asset(imgCarousel1),
+                        child: Image.asset(imgThumbnail),
                       ),
                     ),
                   ),

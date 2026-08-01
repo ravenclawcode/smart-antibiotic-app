@@ -53,6 +53,7 @@ const imgCalendar = 'assets/images/img_calendar.png';
 const imgPills = 'assets/images/img_pills.png';
 const imgPeople = 'assets/images/img_people.png';
 const imgManyPills = 'assets/images/img_many_pills.png';
+const imgThumbnail = 'assets/images/img_thumbnail.png';
 
 // Icons
 const icLogo = 'assets/icons/ic_logo.png';
@@ -70,3 +71,5 @@ const icClock = 'assets/icons/ic_clock.png';
 const icNotes = 'assets/icons/ic_notes.png';
 const icReschedule = 'assets/icons/ic_reschedule.png';
 const icSend = 'assets/icons/ic_send.png';
+const icShare = 'assets/icons/ic_share.png';
+const icFilter = 'assets/icons/ic_filter.png';

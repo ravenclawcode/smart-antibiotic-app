@@ -54,7 +54,7 @@ class CustomDialogMedicine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 26),
+        padding: EdgeInsets.symmetric(horizontal: 20),
         child: Material(
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
