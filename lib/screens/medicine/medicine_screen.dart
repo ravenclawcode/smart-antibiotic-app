@@ -14,6 +14,22 @@ class MedicineScreen extends StatefulWidget {
 }
 
 class _MedicineScreenState extends State<MedicineScreen> {
+  final medicine = [
+    {
+      'name': 'Amoxicillin',
+      'dosage': '1 Tablet',
+      'instruction': 'Sebelum makan',
+      'start_date': '2026-08-03',
+      'end_date': '2026-09-03',
+      'frequency_type': 'daily',
+      'times_per_day': 2,
+      'interval_value': null,
+      'days': null,
+      'dates': null,
+      'times': ['08:00', '20:00'],
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +37,7 @@ class _MedicineScreenState extends State<MedicineScreen> {
       body: Column(
         children: [
           _buildHeader(context),
-          Expanded(child: _buildContent()),
+          Expanded(child: _buildContent(medicine)),
           SizedBox(height: 26),
         ],
       ),
@@ -74,42 +90,35 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildContent() {
+Widget _buildContent(List<Map<String, dynamic>> medicineData) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       children: [
         SizedBox(height: 20),
-        Expanded(child: _buildList()),
+        Expanded(child: _buildList(medicineData)),
         CustomButtonAdd(onTap: () {}, label: 'Tambah Obat'),
       ],
     ),
   );
 }
 
-Widget _buildList() {
-  final item = [
-    {
-      'title': 'Amoxicillin',
-      'image': Image.asset(imgTablet, height: 30),
-      'route': '/lorem-ipsum',
-    },
-  ];
-
+Widget _buildList(List<Map<String, dynamic>> medicineData) {
   return ListView.builder(
     shrinkWrap: true,
     physics: NeverScrollableScrollPhysics(),
-    itemCount: item.length,
+    itemCount: medicineData.length,
     padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
-      final menu = item[index];
+      final item = medicineData[index];
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: CustomMedicineListCard(
-          title: menu['title'] as String,
-          image: menu['image'] as Image,
-          onTap: () => Navigator.pushNamed(context, menu['route'] as String),
+          title: (item['name'] as String?) ?? '-',
+          image: Image.asset(imgTablet, height: 30),
+          onTap: () =>
+              Navigator.pushNamed(context, '/medicine-detail', arguments: item),
         ),
       );
     },

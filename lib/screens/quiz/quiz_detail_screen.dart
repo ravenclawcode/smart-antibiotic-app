@@ -8,7 +8,6 @@ import '../../utils/custom_button.dart';
 import '../../utils/custom_button_off.dart';
 import '../../utils/custom_option_quiz.dart';
 import '../../utils/custom_progress_bar_onboarding.dart';
-import 'quiz_result_screen.dart';
 
 class QuizQuestion {
   final String question;
@@ -134,12 +133,11 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       }
     }
 
-    Navigator.pushReplacement(
+    Navigator.pushNamedAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) =>
-            QuizResultScreen(score: score, totalQuestions: _questions.length),
-      ),
+      '/quiz-result',
+      (route) => false,
+      arguments: {'score': score, 'totalQuestions': _questions.length},
     );
   }
 

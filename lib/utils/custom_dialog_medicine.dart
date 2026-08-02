@@ -70,7 +70,7 @@ class CustomDialogMedicine extends StatelessWidget {
                   height: 44,
                   width: double.infinity,
                   color: AppColors.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     children: [
                       Spacer(),
@@ -99,7 +99,9 @@ class CustomDialogMedicine extends StatelessWidget {
                                         builder: (dialogContext) =>
                                             const CustomDialogDeleteMedicine(),
                                       );
-                                    } else {}
+                                    } else {
+                                      Navigator.pop(context);
+                                    }
                                   },
                                 ),
                           );
@@ -110,7 +112,7 @@ class CustomDialogMedicine extends StatelessWidget {
                           color: AppColors.surfacePrimary,
                         ),
                       ),
-                      SizedBox(width: 20),
+                      SizedBox(width: 24),
                       InkWell(
                         focusColor: Colors.transparent,
                         hoverColor: Colors.transparent,
@@ -121,13 +123,28 @@ class CustomDialogMedicine extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (context) => CustomMedicineSheet(
-                              title: 'Edit Amoxicillin',
-                              list: [
-                                'Hanya dosis ini',
-                                'Semua dosis berikutnya',
-                              ],
-                            ),
+                            builder: (bottomSheetContext) =>
+                                CustomMedicineSheet(
+                                  title: 'Edit Amoxicillin',
+                                  list: [
+                                    'Hanya dosis ini',
+                                    'Semua dosis berikutnya',
+                                  ],
+                                  onItemTap: (index) {
+                                    Navigator.pop(bottomSheetContext);
+                                    if (index == 1) {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/medicine-detail',
+                                      );
+                                    } else {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/medicine-edit-dosage',
+                                      );
+                                    }
+                                  },
+                                ),
                           );
                         },
                         child: Image.asset(
@@ -258,7 +275,7 @@ class CustomDialogMedicine extends StatelessWidget {
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (context) => CustomMedicineSheet(
+                                      builder: (bottomSheetContext) => CustomMedicineSheet(
                                         title:
                                             'Apa alasan Anda tidak mengonsumsi dosis ini?',
                                         list: [
@@ -268,6 +285,10 @@ class CustomDialogMedicine extends StatelessWidget {
                                           'Merasa tidak perlu mengonsumsi dosis ini',
                                           'Lainnya',
                                         ],
+                                        onItemTap: (index) {
+                                          Navigator.pop(bottomSheetContext);
+                                          Navigator.pop(bottomSheetContext);
+                                        },
                                       ),
                                     );
                                   },
@@ -297,13 +318,19 @@ class CustomDialogMedicine extends StatelessWidget {
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (context) => CustomMedicineSheet(
-                                        title: 'Kapan Anda meminum obat ini?',
-                                        list: [
-                                          'Sesuai jadwal (08.00)',
-                                          'Sekarang (10.25)',
-                                        ],
-                                      ),
+                                      builder: (bottomSheetContext) =>
+                                          CustomMedicineSheet(
+                                            title:
+                                                'Kapan Anda meminum obat ini?',
+                                            list: [
+                                              'Sesuai jadwal (08.00)',
+                                              'Sekarang (10.25)',
+                                            ],
+                                            onItemTap: (index) {
+                                              Navigator.pop(bottomSheetContext);
+                                              Navigator.pop(bottomSheetContext);
+                                            },
+                                          ),
                                     );
                                   },
                           ),

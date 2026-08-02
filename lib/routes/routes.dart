@@ -10,9 +10,14 @@ import 'package:smart_antibiotic/screens/education/education_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_types_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_usage_screen.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_detail_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_edit_dosage_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_edit_name_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_edit_schedule_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_parent_screen.dart';
+import 'package:smart_antibiotic/screens/quiz/quiz_result_screen.dart';
 import 'package:smart_antibiotic/screens/quiz/quiz_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_alarm_optimization_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_comments_and_feedback.dart';
@@ -42,7 +47,11 @@ class Routes {
   static const String home = '/home';
 
   static const String medicine = '/medicine';
+  static const String medicineDetail = '/medicine-detail';
   static const String medicineHistory = '/medicine-history';
+  static const String medicineEditName = '/medicine-edit-name';
+  static const String medicineEditSchedule = '/medicine-edit-schedule';
+  static const String medicineEditDosage = '/medicine-edit-dosage';
 
   static const String education = '/education';
   static const String educationDefinition = '/education-definition';
@@ -56,6 +65,7 @@ class Routes {
 
   static const String quiz = '/quiz';
   static const String quizDetail = '/quiz-detail';
+  static const String quizResult = '/quiz-result';
 
   static const String settings = '/settings';
   static const String settingsEditProfile = '/settings-edit-profile';
@@ -97,9 +107,28 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case Routes.medicine:
       return MaterialPageRoute(builder: (_) => const MedicineScreen());
-
+    case Routes.medicineDetail:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineDetailScreen(),
+        settings: settings,
+      );
     case Routes.medicineHistory:
       return MaterialPageRoute(builder: (_) => const MedicineHistoryScreen());
+    case Routes.medicineEditName:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditNameScreen(),
+        settings: settings,
+      );
+    case Routes.medicineEditSchedule:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditScheduleScreen(),
+        settings: settings,
+      );
+    case Routes.medicineEditDosage:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditDosageScreen(),
+        settings: settings,
+      );
 
     case Routes.education:
       return MaterialPageRoute(builder: (_) => const EducationScreen());
@@ -134,6 +163,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => const QuizScreen());
     case Routes.quizDetail:
       return MaterialPageRoute(builder: (_) => const QuizDetailScreen());
+    case Routes.quizResult:
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (_) => QuizResultScreen(
+          score: args?['score'] as int? ?? 0,
+          totalQuestions: args?['totalQuestions'] as int? ?? 0,
+        ),
+      );
 
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());

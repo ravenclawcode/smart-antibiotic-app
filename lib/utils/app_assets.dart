@@ -65,6 +65,7 @@ const icDelete = 'assets/icons/ic_delete.png';
 const icPerson = 'assets/icons/ic_person.png';
 const icSearch = 'assets/icons/ic_search.png';
 const icEdit = 'assets/icons/ic_edit.png';
+const icEditPen = 'assets/icons/ic_edit_pen.png';
 const icCalendar = 'assets/icons/ic_calendar.png';
 const icDosage = 'assets/icons/ic_dosage.png';
 const icClock = 'assets/icons/ic_clock.png';

@@ -165,7 +165,13 @@ Widget _buildActionButton(BuildContext context) {
       children: [
         Expanded(
           child: CustomButtonQuiz(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/quiz-detail',
+                (route) => false,
+              );
+            },
             label: 'Ulangi',
             colorText: AppColors.primary,
             colorBg: Colors.transparent,
@@ -175,7 +181,9 @@ Widget _buildActionButton(BuildContext context) {
         SizedBox(width: 20),
         Expanded(
           child: CustomButtonQuiz(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            },
             label: 'Lanjut',
             colorText: AppColors.textWhite,
             colorBg: AppColors.primary,
