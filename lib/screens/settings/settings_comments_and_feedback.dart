@@ -225,6 +225,10 @@ class _SettingsCommentsAndFeedbackState
                       ),
                     ),
                     InkWell(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      splashColor: Colors.transparent,
                       onTap: () => _deleteFeedback(index),
                       child: Padding(
                         padding: EdgeInsets.all(4.0),

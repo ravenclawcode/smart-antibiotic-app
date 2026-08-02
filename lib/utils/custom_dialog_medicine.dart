@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/custom_medicine_sheet.dart';
+import 'package:smart_antibiotic/utils/custom_reschedule_sheet.dart';
 
 class CustomDialogMedicine extends StatelessWidget {
   final String time;
@@ -71,21 +73,60 @@ class CustomDialogMedicine extends StatelessWidget {
                   child: Row(
                     children: [
                       Spacer(),
-                      Image.asset(
-                        icDelete,
-                        height: 18,
-                        color: AppColors.surfacePrimary,
+                      InkWell(
+                        focusColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => CustomMedicineSheet(
+                              title: 'Hapus Amoxicillin',
+                              list: const [
+                                'Hanya dosis ini',
+                                'Semua dosis berikutnya',
+                              ],
+                            ),
+                          );
+                        },
+                        child: Image.asset(
+                          icDelete,
+                          height: 18,
+                          color: AppColors.surfacePrimary,
+                        ),
                       ),
                       SizedBox(width: 20),
-                      Image.asset(
-                        icEdit,
-                        height: 18,
-                        color: AppColors.surfacePrimary,
+                      InkWell(
+                        focusColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => CustomMedicineSheet(
+                              title: 'Edit Amoxicillin',
+                              list: [
+                                'Hanya dosis ini',
+                                'Semua dosis berikutnya',
+                              ],
+                            ),
+                          );
+                        },
+                        child: Image.asset(
+                          icEdit,
+                          height: 18,
+                          color: AppColors.surfacePrimary,
+                        ),
                       ),
                     ],
                   ),
                 ),
-
                 Padding(
                   padding: EdgeInsets.all(20),
                   child: Column(
@@ -196,7 +237,28 @@ class CustomDialogMedicine extends StatelessWidget {
                             colorBorder: isSkipped
                                 ? AppColors.primary
                                 : Colors.transparent,
-                            onTap: onLeftAction ?? () => Navigator.pop(context),
+                            onTap: isSkipped
+                                ? () {
+                                    Navigator.pop(context);
+                                  }
+                                : () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => CustomMedicineSheet(
+                                        title:
+                                            'Apa alasan Anda tidak mengonsumsi dosis ini?',
+                                        list: [
+                                          'Lupa / Sibuk / Tertidur',
+                                          'Obat sudah habis',
+                                          'Efek samping atau keluhan kesehatan',
+                                          'Merasa tidak perlu mengonsumsi dosis ini',
+                                          'Lainnya',
+                                        ],
+                                      ),
+                                    );
+                                  },
                           ),
                         ),
                         Expanded(
@@ -214,8 +276,24 @@ class CustomDialogMedicine extends StatelessWidget {
                             colorBorder: isTaken
                                 ? AppColors.primary
                                 : Colors.transparent,
-                            onTap:
-                                onCenterAction ?? () => Navigator.pop(context),
+                            onTap: isTaken
+                                ? () {
+                                    Navigator.pop(context);
+                                  }
+                                : () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => CustomMedicineSheet(
+                                        title: 'Kapan Anda meminum obat ini?',
+                                        list: [
+                                          'Sesuai jadwal (08.00)',
+                                          'Sekarang (10.25)',
+                                        ],
+                                      ),
+                                    );
+                                  },
                           ),
                         ),
                         Expanded(
@@ -225,8 +303,22 @@ class CustomDialogMedicine extends StatelessWidget {
                             colorBg: AppColors.surfaceAccent,
                             colorIc: AppColors.primary,
                             colorBorder: Colors.transparent,
-                            onTap:
-                                onRightAction ?? () => Navigator.pop(context),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => CustomRescheduleSheet(
+                                  initialTime: const TimeOfDay(
+                                    hour: 10,
+                                    minute: 25,
+                                  ),
+                                  onSave: (newTime) {
+                                    // Logika simpan waktu baru
+                                  },
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
