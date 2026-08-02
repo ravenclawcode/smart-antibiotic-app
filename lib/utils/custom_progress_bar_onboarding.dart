@@ -3,8 +3,13 @@ import 'package:smart_antibiotic/utils/app_colors.dart';
 
 class CustomProgressBarOnboarding extends StatefulWidget {
   final num value;
+  final double? height;
 
-  const CustomProgressBarOnboarding({super.key, required this.value});
+  const CustomProgressBarOnboarding({
+    super.key,
+    required this.value,
+    required this.height,
+  });
 
   @override
   State<CustomProgressBarOnboarding> createState() =>
@@ -53,7 +58,7 @@ class _CustomProgressBarOnboardingState
           borderRadius: BorderRadius.circular(20),
           child: LinearProgressIndicator(
             value: _animation.value,
-            minHeight: 18,
+            minHeight: widget.height,
             backgroundColor: AppColors.surfaceAccent,
             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
-import 'package:smart_antibiotic/utils/base_bottom_sheet.dart';
+import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
 class CustomMedicineSheet extends StatelessWidget {
   final String? title;
@@ -16,7 +16,7 @@ class CustomMedicineSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseBottomSheet(
+    return CustomBaseBottomSheet(
       title: title,
       child: Column(
         mainAxisSize: MainAxisSize.min,

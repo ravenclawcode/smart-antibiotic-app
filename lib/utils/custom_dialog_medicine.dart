@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/custom_dialog_delete_medicine.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_sheet.dart';
 import 'package:smart_antibiotic/utils/custom_reschedule_sheet.dart';
 
@@ -83,13 +84,24 @@ class CustomDialogMedicine extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (context) => CustomMedicineSheet(
-                              title: 'Hapus Amoxicillin',
-                              list: const [
-                                'Hanya dosis ini',
-                                'Semua dosis berikutnya',
-                              ],
-                            ),
+                            builder: (bottomSheetContext) =>
+                                CustomMedicineSheet(
+                                  title: 'Hapus Amoxicillin',
+                                  list: const [
+                                    'Hanya dosis ini',
+                                    'Semua dosis berikutnya',
+                                  ],
+                                  onItemTap: (index) {
+                                    Navigator.pop(bottomSheetContext);
+                                    if (index == 1) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (dialogContext) =>
+                                            const CustomDialogDeleteMedicine(),
+                                      );
+                                    } else {}
+                                  },
+                                ),
                           );
                         },
                         child: Image.asset(

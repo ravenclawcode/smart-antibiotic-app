@@ -163,7 +163,9 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Expanded(child: CustomProgressBarOnboarding(value: _progressValue)),
+        Expanded(
+          child: CustomProgressBarOnboarding(value: _progressValue, height: 18),
+        ),
       ],
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
-import 'package:smart_antibiotic/utils/base_bottom_sheet.dart';
+import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
 class CustomRescheduleSheet extends StatefulWidget {
   final TimeOfDay initialTime;
@@ -42,7 +42,7 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseBottomSheet(
+    return CustomBaseBottomSheet(
       title: 'Jadwalkan ulang pada',
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -166,6 +166,7 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                     widget.onSave(
                       TimeOfDay(hour: selectedHour, minute: selectedMinute),
                     );
+                    Navigator.pop(context);
                     Navigator.pop(context);
                   },
                   child: Text(

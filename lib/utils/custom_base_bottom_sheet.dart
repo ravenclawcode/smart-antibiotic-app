@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
-class BaseBottomSheet extends StatelessWidget {
+class CustomBaseBottomSheet extends StatelessWidget {
   final String? title;
   final Widget child;
 
-  const BaseBottomSheet({super.key, this.title, required this.child});
+  const CustomBaseBottomSheet({super.key, this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {

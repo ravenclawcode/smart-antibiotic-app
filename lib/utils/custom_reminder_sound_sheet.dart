@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
-import 'package:smart_antibiotic/utils/base_bottom_sheet.dart';
+import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
 class CustomReminderSoundSheet extends StatefulWidget {
   final String? initialSound;
@@ -76,7 +76,7 @@ class _CustomReminderSoundSheetState extends State<CustomReminderSoundSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseBottomSheet(
+    return CustomBaseBottomSheet(
       title: 'Pilih Suara Pengingat',
       child: Column(
         mainAxisSize: MainAxisSize.min,

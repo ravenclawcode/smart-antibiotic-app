@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_button_dialog.dart';
 
-class CustomDialogDeleteChat extends StatefulWidget {
-  const CustomDialogDeleteChat({super.key});
+class CustomDialogQuitQuiz extends StatefulWidget {
+  const CustomDialogQuitQuiz({super.key});
 
   @override
-  State<CustomDialogDeleteChat> createState() => _CustomDialogDeleteChatState();
+  State<CustomDialogQuitQuiz> createState() => _CustomDialogQuitQuizState();
 }
 
-class _CustomDialogDeleteChatState extends State<CustomDialogDeleteChat> {
+class _CustomDialogQuitQuizState extends State<CustomDialogQuitQuiz> {
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 26),
         child: Material(
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
           child: Container(
-            padding: EdgeInsets.only(top: 20, bottom: 16, left: 20, right: 20),
+            padding: EdgeInsets.only(top: 26, bottom: 20, left: 26, right: 26),
             decoration: BoxDecoration(color: AppColors.surfacePrimary),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Hapus Percakapan', style: AppTextStyles.titleMedium),
-                SizedBox(height: 10),
+                Image.asset(icAlert, height: 120),
+                SizedBox(height: 20),
+                Text('Keluar Kuis', style: AppTextStyles.titleMedium),
+                SizedBox(height: 6),
                 Text(
-                  'Apakah Anda yakin ingin menghapus semua pesan percakapan ini?',
+                  'Anda yakin ingin keluar sekarang?',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 18,
                     color: AppColors.textSecondary,
@@ -39,14 +42,14 @@ class _CustomDialogDeleteChatState extends State<CustomDialogDeleteChat> {
                 SizedBox(height: 20),
                 CustomButtonDialog(
                   onTap: () => Navigator.pop(context, true),
-                  label: 'Hapus',
+                  label: 'Keluar',
                   color: AppColors.surfaceAccent,
                   textColor: AppColors.primary,
                 ),
                 SizedBox(height: 6),
                 CustomButtonDialog(
                   onTap: () => Navigator.pop(context, false),
-                  label: 'Batal',
+                  label: 'Lanjut Kuis',
                   color: Colors.transparent,
                   textColor: AppColors.textPrimary,
                 ),

@@ -427,7 +427,7 @@ Widget _buildQuisList(BuildContext context) {
               subtitle: 'Lorem Ipsum',
               image: Image.asset(imgKuis1),
               color: AppColors.surfacePrimary,
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, '/quiz-detail'),
             ),
             SizedBox(height: 10),
             CustomQuizCard(

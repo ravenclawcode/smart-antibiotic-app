@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
-class CustomButtonDialog extends StatelessWidget {
+class CustomButtonQuiz extends StatelessWidget {
   final VoidCallback? onTap;
   final String label;
-  final Color color;
-  final Color textColor;
-  const CustomButtonDialog({
+  final Color colorText;
+  final Color colorBg;
+  final Color colorBorder;
+  const CustomButtonQuiz({
     super.key,
     required this.onTap,
     required this.label,
-    required this.color,
-    required this.textColor,
+    required this.colorText,
+    required this.colorBg,
+    required this.colorBorder,
   });
 
   @override
@@ -23,18 +25,17 @@ class CustomButtonDialog extends StatelessWidget {
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       onTap: onTap,
       child: Container(
-        height: 44,
+        height: 50,
+        width: double.infinity,
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(30),
+          color: colorBg,
+          border: Border.all(color: colorBorder, width: 1.5),
+          borderRadius: BorderRadius.circular(40),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.bold,
-          ),
+          style: AppTextStyles.bodyLarge.copyWith(color: colorText),
         ),
       ),
     );

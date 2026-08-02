@@ -28,6 +28,7 @@ import '../screens/onboarding/onboarding_permission_screen.dart';
 import '../screens/main_screen.dart';
 import '../screens/onboarding/onboarding_splash_screen.dart';
 import '../screens/onboarding/onboarding_welcome_screen.dart';
+import '../screens/quiz/quiz_detail_screen.dart';
 
 class Routes {
   static const String main = '/';
@@ -54,6 +55,7 @@ class Routes {
   static const String educationDetail = '/education-detail';
 
   static const String quiz = '/quiz';
+  static const String quizDetail = '/quiz-detail';
 
   static const String settings = '/settings';
   static const String settingsEditProfile = '/settings-edit-profile';
@@ -130,6 +132,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case Routes.quiz:
       return MaterialPageRoute(builder: (_) => const QuizScreen());
+    case Routes.quizDetail:
+      return MaterialPageRoute(builder: (_) => const QuizDetailScreen());
 
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());

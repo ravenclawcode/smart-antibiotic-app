@@ -73,3 +73,4 @@ const icReschedule = 'assets/icons/ic_reschedule.png';
 const icSend = 'assets/icons/ic_send.png';
 const icShare = 'assets/icons/ic_share.png';
 const icFilter = 'assets/icons/ic_filter.png';
+const icAlert = 'assets/icons/ic_alert.png';
