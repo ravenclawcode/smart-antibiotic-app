@@ -6,6 +6,7 @@ import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
 import '../../utils/custom_button_off.dart';
+import '../../utils/custom_loading.dart';
 import '../../utils/custom_option_quiz.dart';
 import '../../utils/custom_progress_bar_onboarding.dart';
 
@@ -32,6 +33,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   final PageController _pageController = PageController();
 
   int _currentPage = 0;
+  bool _isLoading = false;
 
   final List<QuizQuestion> _questions = [
     QuizQuestion(
@@ -133,12 +135,26 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       }
     }
 
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/quiz-result',
-      (route) => false,
-      arguments: {'score': score, 'totalQuestions': _questions.length},
-    );
+    setState(() => _isLoading = true);
+
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/quiz-result',
+        (route) => false,
+        arguments: {'score': score, 'totalQuestions': _questions.length},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -156,52 +172,61 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
           statusBarBrightness: Brightness.light,
         ),
         child: Scaffold(
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 14),
-                  _buildHeader(
-                    context,
-                    progressValue: _progressValue,
-                    currentPage: _currentPage + 1,
-                    totalQuestions: _questions.length,
-                    onBackTap: _previousPage,
+          body: Stack(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 26),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 14),
+                      _buildHeader(
+                        context,
+                        progressValue: _progressValue,
+                        currentPage: _currentPage + 1,
+                        totalQuestions: _questions.length,
+                        onBackTap: _previousPage,
+                      ),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          onPageChanged: (page) {
+                            setState(() {
+                              _currentPage = page;
+                            });
+                          },
+                          itemCount: _questions.length,
+                          itemBuilder: (context, index) {
+                            final question = _questions[index];
+                            return _buildContent(
+                              question: question.question,
+                              options: question.options,
+                              selectedIndex: _userAnswers[index],
+                              onSelectOption: _onOptionSelected,
+                            );
+                          },
+                        ),
+                      ),
+                      _buildActionButton(
+                        _currentPage,
+                        _questions.length,
+                        _isNextEnabled,
+                        _nextPage,
+                      ),
+                      const SizedBox(height: 30),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
-                      },
-                      itemCount: _questions.length,
-                      itemBuilder: (context, index) {
-                        final question = _questions[index];
-                        return _buildContent(
-                          question: question.question,
-                          options: question.options,
-                          selectedIndex: _userAnswers[index],
-                          onSelectOption: _onOptionSelected,
-                        );
-                      },
-                    ),
-                  ),
-                  _buildActionButton(
-                    _currentPage,
-                    _questions.length,
-                    _isNextEnabled,
-                    _nextPage,
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
-            ),
+              if (_isLoading)
+                Container(
+                  color: AppColors.textPrimary.withValues(alpha: 0.4),
+                  child: const Center(child: CustomLoading()),
+                ),
+            ],
           ),
         ),
       ),

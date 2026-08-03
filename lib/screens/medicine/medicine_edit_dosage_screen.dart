@@ -19,7 +19,7 @@ class MedicineEditDosageScreen extends StatelessWidget {
         body: Column(
           children: [
             _buildHeader(context),
-            SingleChildScrollView(child: _buildContent()),
+            SingleChildScrollView(child: _buildContent(context)),
           ],
         ),
       ),
@@ -73,9 +73,82 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildContent() {
+Widget _buildContent(BuildContext context) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(),
+    child: Column(
+      children: [
+        SizedBox(height: 20),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Color(0xFFE7ECF0)),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: _buildOptionMenu(context),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildOptionMenu(BuildContext context) {
+  final item = [
+    {'title': 'Jumlah Dosis', 'route': '/medicine-edit-dose-amount'},
+    {'title': 'Instruksi', 'route': '/medicine-edit-instruction'},
+  ];
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: item.length,
+    padding: EdgeInsets.zero,
+    itemBuilder: (context, index) {
+      final menu = item[index];
+      final bool isLastItem = index == item.length - 1;
+
+      return InkWell(
+        focusColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
+        onTap: () => Navigator.pushNamed(context, menu['route'] as String),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(2, 6, 2, isLastItem ? 8 : 0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          menu['title'] as String,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                  ),
+                ],
+              ),
+              if (!isLastItem) ...[
+                SizedBox(height: 4),
+                Divider(color: Color(0xFFE7ECF0)),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
   );
 }

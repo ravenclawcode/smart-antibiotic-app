@@ -51,29 +51,41 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
         {};
 
-    final String name = (medicineData['name'] as String?) ?? 'Obat';
-    final int timesPerDay = (medicineData['times_per_day'] as int?) ?? 1;
-    final String frequencyType =
-        (medicineData['frequency_type'] as String?) == 'daily'
-        ? 'Sehari'
-        : (medicineData['frequency_type'] as String? ?? 'Sehari');
-    final String frequency = '$timesPerDay kali, $frequencyType';
+    final String rawName = (medicineData['name'] as String?)?.trim() ?? '';
+    final String name = rawName.isNotEmpty ? rawName : '-';
+
+    final int? timesPerDay = medicineData['times_per_day'] as int?;
+    final String? rawFreqType = medicineData['frequency_type'] as String?;
+
+    String frequency = '-';
+    if (timesPerDay != null) {
+      final String frequencyType = rawFreqType == 'daily'
+          ? 'Sehari'
+          : (rawFreqType ?? 'Sehari');
+      frequency = '$timesPerDay kali, $frequencyType';
+    }
 
     final String startDateStr = _formatDateString(
       medicineData['start_date'] as String?,
     );
-
     final String endDateStr = _formatDateString(
       medicineData['end_date'] as String?,
     );
 
-    final String duration = '$startDateStr - $endDateStr';
+    String duration = '-';
+    if (startDateStr != '-' && endDateStr != '-') {
+      duration = '$startDateStr - $endDateStr';
+    } else if (startDateStr != '-') {
+      duration = startDateStr;
+    } else if (endDateStr != '-') {
+      duration = endDateStr;
+    }
 
     final String dosage = (medicineData['dosage'] as String?) ?? '-';
     final String instruction = (medicineData['instruction'] as String?) ?? '-';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -81,14 +93,15 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context, _deleteMedicine, name),
-            SizedBox(height: 20),
+            _buildHeader(context, _deleteMedicine, name, medicineData),
+            const SizedBox(height: 20),
             _buildContent(
               context: context,
               frequency: frequency,
               duration: duration,
               dosage: dosage,
               instruction: instruction,
+              medicineData: medicineData,
             ),
           ],
         ),
@@ -101,13 +114,14 @@ Widget _buildHeader(
   BuildContext context,
   VoidCallback onDeleteTap,
   String name,
+  Map<String, dynamic> medicineData,
 ) {
   return Container(
     height: 160,
     width: double.infinity,
-    decoration: BoxDecoration(color: AppColors.primary),
+    decoration: const BoxDecoration(color: AppColors.primary),
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -136,7 +150,7 @@ Widget _buildHeader(
                     ),
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 InkWell(
                   focusColor: Colors.transparent,
                   hoverColor: Colors.transparent,
@@ -151,7 +165,7 @@ Widget _buildHeader(
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Text(
@@ -160,14 +174,17 @@ Widget _buildHeader(
                     color: AppColors.textWhite,
                   ),
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 InkWell(
                   focusColor: Colors.transparent,
                   hoverColor: Colors.transparent,
                   highlightColor: Colors.transparent,
                   splashColor: Colors.transparent,
-                  onTap: () =>
-                      Navigator.pushNamed(context, '/medicine-edit-name'),
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/medicine-edit-name',
+                    arguments: medicineData,
+                  ),
                   child: Image.asset(
                     icEditPen,
                     height: 18,
@@ -189,6 +206,7 @@ Widget _buildContent({
   required String duration,
   required String dosage,
   required String instruction,
+  required Map<String, dynamic> medicineData,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -198,8 +216,9 @@ Widget _buildContent({
           context: context,
           frequency: frequency,
           duration: duration,
+          medicineData: medicineData,
         ),
-        SizedBox(height: 18),
+        const SizedBox(height: 18),
         _buildDosage(
           context: context,
           dosage: dosage,
@@ -214,13 +233,14 @@ Widget _buildSchedule({
   required BuildContext context,
   required String frequency,
   required String duration,
+  required Map<String, dynamic> medicineData,
 }) {
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 16),
+    padding: const EdgeInsets.symmetric(vertical: 16),
     width: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Color(0xFFE7ECF0)),
+      border: Border.all(color: const Color(0xFFE7ECF0)),
     ),
     child: Column(
       children: [
@@ -234,14 +254,17 @@ Widget _buildSchedule({
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () =>
-                    Navigator.pushNamed(context, '/medicine-edit-schedule'),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/medicine-edit-schedule',
+                  arguments: medicineData,
+                ),
                 child: Text(
                   'Edit',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -252,8 +275,8 @@ Widget _buildSchedule({
             ],
           ),
         ),
-        Divider(color: Color(0xFFE7ECF0)),
-        SizedBox(height: 10),
+        const Divider(color: Color(0xFFE7ECF0)),
+        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -262,7 +285,7 @@ Widget _buildSchedule({
                 'Frekuensi',
                 style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
-              SizedBox(width: 38),
+              const SizedBox(width: 38),
               Expanded(
                 child: Text(
                   frequency,
@@ -274,7 +297,7 @@ Widget _buildSchedule({
             ],
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -283,7 +306,7 @@ Widget _buildSchedule({
                 'Durasi',
                 style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
-              SizedBox(width: 64),
+              const SizedBox(width: 64),
               Expanded(
                 child: Text(
                   duration,
@@ -306,11 +329,11 @@ Widget _buildDosage({
   required String instruction,
 }) {
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 16),
+    padding: const EdgeInsets.symmetric(vertical: 16),
     width: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Color(0xFFE7ECF0)),
+      border: Border.all(color: const Color(0xFFE7ECF0)),
     ),
     child: Column(
       children: [
@@ -324,7 +347,7 @@ Widget _buildDosage({
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
@@ -342,8 +365,8 @@ Widget _buildDosage({
             ],
           ),
         ),
-        Divider(color: Color(0xFFE7ECF0)),
-        SizedBox(height: 10),
+        const Divider(color: Color(0xFFE7ECF0)),
+        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -352,7 +375,7 @@ Widget _buildDosage({
                 'Jumlah',
                 style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
-              SizedBox(width: 60),
+              const SizedBox(width: 60),
               Expanded(
                 child: Text(
                   dosage,
@@ -364,7 +387,7 @@ Widget _buildDosage({
             ],
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -373,7 +396,7 @@ Widget _buildDosage({
                 'Instruksi',
                 style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
-              SizedBox(width: 48),
+              const SizedBox(width: 48),
               Expanded(
                 child: Text(
                   instruction,

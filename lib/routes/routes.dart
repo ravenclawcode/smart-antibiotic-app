@@ -27,6 +27,9 @@ import 'package:smart_antibiotic/screens/settings/settings_detail_app_permission
 import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_edit_preference_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_screen.dart';
+import '../screens/medicine/medicine_edit_dose_amount_screen.dart';
+import '../screens/medicine/medicine_edit_duration_screen.dart';
+import '../screens/medicine/medicine_edit_instruction_screen.dart';
 import '../screens/medicine/medicine_history_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
 
@@ -52,6 +55,9 @@ class Routes {
   static const String medicineEditName = '/medicine-edit-name';
   static const String medicineEditSchedule = '/medicine-edit-schedule';
   static const String medicineEditDosage = '/medicine-edit-dosage';
+  static const String medicineEditDuration = '/medicine-edit-duration';
+  static const String medicineEditDoseAmount = '/medicine-edit-dose-amount';
+  static const String medicineEditInstruction = '/medicine-edit-instruction';
 
   static const String education = '/education';
   static const String educationDefinition = '/education-definition';
@@ -115,8 +121,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.medicineHistory:
       return MaterialPageRoute(builder: (_) => const MedicineHistoryScreen());
     case Routes.medicineEditName:
+      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => const MedicineEditNameScreen(),
+        builder: (_) => MedicineEditNameScreen(
+          onNameChanged: args?['onNameChanged'] ?? (value) {},
+        ),
         settings: settings,
       );
     case Routes.medicineEditSchedule:
@@ -127,6 +136,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.medicineEditDosage:
       return MaterialPageRoute(
         builder: (_) => const MedicineEditDosageScreen(),
+        settings: settings,
+      );
+    case Routes.medicineEditDuration:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditDurationScreen(),
+        settings: settings,
+      );
+    case Routes.medicineEditDoseAmount:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditDoseAmountScreen(),
+        settings: settings,
+      );
+    case Routes.medicineEditInstruction:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineEditInstructionScreen(),
         settings: settings,
       );
 
