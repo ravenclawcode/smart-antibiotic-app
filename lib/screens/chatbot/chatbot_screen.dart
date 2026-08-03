@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
@@ -33,16 +34,12 @@ class ChatbotScreen extends StatefulWidget {
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  bool _isLoading = true;
   bool _hasText = false;
   bool _isBotTyping = false;
 
-  final List<ChatMessage> _messages = [
-    ChatMessage(
-      text: "Hai! Saya Sherly. Ada yang bisa aku bantu hari ini?",
-      isUser: false,
-      timestamp: DateTime.now(),
-    ),
-  ];
+  final List<ChatMessage> _messages = [];
 
   @override
   void initState() {
@@ -50,6 +47,23 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _messageController.addListener(() {
       setState(() => _hasText = _messageController.text.trim().isNotEmpty);
     });
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            text: "Hai! Saya Sherly. Ada yang bisa aku bantu hari ini?",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -63,7 +77,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
     }
@@ -82,9 +96,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
 
     _messageController.clear();
-    Future.delayed(Duration(milliseconds: 50), () => _scrollToBottom());
+    Future.delayed(const Duration(milliseconds: 50), () => _scrollToBottom());
 
-    Timer(Duration(seconds: 2), () {
+    Timer(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _isBotTyping = false;
@@ -97,7 +111,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           );
         });
-        Future.delayed(Duration(milliseconds: 100), () => _scrollToBottom());
+        Future.delayed(
+          const Duration(milliseconds: 100),
+          () => _scrollToBottom(),
+        );
       }
     });
   }
@@ -130,7 +147,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -142,22 +159,91 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               context,
               messages: _messages,
               onDeleteTap: _deleteChat,
+              isLoading: _isLoading,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Expanded(
-              child: _buildMessagesList(
-                messages: _messages,
-                scrollController: _scrollController,
-                isBotTyping: _isBotTyping,
-              ),
+              child: _isLoading
+                  ? _buildShimmerContent(context)
+                  : _buildMessagesList(
+                      messages: _messages,
+                      scrollController: _scrollController,
+                      isBotTyping: _isBotTyping,
+                    ),
             ),
             _buildMessageInput(
               controller: _messageController,
               hasText: _hasText,
               onSendTap: _sendMessage,
+              isLoading: _isLoading,
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: const BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Container(
+                width: screenWidth * 0.65,
+                height: 90,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(2.5),
+                    topRight: Radius.circular(15),
+                    bottomLeft: Radius.circular(15),
+                    bottomRight: Radius.circular(15),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfacePrimary,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 120,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfacePrimary,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -167,58 +253,106 @@ Widget _buildHeader(
   BuildContext context, {
   required List<ChatMessage> messages,
   required VoidCallback onDeleteTap,
+  required bool isLoading,
 }) {
   final bool canDelete = messages.length > 1;
+
   return Container(
     height: 115,
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: AppColors.surfacePrimary,
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 14),
-            Text(
-              'Asisten Virtual',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            const SizedBox(width: 14),
+
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 180,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Asisten Virtual',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
-            ),
-            Spacer(),
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: canDelete ? onDeleteTap : null,
-              child: Image.asset(
-                icDelete,
-                height: 20,
-                color: canDelete ? AppColors.surfacePrimary : AppColors.accent,
+            const Spacer(),
+
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: canDelete ? onDeleteTap : null,
+                child: Image.asset(
+                  icDelete,
+                  height: 20,
+                  color: canDelete
+                      ? AppColors.surfacePrimary
+                      : AppColors.accent,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -236,7 +370,7 @@ Widget _buildMessagesList({
   return ListView.builder(
     controller: scrollController,
     itemCount: messages.length + typingOffset,
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     itemBuilder: (context, index) {
       if (isBotTyping && index == messages.length) {
         return _buildTypingIndicator();
@@ -252,14 +386,14 @@ Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
-        margin: EdgeInsets.only(bottom: 15),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
         decoration: BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(15),
             topRight: Radius.circular(15),
             bottomLeft: Radius.circular(15),
@@ -288,25 +422,24 @@ Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
     );
   } else {
     return Padding(
-      padding: EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.only(bottom: 15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 26,
             height: 26,
-            margin: EdgeInsets.only(right: 8),
+            margin: const EdgeInsets.only(right: 8),
             child: Image.asset(imgChatbot, fit: BoxFit.contain),
           ),
-          // Bubble Pesan
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.68,
             ),
             decoration: BoxDecoration(
               color: AppColors.surfaceSecondary,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(2.5),
                 topRight: Radius.circular(15),
                 bottomLeft: Radius.circular(15),
@@ -342,31 +475,59 @@ Widget _buildMessageInput({
   required TextEditingController controller,
   required bool hasText,
   required VoidCallback onSendTap,
+  required bool isLoading,
 }) {
   return Container(
-    padding: EdgeInsets.fromLTRB(20, 20, 20, 30),
+    padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
     decoration: BoxDecoration(
       color: AppColors.surfacePrimary,
       boxShadow: [
         BoxShadow(
-          color: Color(0xFF646464).withValues(alpha: 0.10),
+          color: const Color(0xFF646464).withValues(alpha: 0.10),
           blurRadius: 10,
-          offset: Offset(0, -5),
+          offset: const Offset(0, -5),
         ),
       ],
     ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: CustomInputChatForm(controller: controller)),
-        SizedBox(width: 12),
-        CustomButtonSend(
-          onTap: onSendTap,
-          icon: icSend,
-          color: hasText ? AppColors.primary : AppColors.secondary,
-        ),
-      ],
-    ),
+    child: isLoading
+        ? Shimmer.fromColors(
+            baseColor: AppColors.surfaceSecondary,
+            highlightColor: AppColors.surfaceCool,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 60,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ],
+            ),
+          )
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: CustomInputChatForm(controller: controller)),
+              const SizedBox(width: 12),
+              CustomButtonSend(
+                onTap: onSendTap,
+                icon: icSend,
+                color: hasText ? AppColors.primary : AppColors.secondary,
+              ),
+            ],
+          ),
   );
 }
 
@@ -377,10 +538,10 @@ Widget _buildTypingIndicator() {
       Container(
         width: 26,
         height: 26,
-        margin: EdgeInsets.only(right: 8),
+        margin: const EdgeInsets.only(right: 8),
         child: Image.asset(imgChatbot, fit: BoxFit.contain),
       ),
-      CustomTypingIndicator(),
+      const CustomTypingIndicator(),
     ],
   );
 }
