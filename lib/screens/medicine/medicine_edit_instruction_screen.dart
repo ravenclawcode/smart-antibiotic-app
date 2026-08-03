@@ -3,9 +3,71 @@ import 'package:flutter/services.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_button.dart';
+import '../../utils/custom_button_off.dart';
+import '../../utils/custom_input_intruction_form.dart';
 
-class MedicineEditInstructionScreen extends StatelessWidget {
-  const MedicineEditInstructionScreen({super.key});
+class MedicineEditInstructionScreen extends StatefulWidget {
+  final ValueChanged<String>? onNameChanged;
+  const MedicineEditInstructionScreen({super.key, required this.onNameChanged});
+
+  @override
+  State<MedicineEditInstructionScreen> createState() =>
+      _MedicineEditInstructionScreenState();
+}
+
+class _MedicineEditInstructionScreenState
+    extends State<MedicineEditInstructionScreen> {
+  late TextEditingController instructionController;
+
+  String _initialInstructione = '';
+  bool _isNextEnabled = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    instructionController = TextEditingController();
+    instructionController.addListener(_checkFormChanges);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      if (arguments is Map<String, dynamic>) {
+        _initialInstructione = (arguments['name'] as String?) ?? '';
+      } else if (arguments is String) {
+        _initialInstructione = arguments;
+      }
+
+      instructionController.text = _initialInstructione;
+      _isInitialized = true;
+    }
+  }
+
+  void _checkFormChanges() {
+    final String currentText = instructionController.text.trim();
+    final bool hasInstructionChanged =
+        currentText != _initialInstructione && currentText.isNotEmpty;
+
+    if (_isNextEnabled != hasInstructionChanged) {
+      setState(() {
+        _isNextEnabled = hasInstructionChanged;
+      });
+    }
+
+    if (widget.onNameChanged != null) {
+      widget.onNameChanged!(instructionController.text);
+    }
+  }
+
+  @override
+  void dispose() {
+    instructionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +81,15 @@ class MedicineEditInstructionScreen extends StatelessWidget {
         body: Column(
           children: [
             _buildHeader(context),
-            SingleChildScrollView(child: _buildContent()),
+            SizedBox(height: 20),
+            Expanded(
+              child: _buildContent(
+                context,
+                _isNextEnabled,
+                instructionController,
+              ),
+            ),
+            SizedBox(height: 60),
           ],
         ),
       ),
@@ -73,9 +143,49 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildContent() {
+Widget _buildContent(
+  BuildContext context,
+  bool isNextEnabled,
+  TextEditingController instructionController,
+) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(),
+    child: Column(
+      children: [
+        Text(
+          'Tambahkan petunjuk agar obat ini digunakan sesuai anjuran',
+          style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+        ),
+        SizedBox(height: 16),
+        CustomInputIntructionForm(controller: instructionController),
+        const Spacer(),
+        _buildActionButton(context, isNextEnabled, instructionController),
+      ],
+    ),
   );
+}
+
+Widget _buildActionButton(
+  BuildContext context,
+  bool isNextEnabled,
+  TextEditingController controller,
+) {
+  return isNextEnabled
+      ? CustomButton(
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Instruksi berhasil diperbarui',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textWhite,
+                  ),
+                ),
+              ),
+            );
+            Navigator.pop(context, controller.text.trim());
+          },
+          label: 'Simpan Perubahan',
+        )
+      : const CustomButtonOff(label: 'Simpan Perubahan');
 }

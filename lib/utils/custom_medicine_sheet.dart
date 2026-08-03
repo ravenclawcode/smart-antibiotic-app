@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
 class CustomMedicineSheet extends StatelessWidget {
   final String? title;
   final List<String> list;
+  final int? selectedIndex;
   final Function(int index)? onItemTap;
 
   const CustomMedicineSheet({
     super.key,
     this.title,
     required this.list,
+    this.selectedIndex,
     this.onItemTap,
   });
 
@@ -22,6 +25,7 @@ class CustomMedicineSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: List.generate(list.length, (index) {
           final isLastItem = index == list.length - 1;
+          final isSelected = index == selectedIndex;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -33,7 +37,10 @@ class CustomMedicineSheet extends StatelessWidget {
                 },
                 title: Text(
                   list[index],
-                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
+                    color: isSelected ? AppColors.primary : null,
+                  ),
                 ),
               ),
               if (!isLastItem)

@@ -281,12 +281,15 @@ Widget _buildSchedule({
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              Text(
-                'Frekuensi',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-              ),
-              const SizedBox(width: 38),
               Expanded(
+                flex: 4,
+                child: Text(
+                  'Frekuensi',
+                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+                ),
+              ),
+              Expanded(
+                flex: 6,
                 child: Text(
                   frequency,
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -302,12 +305,15 @@ Widget _buildSchedule({
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              Text(
-                'Durasi',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-              ),
-              const SizedBox(width: 64),
               Expanded(
+                flex: 4,
+                child: Text(
+                  'Durasi',
+                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+                ),
+              ),
+              Expanded(
+                flex: 6,
                 child: Text(
                   duration,
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -371,12 +377,15 @@ Widget _buildDosage({
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              Text(
-                'Jumlah',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-              ),
-              const SizedBox(width: 60),
               Expanded(
+                flex: 4,
+                child: Text(
+                  'Jumlah',
+                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+                ),
+              ),
+              Expanded(
+                flex: 6,
                 child: Text(
                   dosage,
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -392,12 +401,15 @@ Widget _buildDosage({
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              Text(
-                'Instruksi',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-              ),
-              const SizedBox(width: 48),
               Expanded(
+                flex: 4,
+                child: Text(
+                  'Instruksi',
+                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+                ),
+              ),
+              Expanded(
+                flex: 6,
                 child: Text(
                   instruction,
                   style: AppTextStyles.bodyMedium.copyWith(

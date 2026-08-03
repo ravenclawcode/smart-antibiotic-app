@@ -19,7 +19,8 @@ class MedicineEditDosageScreen extends StatelessWidget {
         body: Column(
           children: [
             _buildHeader(context),
-            SingleChildScrollView(child: _buildContent(context)),
+            SizedBox(height: 20),
+            _buildContent(context),
           ],
         ),
       ),
@@ -78,7 +79,6 @@ Widget _buildContent(BuildContext context) {
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       children: [
-        SizedBox(height: 20),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),

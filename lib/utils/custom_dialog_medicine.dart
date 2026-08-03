@@ -352,9 +352,7 @@ class CustomDialogMedicine extends StatelessWidget {
                                     hour: 10,
                                     minute: 25,
                                   ),
-                                  onSave: (newTime) {
-                                    // Logika simpan waktu baru
-                                  },
+                                  onSave: (newTime) {},
                                 ),
                               );
                             },

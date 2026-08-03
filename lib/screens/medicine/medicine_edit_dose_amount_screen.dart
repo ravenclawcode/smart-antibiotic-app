@@ -3,9 +3,31 @@ import 'package:flutter/services.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_input_dosage_form.dart';
 
-class MedicineEditDoseAmountScreen extends StatelessWidget {
+class MedicineEditDoseAmountScreen extends StatefulWidget {
   const MedicineEditDoseAmountScreen({super.key});
+
+  @override
+  State<MedicineEditDoseAmountScreen> createState() =>
+      _MedicineEditDoseAmountScreenState();
+}
+
+class _MedicineEditDoseAmountScreenState
+    extends State<MedicineEditDoseAmountScreen> {
+  late TextEditingController dosageController;
+
+  @override
+  void initState() {
+    super.initState();
+    dosageController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    dosageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +41,8 @@ class MedicineEditDoseAmountScreen extends StatelessWidget {
         body: Column(
           children: [
             _buildHeader(context),
-            SingleChildScrollView(child: _buildContent()),
+            SizedBox(height: 20),
+            _buildContent(dosageController),
           ],
         ),
       ),
@@ -73,9 +96,9 @@ Widget _buildHeader(BuildContext context) {
   );
 }
 
-Widget _buildContent() {
+Widget _buildContent(TextEditingController dosageController) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(),
+    child: CustomInputDosageForm(controller: dosageController),
   );
 }

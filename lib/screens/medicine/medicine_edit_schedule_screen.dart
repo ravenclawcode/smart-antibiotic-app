@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_medicine_sheet.dart';
 
 class MedicineEditScheduleScreen extends StatefulWidget {
   const MedicineEditScheduleScreen({super.key});
@@ -86,6 +87,8 @@ class _MedicineEditScheduleScreenState
               frequency: frequency,
               duration: duration,
               times: timesList,
+              timesPerDay: timesPerDay,
+              medicineData: medicineData,
             ),
           ],
         ),
@@ -145,14 +148,25 @@ Widget _buildContent({
   required String frequency,
   required String duration,
   required List<dynamic> times,
+  required int timesPerDay,
+  required Map<String, dynamic> medicineData,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       children: [
-        _buildFrequency(context: context, frequency: frequency, times: times),
+        _buildFrequency(
+          context: context,
+          frequency: frequency,
+          times: times,
+          timesPerDay: timesPerDay,
+        ),
         SizedBox(height: 18),
-        _buildDuration(context: context, duration: duration),
+        _buildDuration(
+          context: context,
+          duration: duration,
+          medicineData: medicineData,
+        ),
       ],
     ),
   );
@@ -162,13 +176,33 @@ Widget _buildFrequency({
   required BuildContext context,
   required String frequency,
   required List<dynamic> times,
+  required int timesPerDay,
 }) {
+  // Opsi item frekuensi
+  final List<String> frequencyOptions = [
+    '1 kali sehari',
+    '2 kali sehari',
+    '3 kali sehari',
+    'Lebih dari 3 kali sehari',
+    'Hari Tertentu',
+    'Setiap X Hari',
+    'Setiap X Minggu',
+    'Setiap X Bulan',
+  ];
+
+  int? currentSelectedIndex;
+  if (timesPerDay >= 1 && timesPerDay <= 3) {
+    currentSelectedIndex = timesPerDay - 1;
+  } else if (timesPerDay > 3) {
+    currentSelectedIndex = 3;
+  }
+
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 16),
+    padding: const EdgeInsets.symmetric(vertical: 16),
     width: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Color(0xFFE7ECF0)),
+      border: Border.all(color: const Color(0xFFE7ECF0)),
     ),
     child: Column(
       children: [
@@ -193,13 +227,27 @@ Widget _buildFrequency({
                   ),
                 ],
               ),
-              Spacer(),
+              const Spacer(),
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () {},
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (bottomSheetContext) => CustomMedicineSheet(
+                      title: 'Atur Frekuensi',
+                      list: frequencyOptions,
+                      selectedIndex: currentSelectedIndex,
+                      onItemTap: (index) {
+                        Navigator.pop(bottomSheetContext);
+                      },
+                    ),
+                  );
+                },
                 child: Text(
                   'Edit',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -210,8 +258,8 @@ Widget _buildFrequency({
             ],
           ),
         ),
-        Divider(color: Color(0xFFE7ECF0)),
-        SizedBox(height: 10),
+        const Divider(color: Color(0xFFE7ECF0)),
+        const SizedBox(height: 10),
         Column(
           children: List.generate(times.isNotEmpty ? times.length : 1, (index) {
             final timeText = times.isNotEmpty ? times[index].toString() : '-';
@@ -223,7 +271,7 @@ Widget _buildFrequency({
                     'Minum ke-${index + 1}',
                     style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   Text(
                     timeText,
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -244,6 +292,7 @@ Widget _buildFrequency({
 Widget _buildDuration({
   required BuildContext context,
   required String duration,
+  required Map<String, dynamic> medicineData,
 }) {
   return Container(
     padding: EdgeInsets.symmetric(vertical: 16),
@@ -270,8 +319,11 @@ Widget _buildDuration({
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () =>
-                    Navigator.pushNamed(context, '/medicine-edit-duration'),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/medicine-edit-duration',
+                  arguments: medicineData,
+                ),
                 child: Text(
                   duration,
                   style: AppTextStyles.bodyMedium.copyWith(
