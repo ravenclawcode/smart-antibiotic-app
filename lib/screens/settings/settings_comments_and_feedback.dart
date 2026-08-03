@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 
 import '../../utils/app_colors.dart';
@@ -17,6 +18,7 @@ class SettingsCommentsAndFeedback extends StatefulWidget {
 class _SettingsCommentsAndFeedbackState
     extends State<SettingsCommentsAndFeedback> {
   late TextEditingController feedbackController;
+  bool _isLoading = true;
 
   List<Map<String, String>> feedbacks = [
     {
@@ -26,18 +28,28 @@ class _SettingsCommentsAndFeedbackState
       'reply':
           'Ya, Amoxicillin bisa diminum bersama makanan untuk mengurangi gangguan lambung.',
     },
-    {
-      'name': 'Syifa',
-      'time': '31 July 2026',
-      'comment': 'Tolong tambahkan materi tentang efek samping Ciprofloxacin',
-      'reply': '',
-    },
+    // {
+    //   'name': 'Syifa',
+    //   'time': '31 July 2026',
+    //   'comment': 'Tolong tambahkan materi tentang efek samping Ciprofloxacin',
+    //   'reply': '',
+    // },
   ];
 
   @override
   void initState() {
     super.initState();
     feedbackController = TextEditingController();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -72,7 +84,7 @@ class _SettingsCommentsAndFeedbackState
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -80,72 +92,280 @@ class _SettingsCommentsAndFeedbackState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isLoading: _isLoading),
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 20),
-                      CustomInputFeedbackForm(
-                        controller: feedbackController,
-                        userName: 'Syifa',
-                        onSubmit: _addFeedback,
+              child: _isLoading
+                  ? _buildShimmerContent()
+                  : SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            CustomInputFeedbackForm(
+                              controller: feedbackController,
+                              userName: 'Syifa',
+                              onSubmit: _addFeedback,
+                            ),
+                            const SizedBox(height: 30),
+                            _buildFeedbackList(),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 30),
-                      _buildFeedbackList(),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
             ),
-            SizedBox(height: 26),
+            const SizedBox(height: 26),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 115,
-      width: double.infinity,
-      color: AppColors.primary,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: SafeArea(
-          bottom: false,
-          child: Row(
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InkWell(
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20,
-                    color: AppColors.surfacePrimary,
-                  ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: AppColors.surfacePrimary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 100,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfacePrimary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfacePrimary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        width: 100,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: 14),
-              Text(
-                'Komentar & Masukan',
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textWhite,
+              const SizedBox(height: 30),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE7ECF0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfacePrimary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    width: 80,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfacePrimary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfacePrimary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                width: 200,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfacePrimary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfacePrimary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfacePrimary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 140,
+                            height: 15,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Spacer(),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE7ECF0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfacePrimary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    width: 80,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfacePrimary,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfacePrimary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfacePrimary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: 120,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfacePrimary,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -157,7 +377,7 @@ class _SettingsCommentsAndFeedbackState
     if (feedbacks.isEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Text(
             'Belum ada komentar atau masukan.',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -170,7 +390,7 @@ class _SettingsCommentsAndFeedbackState
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: feedbacks.length,
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
@@ -179,13 +399,13 @@ class _SettingsCommentsAndFeedbackState
         final bool hasReply = replyText.trim().isNotEmpty;
 
         return Padding(
-          padding: EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: 16),
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Color(0xFFE7ECF0)),
+              border: Border.all(color: const Color(0xFFE7ECF0)),
             ),
             child: Column(
               children: [
@@ -205,7 +425,7 @@ class _SettingsCommentsAndFeedbackState
                                   fontSize: 18,
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Text(
                                 list['time'] as String,
                                 style: AppTextStyles.bodySmall.copyWith(
@@ -214,7 +434,7 @@ class _SettingsCommentsAndFeedbackState
                               ),
                             ],
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             list['comment'] as String,
                             style: AppTextStyles.bodyMedium.copyWith(
@@ -231,7 +451,7 @@ class _SettingsCommentsAndFeedbackState
                       splashColor: Colors.transparent,
                       onTap: () => _deleteFeedback(index),
                       child: Padding(
-                        padding: EdgeInsets.all(4.0),
+                        padding: const EdgeInsets.all(4.0),
                         child: Image.asset(
                           icDelete,
                           height: 16,
@@ -241,11 +461,14 @@ class _SettingsCommentsAndFeedbackState
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 if (hasReply)
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceAccent,
                       borderRadius: BorderRadius.circular(10),
@@ -260,7 +483,7 @@ class _SettingsCommentsAndFeedbackState
                             color: AppColors.primary,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(replyText, style: AppTextStyles.bodyMedium),
                       ],
                     ),
@@ -283,4 +506,78 @@ class _SettingsCommentsAndFeedbackState
       },
     );
   }
+}
+
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+  return Container(
+    height: 115,
+    width: double.infinity,
+    color: AppColors.primary,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
+                ),
+              ),
+            const SizedBox(width: 14),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 240,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Komentar & Masukan',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
+              ),
+            const Spacer(),
+          ],
+        ),
+      ),
+    ),
+  );
 }

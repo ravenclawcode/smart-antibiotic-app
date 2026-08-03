@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/custom_input_gender_form.dart';
 
@@ -13,6 +14,7 @@ import '../../utils/custom_input_age_form.dart';
 class SettingsEditProfilScreen extends StatefulWidget {
   final String initialValue;
   final ValueChanged<String> onNameChanged;
+
   const SettingsEditProfilScreen({
     super.key,
     required this.initialValue,
@@ -34,6 +36,7 @@ class _SettingsEditProfilScreenState extends State<SettingsEditProfilScreen> {
   late String _initialGender;
 
   bool _isNextEnabled = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -49,6 +52,17 @@ class _SettingsEditProfilScreenState extends State<SettingsEditProfilScreen> {
     _nameController.addListener(_checkFormChanges);
     _ageController.addListener(_checkFormChanges);
     _genderController.addListener(_checkFormChanges);
+
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _checkFormChanges() {
@@ -81,7 +95,7 @@ class _SettingsEditProfilScreenState extends State<SettingsEditProfilScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -89,81 +103,210 @@ class _SettingsEditProfilScreenState extends State<SettingsEditProfilScreen> {
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isLoading: _isLoading),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 28),
-                            _buildContent(
-                              _nameController,
-                              _ageController,
-                              _genderController,
+              child: _isLoading
+                  ? _buildShimmerContent()
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
                             ),
-                            const Spacer(),
-                            _buildActionButton(context, _isNextEnabled),
-                            const SizedBox(height: 60),
-                          ],
-                        ),
-                      ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 28),
+                                  _buildContent(
+                                    _nameController,
+                                    _ageController,
+                                    _genderController,
+                                  ),
+                                  const Spacer(),
+                                  _buildActionButton(context, _isNextEnabled),
+                                  const SizedBox(height: 60),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 26),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 28),
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: SkeletonBox(width: 60, height: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      const SkeletonBox(
+                        width: double.infinity,
+                        height: 70,
+                        radius: 16,
+                      ),
+                      const SizedBox(height: 18),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: SkeletonBox(width: 50, height: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      const SkeletonBox(
+                        width: double.infinity,
+                        height: 70,
+                        radius: 16,
+                      ),
+                      const SizedBox(height: 18),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: SkeletonBox(width: 100, height: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      const SkeletonBox(
+                        width: double.infinity,
+                        height: 70,
+                        radius: 16,
+                      ),
+                      const Spacer(),
+                      const SkeletonBox(
+                        width: double.infinity,
+                        height: 70,
+                        radius: 50,
+                      ),
+                      const SizedBox(height: 60),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
-Widget _buildHeader(BuildContext context) {
+class SkeletonBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const SkeletonBox({
+    super.key,
+    required this.width,
+    required this.height,
+    this.radius = 4,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.surfacePrimary,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   return Container(
     height: 115,
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: AppColors.surfacePrimary,
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 14),
-            Text(
-              'Edit Profil',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            const SizedBox(width: 14),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 120,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Edit Profil',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
-            ),
-            Spacer(),
+            const Spacer(),
           ],
         ),
       ),
@@ -173,8 +316,8 @@ Widget _buildHeader(BuildContext context) {
 
 Widget _buildContent(
   TextEditingController nameController,
-  ageController,
-  genderController,
+  TextEditingController ageController,
+  TextEditingController genderController,
 ) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 26),
@@ -192,26 +335,26 @@ Widget _buildContent(
             child: Image.asset(icPerson, color: AppColors.primary),
           ),
         ),
-        SizedBox(height: 28),
+        const SizedBox(height: 28),
         Align(
-          alignment: AlignmentGeometry.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Text('Nama', style: AppTextStyles.bodyLarge),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         CustomEditNameForm(controller: nameController),
-        SizedBox(height: 14),
+        const SizedBox(height: 14),
         Align(
-          alignment: AlignmentGeometry.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Text('Umur', style: AppTextStyles.bodyLarge),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         CustomInputAgeForm(controller: ageController),
-        SizedBox(height: 14),
+        const SizedBox(height: 14),
         Align(
-          alignment: AlignmentGeometry.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Text('Jenis Kelamin', style: AppTextStyles.bodyLarge),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         CustomInputGenderForm(controller: genderController),
       ],
     ),
