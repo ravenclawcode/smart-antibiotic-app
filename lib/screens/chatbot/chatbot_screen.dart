@@ -339,18 +339,29 @@ Widget _buildHeader(
                 ),
               )
             else
-              InkWell(
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                onTap: canDelete ? onDeleteTap : null,
-                child: Image.asset(
-                  icDelete,
-                  height: 20,
-                  color: canDelete
-                      ? AppColors.surfacePrimary
-                      : AppColors.accent,
+              // EFEK ANIMASI PERGANTIAN ICON DELETE
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: InkWell(
+                  key: ValueKey<bool>(canDelete),
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: canDelete ? onDeleteTap : null,
+                  child: Image.asset(
+                    icDelete,
+                    height: 20,
+                    color: canDelete
+                        ? AppColors.surfacePrimary
+                        : AppColors.accent,
+                  ),
                 ),
               ),
           ],
@@ -376,9 +387,65 @@ Widget _buildMessagesList({
         return _buildTypingIndicator();
       }
 
-      return _buildMessageBubble(context, messages[index]);
+      // Membungkus pesan dalam AnimatedMessageItem untuk animasi saat baru muncul
+      return _AnimatedMessageItem(
+        key: ValueKey(messages[index].timestamp),
+        child: _buildMessageBubble(context, messages[index]),
+      );
     },
   );
+}
+
+// Stateful Widget Tambahan untuk Menangani Animasi Teks Baru
+class _AnimatedMessageItem extends StatefulWidget {
+  final Widget child;
+
+  const _AnimatedMessageItem({super.key, required this.child});
+
+  @override
+  State<_AnimatedMessageItem> createState() => _AnimatedMessageItemState();
+}
+
+class _AnimatedMessageItemState extends State<_AnimatedMessageItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(position: _slideAnimation, child: widget.child),
+    );
+  }
 }
 
 Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
