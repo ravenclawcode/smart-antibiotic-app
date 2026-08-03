@@ -17,10 +17,10 @@ class OnboardingReminderSoundContent extends StatefulWidget {
 
   @override
   State<OnboardingReminderSoundContent> createState() =>
-      _OnboardingReminderSoundContentState();
+      OnboardingReminderSoundContentState();
 }
 
-class _OnboardingReminderSoundContentState
+class OnboardingReminderSoundContentState
     extends State<OnboardingReminderSoundContent> {
   int? playingIndex;
 
@@ -36,14 +36,29 @@ class _OnboardingReminderSoundContentState
   void initState() {
     super.initState();
     _audioPlayer.onPlayerComplete.listen((event) {
+      if (mounted) {
+        setState(() {
+          playingIndex = null;
+        });
+      }
+    });
+  }
+
+  Future<void> stopAudio() async {
+    try {
+      await _audioPlayer.stop();
+    } catch (_) {}
+
+    if (mounted) {
       setState(() {
         playingIndex = null;
       });
-    });
+    }
   }
 
   @override
   void dispose() {
+    _audioPlayer.stop();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -53,16 +68,15 @@ class _OnboardingReminderSoundContentState
     final cleanPath = fullPath.replaceFirst('assets/', '');
 
     if (playingIndex == index) {
-      await _audioPlayer.stop();
-      setState(() {
-        playingIndex = null;
-      });
+      await stopAudio();
     } else {
       await _audioPlayer.stop();
       await _audioPlayer.play(AssetSource(cleanPath));
-      setState(() {
-        playingIndex = index;
-      });
+      if (mounted) {
+        setState(() {
+          playingIndex = index;
+        });
+      }
     }
   }
 

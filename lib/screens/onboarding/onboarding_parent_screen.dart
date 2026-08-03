@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/custom_button.dart';
 import 'package:smart_antibiotic/utils/custom_button_off.dart';
@@ -19,12 +20,31 @@ class OnboardingParentScreen extends StatefulWidget {
 class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   final PageController _pageController = PageController();
   final GlobalKey<FormState> _formKeyName = GlobalKey<FormState>();
+  final GlobalKey<OnboardingReminderSoundContentState> _soundKey =
+      GlobalKey<OnboardingReminderSoundContentState>();
 
   int _currentPage = 0;
   String _nameInputted = '';
   String _selectedType = '';
   String _selectedSound = '';
+
+  bool _isInitialLoading = true;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitialData();
+  }
+
+  Future<void> _fetchInitialData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isInitialLoading = false;
+      });
+    }
+  }
 
   double get _progressValue => (_currentPage + 1) / 3;
 
@@ -51,6 +71,10 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   void _previousPage() {
+    if (_currentPage == 2) {
+      _soundKey.currentState?.stopAudio();
+    }
+
     if (_currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -62,6 +86,8 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   Future<void> _submitData() async {
+    await _soundKey.currentState?.stopAudio();
+
     setState(() => _isLoading = true);
 
     try {
@@ -93,45 +119,48 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Column(
-                children: [
-                  const SizedBox(height: 14),
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (index) {
-                        setState(() => _currentPage = index);
-                      },
+              child: _isInitialLoading
+                  ? _buildShimmerContent()
+                  : Column(
                       children: [
-                        OnboardingInputNameContent(
-                          formKey: _formKeyName,
-                          initialValue: _nameInputted,
-                          onNameChanged: (val) {
-                            setState(() => _nameInputted = val);
-                          },
+                        const SizedBox(height: 14),
+                        _buildHeader(),
+                        const SizedBox(height: 20),
+                        Expanded(
+                          child: PageView(
+                            controller: _pageController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            onPageChanged: (index) {
+                              setState(() => _currentPage = index);
+                            },
+                            children: [
+                              OnboardingInputNameContent(
+                                formKey: _formKeyName,
+                                initialValue: _nameInputted,
+                                onNameChanged: (val) {
+                                  setState(() => _nameInputted = val);
+                                },
+                              ),
+                              OnboardingReminderTypeContent(
+                                selectedType: _selectedType,
+                                onSelectType: (type) {
+                                  setState(() => _selectedType = type);
+                                },
+                              ),
+                              OnboardingReminderSoundContent(
+                                key: _soundKey, // Terhubung dengan GlobalKey
+                                selectedSound: _selectedSound,
+                                onSelectSound: (sound) {
+                                  setState(() => _selectedSound = sound);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        OnboardingReminderTypeContent(
-                          selectedType: _selectedType,
-                          onSelectType: (type) {
-                            setState(() => _selectedType = type);
-                          },
-                        ),
-                        OnboardingReminderSoundContent(
-                          selectedSound: _selectedSound,
-                          onSelectSound: (sound) {
-                            setState(() => _selectedSound = sound);
-                          },
-                        ),
+                        _buildActionButton(),
+                        const SizedBox(height: 30),
                       ],
                     ),
-                  ),
-                  _buildActionButton(),
-                  const SizedBox(height: 30),
-                ],
-              ),
             ),
           ),
           if (_isLoading)
@@ -139,6 +168,69 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
               color: AppColors.textPrimary.withValues(alpha: 0.4),
               child: const Center(child: CustomLoading()),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: const BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          Container(
+            width: 200,
+            height: 28,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 40),
+          Container(
+            width: double.infinity,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: double.infinity,
+            height: 70,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(50),
+            ),
+          ),
+          const SizedBox(height: 30),
         ],
       ),
     );

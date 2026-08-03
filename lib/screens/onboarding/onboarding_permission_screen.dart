@@ -1,6 +1,7 @@
-import 'dart:async'; // Impor Timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 
@@ -23,13 +24,24 @@ class _OnboardingPermissionScreenState
   );
   int _currentPage = 0;
   Timer? _timer;
+  bool _isLoading = true;
 
   final List<String> _carouselImages = [imgCarousel1, imgCarousel2];
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      _startTimer();
+    }
   }
 
   @override
@@ -41,7 +53,7 @@ class _OnboardingPermissionScreenState
 
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 4), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
       if (_currentPage < _carouselImages.length - 1) {
         _currentPage++;
       } else {
@@ -49,7 +61,7 @@ class _OnboardingPermissionScreenState
       }
       _pageController.animateToPage(
         _currentPage,
-        duration: Duration(milliseconds: 600),
+        duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOut,
       );
     });
@@ -101,18 +113,113 @@ class _OnboardingPermissionScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 50),
-            _buildHeader(),
-            SizedBox(height: 40),
-            _buildCarousel(),
-            Spacer(),
-            _buildActionButton(context),
-            SizedBox(height: 30),
-          ],
-        ),
+        child: _isLoading
+            ? _buildShimmerContent()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 50),
+                  _buildHeader(),
+                  const SizedBox(height: 40),
+                  _buildCarousel(),
+                  const Spacer(),
+                  _buildActionButton(context),
+                  const SizedBox(height: 30),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: Column(
+        children: [
+          const SizedBox(height: 50),
+          // Skeleton Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26),
+            child: Column(
+              children: [
+                Container(
+                  width: 160,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Title Lines Skeleton
+                Container(
+                  width: double.infinity,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: 220,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+
+          Container(
+            height: 365,
+            margin: const EdgeInsets.symmetric(horizontal: 32),
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 20,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26),
+            child: Container(
+              width: double.infinity,
+              height: 70,
+              decoration: BoxDecoration(
+                color: AppColors.surfacePrimary,
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
       ),
     );
   }
@@ -124,17 +231,15 @@ class _OnboardingPermissionScreenState
         children: [
           Text(
             'Satu langkah terakhir!',
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primary,
-            ), // Sesuaikan warna (opsional)
+            style: AppTextStyles.bodyLarge.copyWith(color: AppColors.primary),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             'Izinkan aplikasi mengirimkan pengingat kepada Anda',
             style: AppTextStyles.titleLarge.copyWith(
               color: AppColors.textPrimary,
-            ), // Sesuaikan warna (opsional)
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -187,20 +292,20 @@ class _OnboardingPermissionScreenState
             },
           ),
         ),
-        SizedBox(height: 18),
+        const SizedBox(height: 18),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             _carouselImages.length,
             (index) => AnimatedContainer(
-              duration: Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: _currentPage == index ? 20 : 10,
               height: 10,
               decoration: BoxDecoration(
                 color: _currentPage == index
                     ? AppColors.primary
-                    : Color(0xFFEDEDED),
+                    : const Color(0xFFEDEDED),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
