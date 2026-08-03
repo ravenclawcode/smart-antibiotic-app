@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/custom_dialog_quit_quiz.dart';
 
 import '../../utils/app_colors.dart';
@@ -33,7 +34,8 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   final PageController _pageController = PageController();
 
   int _currentPage = 0;
-  bool _isLoading = false;
+  bool _isInitialLoading = true;
+  bool _isSubmitting = false;
 
   final List<QuizQuestion> _questions = [
     QuizQuestion(
@@ -54,7 +56,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
         'Agar tidak perlu kontrol ke dokter',
         'Agar kadar antibiotik dalam tubuh tetap efektif melawan bakteri',
       ],
-      correctAnswerIndex: 2,
+      correctAnswerIndex: 3,
     ),
     QuizQuestion(
       question: 'Apa bahaya utama dari bahaya resistensi antibiotik?',
@@ -74,6 +76,16 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   void initState() {
     super.initState();
     _userAnswers = List<int?>.filled(_questions.length, null);
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isInitialLoading = false;
+      });
+    }
   }
 
   @override
@@ -117,7 +129,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   Future<bool> _showExitDialog() async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => CustomDialogQuitQuiz(),
+      builder: (context) => const CustomDialogQuitQuiz(),
     );
 
     if (result == true) {
@@ -135,7 +147,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       }
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isSubmitting = true);
 
     try {
       await Future.delayed(const Duration(seconds: 2));
@@ -153,7 +165,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -187,41 +199,46 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                         currentPage: _currentPage + 1,
                         totalQuestions: _questions.length,
                         onBackTap: _previousPage,
+                        isLoading: _isInitialLoading,
                       ),
                       const SizedBox(height: 24),
                       Expanded(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          onPageChanged: (page) {
-                            setState(() {
-                              _currentPage = page;
-                            });
-                          },
-                          itemCount: _questions.length,
-                          itemBuilder: (context, index) {
-                            final question = _questions[index];
-                            return _buildContent(
-                              question: question.question,
-                              options: question.options,
-                              selectedIndex: _userAnswers[index],
-                              onSelectOption: _onOptionSelected,
-                            );
-                          },
+                        child: _isInitialLoading
+                            ? _buildShimmerContent()
+                            : PageView.builder(
+                                controller: _pageController,
+                                physics: const NeverScrollableScrollPhysics(),
+                                onPageChanged: (page) {
+                                  setState(() {
+                                    _currentPage = page;
+                                  });
+                                },
+                                itemCount: _questions.length,
+                                itemBuilder: (context, index) {
+                                  final question = _questions[index];
+                                  return _buildContent(
+                                    question: question.question,
+                                    options: question.options,
+                                    selectedIndex: _userAnswers[index],
+                                    onSelectOption: _onOptionSelected,
+                                  );
+                                },
+                              ),
+                      ),
+                      if (!_isInitialLoading) ...[
+                        _buildActionButton(
+                          _currentPage,
+                          _questions.length,
+                          _isNextEnabled,
+                          _nextPage,
                         ),
-                      ),
-                      _buildActionButton(
-                        _currentPage,
-                        _questions.length,
-                        _isNextEnabled,
-                        _nextPage,
-                      ),
-                      const SizedBox(height: 30),
+                        const SizedBox(height: 30),
+                      ],
                     ],
                   ),
                 ),
               ),
-              if (_isLoading)
+              if (_isSubmitting)
                 Container(
                   color: AppColors.textPrimary.withValues(alpha: 0.4),
                   child: const Center(child: CustomLoading()),
@@ -229,6 +246,103 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Skeleton Teks Pertanyaan
+          Container(
+            width: double.infinity,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 220,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Skeleton Subtitle
+          Container(
+            width: 180,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 4,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    width: double.infinity,
+                    height: 66,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.surfacePrimary,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfacePrimary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            height: 22,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Skeleton Button
+          Container(
+            width: double.infinity,
+            height: 70,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(50),
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
       ),
     );
   }
@@ -240,57 +354,117 @@ Widget _buildHeader(
   required int currentPage,
   required int totalQuestions,
   required VoidCallback onBackTap,
+  required bool isLoading,
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      InkWell(
-        focusColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        onTap: onBackTap,
-        child: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceAccent,
-            borderRadius: BorderRadius.circular(20),
+      if (isLoading)
+        Shimmer.fromColors(
+          baseColor: AppColors.surfaceSecondary,
+          highlightColor: AppColors.surfaceCool,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              color: AppColors.surfacePrimary,
+              shape: BoxShape.circle,
+            ),
           ),
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: AppColors.primary,
-          ),
-        ),
-      ),
-      const SizedBox(height: 20),
-      Row(
-        children: [
-          Container(
+        )
+      else
+        InkWell(
+          focusColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          onTap: onBackTap,
+          child: Container(
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.surfaceAccent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              child: Text(
-                'Level 1',
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textWhite,
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      const SizedBox(height: 20),
+      if (isLoading)
+        Shimmer.fromColors(
+          baseColor: AppColors.surfaceSecondary,
+          highlightColor: AppColors.surfaceCool,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 100,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        )
+      else ...[
+        Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
+                child: Text(
+                  'Level 1',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: AppColors.textWhite,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'Pertanyaan $currentPage/$totalQuestions',
-            style: AppTextStyles.bodySmall,
-          ),
-        ],
-      ),
-      const SizedBox(height: 14),
-      CustomProgressBarOnboarding(value: progressValue, height: 6),
+            const SizedBox(width: 12),
+            Text(
+              'Pertanyaan $currentPage/$totalQuestions',
+              style: AppTextStyles.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        CustomProgressBarOnboarding(value: progressValue, height: 6),
+      ],
     ],
   );
 }
@@ -319,6 +493,7 @@ Widget _buildContent({
       Expanded(
         child: ListView.builder(
           itemCount: options.length,
+          padding: EdgeInsets.zero,
           itemBuilder: (context, index) {
             final optionLetters = ['A', 'B', 'C', 'D'];
             final isSelected = selectedIndex == index;

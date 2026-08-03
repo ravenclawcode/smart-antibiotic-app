@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button_quiz.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends StatefulWidget {
   final int score;
   final int totalQuestions;
 
@@ -16,24 +17,226 @@ class QuizResultScreen extends StatelessWidget {
   });
 
   @override
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends State<QuizResultScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        body: _isLoading
+            ? _buildShimmerContent()
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildHeader(context, widget.score, widget.totalQuestions),
+                  const SizedBox(height: 78),
+                  _buildActionButton(context),
+                  const Spacer(),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Column(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
           children: [
-            _buildHeader(context, score, totalQuestions),
-            SizedBox(height: 78),
-            _buildActionButton(context),
-            Spacer(),
+            // Shimmer Header Box
+            Container(
+              height: 330,
+              width: double.infinity,
+              color: AppColors.primary,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SafeArea(
+                  bottom: false,
+                  child: Shimmer.fromColors(
+                    baseColor: AppColors.accent,
+                    highlightColor: AppColors.primary,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Spacer(),
+                        // Status Text Skeleton
+                        Container(
+                          width: 140,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Subtitle Text Skeleton
+                        Container(
+                          width: 220,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Big Percentage Skeleton
+                        Container(
+                          width: 120,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Score Detail Skeleton
+                        Container(
+                          width: 100,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 78),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Shimmer Floating Level Card
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: -45,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withValues(alpha: 0.1),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Shimmer.fromColors(
+                  baseColor: AppColors.surfaceSecondary,
+                  highlightColor: AppColors.surfaceCool,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 60,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 90,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: 78),
+        // Action Buttons Shimmer
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Shimmer.fromColors(
+            baseColor: AppColors.surfaceSecondary,
+            highlightColor: AppColors.surfaceCool,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Spacer(),
+      ],
     );
   }
 }
@@ -48,22 +251,22 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
       Container(
         height: 330,
         width: double.infinity,
-        decoration: BoxDecoration(color: AppColors.primary),
+        decoration: const BoxDecoration(color: AppColors.primary),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SafeArea(
             bottom: false,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Spacer(),
+                const Spacer(),
                 Text(
                   isPassed ? 'Selamat!' : 'Coba Lagi!',
                   style: AppTextStyles.titleLarge.copyWith(
                     color: AppColors.textWhite,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   isPassed
                       ? 'Kamu telah menyelesaikan kuis ini'
@@ -87,7 +290,7 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
                     color: AppColors.textWhite,
                   ),
                 ),
-                SizedBox(height: 78),
+                const SizedBox(height: 78),
               ],
             ),
           ),
@@ -98,7 +301,7 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
         right: 20,
         bottom: -45,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.surfacePrimary,
             borderRadius: BorderRadius.circular(12),
@@ -106,7 +309,7 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
               BoxShadow(
                 color: AppColors.textPrimary.withValues(alpha: 0.1),
                 blurRadius: 15,
-                offset: Offset(0, 5),
+                offset: const Offset(0, 5),
               ),
             ],
           ),
@@ -116,7 +319,7 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Color(0xFFE0EEFB),
+                  color: const Color(0xFFE0EEFB),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Padding(
@@ -124,7 +327,7 @@ Widget _buildHeader(BuildContext context, int score, int totalQuestions) {
                   child: Image.asset(imgKuis2),
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -178,7 +381,7 @@ Widget _buildActionButton(BuildContext context) {
             colorBorder: AppColors.primary,
           ),
         ),
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
         Expanded(
           child: CustomButtonQuiz(
             onTap: () {
