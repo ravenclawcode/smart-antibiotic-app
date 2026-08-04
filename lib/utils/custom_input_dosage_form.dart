@@ -20,7 +20,7 @@ class CustomInputDosageForm extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -32,7 +32,7 @@ class CustomInputDosageForm extends StatelessWidget {
                   keyboardType: TextInputType.number,
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                   decoration: InputDecoration(
-                    hintText: '1',
+                    hintText: 'Masukkan dosis',
                     hintStyle: AppTextStyles.hint,
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -48,7 +48,7 @@ class CustomInputDosageForm extends StatelessWidget {
               color: Color(0xFFE7ECF0),
             ),
             Expanded(
-              flex: 7,
+              flex: 6,
               child: InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,

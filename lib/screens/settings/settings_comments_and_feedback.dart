@@ -28,12 +28,6 @@ class _SettingsCommentsAndFeedbackState
       'reply':
           'Ya, Amoxicillin bisa diminum bersama makanan untuk mengurangi gangguan lambung.',
     },
-    // {
-    //   'name': 'Syifa',
-    //   'time': '31 July 2026',
-    //   'comment': 'Tolong tambahkan materi tentang efek samping Ciprofloxacin',
-    //   'reply': '',
-    // },
   ];
 
   @override
@@ -122,157 +116,32 @@ class _SettingsCommentsAndFeedbackState
   }
 
   Widget _buildShimmerContent() {
-    return Shimmer.fromColors(
-      baseColor: AppColors.surfaceSecondary,
-      highlightColor: AppColors.surfaceCool,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfacePrimary,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 100,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      width: double.infinity,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        width: 100,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfacePrimary,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE7ECF0), width: 1.5),
               ),
-              const SizedBox(height: 30),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE7ECF0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 60,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfacePrimary,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Container(
-                                    width: 80,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfacePrimary,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                width: double.infinity,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfacePrimary,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                width: 200,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfacePrimary,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Shimmer.fromColors(
+                      baseColor: AppColors.surfaceSecondary,
+                      highlightColor: AppColors.surfaceCool,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 140,
-                            height: 15,
+                            width: double.infinity,
+                            height: 16,
                             decoration: BoxDecoration(
                               color: AppColors.surfacePrimary,
                               borderRadius: BorderRadius.circular(4),
@@ -280,26 +149,67 @@ class _SettingsCommentsAndFeedbackState
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            width: double.infinity,
-                            height: 14,
+                            width: 200,
+                            height: 16,
                             decoration: BoxDecoration(
                               color: AppColors.surfacePrimary,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
+                          const SizedBox(height: 60),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE7ECF0),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Shimmer.fromColors(
+                      baseColor: AppColors.surfaceSecondary,
+                      highlightColor: AppColors.surfaceCool,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          Container(
+                            width: 38,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE7ECF0)),
-                ),
+            ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE7ECF0)),
+              ),
+              child: Shimmer.fromColors(
+                baseColor: AppColors.surfaceSecondary,
+                highlightColor: AppColors.surfaceCool,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -314,7 +224,7 @@ class _SettingsCommentsAndFeedbackState
                                 children: [
                                   Container(
                                     width: 60,
-                                    height: 16,
+                                    height: 24,
                                     decoration: BoxDecoration(
                                       color: AppColors.surfacePrimary,
                                       borderRadius: BorderRadius.circular(4),
@@ -340,6 +250,15 @@ class _SettingsCommentsAndFeedbackState
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 220,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfacePrimary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -356,18 +275,18 @@ class _SettingsCommentsAndFeedbackState
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      width: 120,
-                      height: 14,
+                      width: double.infinity,
+                      height: 104,
                       decoration: BoxDecoration(
                         color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -559,7 +478,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                 baseColor: AppColors.accent,
                 highlightColor: AppColors.primary,
                 child: Container(
-                  width: 240,
+                  width: 180,
                   height: 22,
                   decoration: BoxDecoration(
                     color: AppColors.accent,

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
+import 'package:smart_antibiotic/utils/custom_calendar.dart';
 import 'package:smart_antibiotic/utils/custom_dialog_medicine.dart';
-
-import '../../utils/custom_calendar.dart';
-import '../../utils/custom_education_card.dart';
-import '../../utils/custom_medicine_card.dart';
-import '../../utils/custom_quiz_card.dart';
+import 'package:smart_antibiotic/utils/custom_education_card.dart';
+import 'package:smart_antibiotic/utils/custom_medicine_card.dart';
+import 'package:smart_antibiotic/utils/custom_quiz_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DateTime selectedDate = DateTime.now();
   late DateTime currentWeekStart;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    currentWeekStart = now.subtract(Duration(days: now.weekday % 7));
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _showMedicineDialog({
     required String time,
@@ -53,109 +72,287 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    currentWeekStart = now.subtract(Duration(days: now.weekday % 7));
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.surfaceCool,
+        body: Column(
+          children: [
+            _buildHeader(context, isLoading: _isLoading),
+            _isLoading
+                ? _buildShimmerCalendar()
+                : CustomCalendar(
+                    selectedDate: selectedDate,
+                    currentWeekStart: currentWeekStart,
+                    onDateSelected: (date) {
+                      setState(() => selectedDate = date);
+                    },
+                    onWeekChanged: (newWeekStart) {
+                      setState(() => currentWeekStart = newWeekStart);
+                    },
+                    onResetToToday: (today, weekStart) {
+                      setState(() {
+                        selectedDate = today;
+                        currentWeekStart = weekStart;
+                      });
+                    },
+                  ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: _isLoading
+                    ? _buildShimmerContent()
+                    : _buildContent(context),
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => Navigator.pushNamed(context, '/chatbot'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: Image.asset(imgChatbot),
+        ),
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceCool,
-      body: Column(
-        children: [
-          _buildHeader(context),
-          CustomCalendar(
-            selectedDate: selectedDate,
-            currentWeekStart: currentWeekStart,
-            onDateSelected: (date) {
-              setState(() => selectedDate = date);
-            },
-            onWeekChanged: (newWeekStart) {
-              setState(() => currentWeekStart = newWeekStart);
-            },
-            onResetToToday: (today, weekStart) {
-              setState(() {
-                selectedDate = today;
-                currentWeekStart = weekStart;
-              });
-            },
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 16),
-                    _buildMedicineList(
-                      context,
-                      _showMedicineDialog,
-                      selectedDate,
-                    ),
-                    SizedBox(height: 26),
-                    _buildEducationList(context),
-                    SizedBox(height: 26),
-                    _buildQuisList(context),
-                    SizedBox(height: 26),
-                  ],
-                ),
+  Widget _buildShimmerCalendar() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            7,
+            (index) => Container(
+              width: 42,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.surfacePrimary,
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-        ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/chatbot'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        child: Image.asset(imgChatbot),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.surfaceSecondary,
+      highlightColor: AppColors.surfaceCool,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 2,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    width: double.infinity,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 26),
+            Row(
+              children: [
+                Container(
+                  width: 100,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 70,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: Row(
+                children: List.generate(
+                  4,
+                  (index) => Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    width: 110,
+                    height: 155,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 26),
+            Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 70,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfacePrimary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 3,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    width: double.infinity,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 26),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          _buildMedicineList(context, _showMedicineDialog, selectedDate),
+          const SizedBox(height: 26),
+          _buildEducationList(context),
+          const SizedBox(height: 26),
+          _buildQuisList(context),
+          const SizedBox(height: 26),
+        ],
       ),
     );
   }
 }
 
-Widget _buildHeader(BuildContext context) {
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   return Container(
     height: 115,
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 26),
+      padding: const EdgeInsets.symmetric(horizontal: 26),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            Expanded(
-              child: Text(
-                'Syifa',
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textWhite,
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 100,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Image.asset(icSettings, color: AppColors.textWhite),
+              )
+            else
+              Expanded(
+                child: Text(
+                  'Syifa',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: AppColors.textWhite,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
+            const Spacer(),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pushNamed(context, '/settings'),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Image.asset(icSettings, color: AppColors.textWhite),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -221,58 +418,6 @@ Widget _buildMedicineList(
           statusText: 'Diminum pukul 16.00, $dateFormatted',
         ),
       ),
-      // const SizedBox(height: 12),
-      // CustomMedicineCard(
-      //   time: '20.00',
-      //   image: Image.asset(imgTablet, width: 30),
-      //   name: 'Amoxicillin',
-      //   dosage: 'Minum 1 Tablet',
-      //   notes: '',
-      //   isTaken: false,
-      //   isSkipped: true,
-      //   isMissed: false,
-      //   imgStatus: Image.asset(imgSkipped, width: 12),
-      //   notesText: 'Lupa / sedang sibuk / tertidur',
-      //   statusText: 'Dilewati pukul 20.00, $dateFormatted',
-      //   onTap: () => showMedicineDialog(
-      //     time: '20.00',
-      //     image: Image.asset(imgTablet, width: 44),
-      //     name: 'Amoxicillin',
-      //     dosage: 'Minum 1 Tablet',
-      //     notes: '',
-      //     isTaken: false,
-      //     isSkipped: true,
-      //     isMissed: false,
-      //     imgStatus: Image.asset(imgSkipped, width: 14),
-      //     notesText: 'Lupa / sedang sibuk / tertidur',
-      //     statusText: 'Dilewati pukul 20.00, $dateFormatted',
-      //   ),
-      // ),
-      // const SizedBox(height: 12),
-      // CustomMedicineCard(
-      //   time: '23.00',
-      //   image: Image.asset(imgTablet, width: 30),
-      //   name: 'Amoxicillin',
-      //   dosage: 'Minum 1 Tablet',
-      //   notes: '',
-      //   isTaken: false,
-      //   isSkipped: false,
-      //   isMissed: true,
-      //   imgStatus: Image.asset(imgMissed, width: 12),
-      //   statusText: 'Terlewat',
-      //   onTap: () => showMedicineDialog(
-      //     time: '23.00',
-      //     image: Image.asset(imgTablet, width: 44),
-      //     name: 'Amoxicillin',
-      //     dosage: 'Minum 1 Tablet',
-      //     notes: '',
-      //     isTaken: false,
-      //     isSkipped: false,
-      //     isMissed: true,
-      //     imgStatus: Image.asset(imgMissed, width: 14),
-      //     statusText: 'Terlewat',
-      //   ),
-      // ),
     ],
   );
 }
@@ -288,7 +433,7 @@ Widget _buildEducationList(BuildContext context) {
               fontWeight: FontWeight.bold,
             ),
           ),
-          Spacer(),
+          const Spacer(),
           InkWell(
             focusColor: Colors.transparent,
             hoverColor: Colors.transparent,
@@ -304,7 +449,7 @@ Widget _buildEducationList(BuildContext context) {
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(width: 2),
+                const SizedBox(width: 2),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 12,
@@ -315,7 +460,7 @@ Widget _buildEducationList(BuildContext context) {
           ),
         ],
       ),
-      SizedBox(height: 14),
+      const SizedBox(height: 14),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
@@ -324,51 +469,51 @@ Widget _buildEducationList(BuildContext context) {
             CustomEducationCard(
               title: 'Apa itu Antibiotik?',
               image: Image.asset(imgEdu1),
-              colorCard: Color(0xFFE3EFFD),
-              colorText: Color(0xFF1A61CB),
+              colorCard: const Color(0xFFE3EFFD),
+              colorText: const Color(0xFF1A61CB),
               onTap: () =>
                   Navigator.pushNamed(context, '/education-definition'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             CustomEducationCard(
               title: 'Jenis-Jenis Antibiotik',
               image: Image.asset(imgEdu2),
-              colorCard: Color(0xFFE2F5F1),
-              colorText: Color(0xFF076151),
+              colorCard: const Color(0xFFE2F5F1),
+              colorText: const Color(0xFF076151),
               onTap: () => Navigator.pushNamed(context, '/education-type'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             CustomEducationCard(
               title: 'Kapan Diperlukan?',
               image: Image.asset(imgEdu3),
-              colorCard: Color(0xFFFEECD5),
-              colorText: Color(0xFF8D4402),
+              colorCard: const Color(0xFFFEECD5),
+              colorText: const Color(0xFF8D4402),
               onTap: () =>
                   Navigator.pushNamed(context, '/education-indications'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             CustomEducationCard(
               title: 'Cara\nPenggunaan Antibiotik',
               image: Image.asset(imgEdu4),
-              colorCard: Color(0xFFE7E5FE),
-              colorText: Color(0xFF4A29A3),
+              colorCard: const Color(0xFFE7E5FE),
+              colorText: const Color(0xFF4A29A3),
               onTap: () => Navigator.pushNamed(context, '/education-usage'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             CustomEducationCard(
               title: 'Resistensi Antibiotik',
               image: Image.asset(imgEdu5),
-              colorCard: Color(0xFFFEE1E3),
-              colorText: Color(0xFFAA2125),
+              colorCard: const Color(0xFFFEE1E3),
+              colorText: const Color(0xFFAA2125),
               onTap: () =>
                   Navigator.pushNamed(context, '/education-resistance'),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             CustomEducationCard(
               title: 'Kategori Antibiotik',
               image: Image.asset(imgEdu6),
-              colorCard: Color(0xFFE1F6F9),
-              colorText: Color(0xFF0C6C79),
+              colorCard: const Color(0xFFE1F6F9),
+              colorText: const Color(0xFF0C6C79),
               onTap: () => Navigator.pushNamed(context, '/education-category'),
             ),
           ],
@@ -389,7 +534,7 @@ Widget _buildQuisList(BuildContext context) {
               fontWeight: FontWeight.bold,
             ),
           ),
-          Spacer(),
+          const Spacer(),
           InkWell(
             focusColor: Colors.transparent,
             hoverColor: Colors.transparent,
@@ -405,7 +550,7 @@ Widget _buildQuisList(BuildContext context) {
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(width: 2),
+                const SizedBox(width: 2),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 12,
@@ -416,7 +561,7 @@ Widget _buildQuisList(BuildContext context) {
           ),
         ],
       ),
-      SizedBox(height: 14),
+      const SizedBox(height: 14),
       SingleChildScrollView(
         scrollDirection: Axis.vertical,
         clipBehavior: Clip.none,
@@ -429,7 +574,7 @@ Widget _buildQuisList(BuildContext context) {
               color: AppColors.surfacePrimary,
               onTap: () => Navigator.pushNamed(context, '/quiz-detail'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             CustomQuizCard(
               title: 'Level 2',
               subtitle: 'Lorem Ipsum',
@@ -437,7 +582,7 @@ Widget _buildQuisList(BuildContext context) {
               color: AppColors.surfacePrimary,
               onTap: () {},
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             CustomQuizCard(
               title: 'Level 3',
               subtitle: 'Lorem Ipsum',

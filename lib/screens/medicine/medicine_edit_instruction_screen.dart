@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -23,12 +24,23 @@ class _MedicineEditInstructionScreenState
   String _initialInstructione = '';
   bool _isNextEnabled = false;
   bool _isInitialized = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     instructionController = TextEditingController();
     instructionController.addListener(_checkFormChanges);
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -72,7 +84,7 @@ class _MedicineEditInstructionScreenState
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -80,16 +92,18 @@ class _MedicineEditInstructionScreenState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context),
-            SizedBox(height: 20),
+            _buildHeader(context, isLoading: _isLoading),
+            const SizedBox(height: 20),
             Expanded(
-              child: _buildContent(
-                context,
-                _isNextEnabled,
-                instructionController,
-              ),
+              child: _isLoading
+                  ? _buildShimmerContent()
+                  : _buildContent(
+                      context,
+                      _isNextEnabled,
+                      instructionController,
+                    ),
             ),
-            SizedBox(height: 60),
+            const SizedBox(height: 60),
           ],
         ),
       ),
@@ -97,48 +111,166 @@ class _MedicineEditInstructionScreenState
   }
 }
 
-Widget _buildHeader(BuildContext context) {
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   return Container(
     height: 115,
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: AppColors.surfacePrimary,
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 14),
-            Text(
-              'Instruksi',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            const SizedBox(width: 14),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 90,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Instruksi',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
-            ),
-            Spacer(),
+            const Spacer(),
           ],
         ),
       ),
+    ),
+  );
+}
+
+Widget _buildShimmerContent() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 26),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Shimmer.fromColors(
+          baseColor: AppColors.surfaceSecondary,
+          highlightColor: AppColors.surfaceCool,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 220,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          height: 120,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE7ECF0), width: 1),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Shimmer.fromColors(
+            baseColor: AppColors.surfaceSecondary,
+            highlightColor: AppColors.surfaceCool,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 160,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const Spacer(),
+        Shimmer.fromColors(
+          baseColor: AppColors.surfaceSecondary,
+          highlightColor: AppColors.surfaceCool,
+          child: Container(
+            width: double.infinity,
+            height: 70,
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
+      ],
     ),
   );
 }
@@ -156,7 +288,7 @@ Widget _buildContent(
           'Tambahkan petunjuk agar obat ini digunakan sesuai anjuran',
           style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         CustomInputIntructionForm(controller: instructionController),
         const Spacer(),
         _buildActionButton(context, isNextEnabled, instructionController),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -15,6 +16,23 @@ class MedicineEditScheduleScreen extends StatefulWidget {
 
 class _MedicineEditScheduleScreenState
     extends State<MedicineEditScheduleScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   String _formatDateString(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '-';
     try {
@@ -72,7 +90,7 @@ class _MedicineEditScheduleScreenState
         (medicineData['times'] as List<dynamic>?) ?? [];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -80,15 +98,19 @@ class _MedicineEditScheduleScreenState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context),
-            SizedBox(height: 20),
-            _buildContent(
-              context: context,
-              frequency: frequency,
-              duration: duration,
-              times: timesList,
-              timesPerDay: timesPerDay,
-              medicineData: medicineData,
+            _buildHeader(context, isLoading: _isLoading),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _isLoading
+                  ? _buildShimmerContent()
+                  : _buildContent(
+                      context: context,
+                      frequency: frequency,
+                      duration: duration,
+                      times: timesList,
+                      timesPerDay: timesPerDay,
+                      medicineData: medicineData,
+                    ),
             ),
           ],
         ),
@@ -97,48 +119,207 @@ class _MedicineEditScheduleScreenState
   }
 }
 
-Widget _buildHeader(BuildContext context) {
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   return Container(
     height: 115,
     width: double.infinity,
     color: AppColors.primary,
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: AppColors.surfacePrimary,
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 14),
-            Text(
-              'Jadwal',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            const SizedBox(width: 14),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 80,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Jadwal',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
-            ),
-            Spacer(),
+            const Spacer(),
           ],
         ),
       ),
+    ),
+  );
+}
+
+Widget _buildShimmerContent() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE7ECF0)),
+          ),
+          child: Shimmer.fromColors(
+            baseColor: AppColors.surfaceSecondary,
+            highlightColor: AppColors.surfaceCool,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 110,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Container(
+                        width: 30,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Color(0xFFE7ECF0)),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        width: 45,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE7ECF0)),
+          ),
+          child: Shimmer.fromColors(
+            baseColor: AppColors.surfaceSecondary,
+            highlightColor: AppColors.surfaceCool,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 90,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfacePrimary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     ),
   );
 }
@@ -161,7 +342,7 @@ Widget _buildContent({
           times: times,
           timesPerDay: timesPerDay,
         ),
-        SizedBox(height: 18),
+        const SizedBox(height: 18),
         _buildDuration(
           context: context,
           duration: duration,
@@ -178,7 +359,6 @@ Widget _buildFrequency({
   required List<dynamic> times,
   required int timesPerDay,
 }) {
-  // Opsi item frekuensi
   final List<String> frequencyOptions = [
     '1 kali sehari',
     '2 kali sehari',
@@ -295,11 +475,11 @@ Widget _buildDuration({
   required Map<String, dynamic> medicineData,
 }) {
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 16),
+    padding: const EdgeInsets.symmetric(vertical: 16),
     width: double.infinity,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Color(0xFFE7ECF0)),
+      border: Border.all(color: const Color(0xFFE7ECF0)),
     ),
     child: Column(
       children: [
@@ -313,7 +493,7 @@ Widget _buildDuration({
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,

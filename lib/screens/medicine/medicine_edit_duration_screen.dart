@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/custom_duration_sheet.dart';
 
 import '../../utils/app_colors.dart';
@@ -18,6 +19,22 @@ class _MedicineEditDurationScreenState
   DateTime? startDate;
   DateTime? endDate;
   bool isInitialized = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -71,9 +88,13 @@ class _MedicineEditDurationScreenState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isLoading: _isLoading),
             const SizedBox(height: 20),
-            _buildContent(context),
+            Expanded(
+              child: _isLoading
+                  ? _buildShimmerContent()
+                  : _buildContent(context),
+            ),
           ],
         ),
       ),
@@ -203,7 +224,7 @@ class _MedicineEditDurationScreenState
   }
 }
 
-Widget _buildHeader(BuildContext context) {
+Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   return Container(
     height: 115,
     width: double.infinity,
@@ -214,36 +235,126 @@ Widget _buildHeader(BuildContext context) {
         bottom: false,
         child: Row(
           children: [
-            InkWell(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: AppColors.surfacePrimary,
+              )
+            else
+              InkWell(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: AppColors.surfacePrimary,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(width: 14),
-            Text(
-              'Durasi',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textWhite,
+            if (isLoading)
+              Shimmer.fromColors(
+                baseColor: AppColors.accent,
+                highlightColor: AppColors.primary,
+                child: Container(
+                  width: 80,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              )
+            else
+              Text(
+                'Durasi',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: AppColors.textWhite,
+                ),
               ),
-            ),
             const Spacer(),
           ],
         ),
+      ),
+    ),
+  );
+}
+
+Widget _buildShimmerContent() {
+  return Shimmer.fromColors(
+    baseColor: AppColors.surfaceSecondary,
+    highlightColor: AppColors.surfaceCool,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          SizedBox(height: 10),
+          Row(
+            children: [
+              const SizedBox(width: 10),
+              Container(
+                width: 120,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 110,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(height: 1, color: AppColors.surfacePrimary),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const SizedBox(width: 10),
+              Container(
+                width: 130,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 110,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );

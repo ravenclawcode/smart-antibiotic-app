@@ -161,7 +161,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               onDeleteTap: _deleteChat,
               isLoading: _isLoading,
             ),
-            const SizedBox(height: 10),
             Expanded(
               child: _isLoading
                   ? _buildShimmerContent(context)
@@ -189,59 +188,66 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return Shimmer.fromColors(
       baseColor: AppColors.surfaceSecondary,
       highlightColor: AppColors.surfaceCool,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        physics: const NeverScrollableScrollPhysics(),
+      child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                margin: const EdgeInsets.only(right: 8),
-                decoration: const BoxDecoration(
-                  color: AppColors.surfacePrimary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Container(
-                width: screenWidth * 0.65,
-                height: 90,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfacePrimary,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(2.5),
-                    topRight: Radius.circular(15),
-                    bottomLeft: Radius.circular(15),
-                    bottomRight: Radius.circular(15),
-                  ),
-                ),
-                child: Column(
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: double.infinity,
-                      height: 14,
-                      decoration: BoxDecoration(
+                      width: 26,
+                      height: 26,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: const BoxDecoration(
                         color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(height: 6),
                     Container(
-                      width: 120,
-                      height: 14,
+                      width: screenWidth * 0.65,
+                      height: 90,
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(2.5),
+                          topRight: Radius.circular(15),
+                          bottomLeft: Radius.circular(15),
+                          bottomRight: Radius.circular(15),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 120,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -339,7 +345,6 @@ Widget _buildHeader(
                 ),
               )
             else
-              // EFEK ANIMASI PERGANTIAN ICON DELETE
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -381,13 +386,12 @@ Widget _buildMessagesList({
   return ListView.builder(
     controller: scrollController,
     itemCount: messages.length + typingOffset,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
     itemBuilder: (context, index) {
       if (isBotTyping && index == messages.length) {
         return _buildTypingIndicator();
       }
 
-      // Membungkus pesan dalam AnimatedMessageItem untuk animasi saat baru muncul
       return _AnimatedMessageItem(
         key: ValueKey(messages[index].timestamp),
         child: _buildMessageBubble(context, messages[index]),
@@ -396,7 +400,6 @@ Widget _buildMessagesList({
   );
 }
 
-// Stateful Widget Tambahan untuk Menangani Animasi Teks Baru
 class _AnimatedMessageItem extends StatefulWidget {
   final Widget child;
 

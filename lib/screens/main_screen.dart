@@ -16,7 +16,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
-  bool isLoading = false;
 
   void onNavItemSelected(int index) {
     setState(() {
@@ -30,12 +29,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading == true) {
-      return Center(
-        child: Text('Mohon tunggu...', style: AppTextStyles.bodyMedium),
-      );
-    }
-
     final List<Widget> screens = [HomeScreen(), MedicineScreen()];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(

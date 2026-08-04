@@ -42,7 +42,7 @@ class _CustomInputAddMedicineFormState
       controller: widget.controller,
       onChanged: widget.onChanged,
       keyboardType: TextInputType.text,
-      style: AppTextStyles.bodyMedium,
+      style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
       maxLines: 1,
       cursorColor: AppColors.primary,
       cursorErrorColor: AppColors.primary,
