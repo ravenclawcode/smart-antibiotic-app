@@ -187,7 +187,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 
 Widget _buildShimmerContent() {
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 26),
+    padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

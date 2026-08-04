@@ -6,10 +6,6 @@ import 'package:smart_antibiotic/utils/custom_button_off.dart';
 import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
-import 'onboarding_input_name_screen.dart';
-import 'onboarding_reminder_sound_screen.dart';
-import 'onboarding_reminder_type_screen.dart';
-
 class OnboardingParentScreen extends StatefulWidget {
   const OnboardingParentScreen({super.key});
 
@@ -20,13 +16,16 @@ class OnboardingParentScreen extends StatefulWidget {
 class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   final PageController _pageController = PageController();
   final GlobalKey<FormState> _formKeyName = GlobalKey<FormState>();
-  final GlobalKey<OnboardingReminderSoundContentState> _soundKey =
-      GlobalKey<OnboardingReminderSoundContentState>();
+  // final GlobalKey<OnboardingReminderSoundContentState> _soundKey =
+  //     GlobalKey<OnboardingReminderSoundContentState>();
 
   int _currentPage = 0;
   String _nameInputted = '';
-  String _selectedType = '';
-  String _selectedSound = '';
+  String _selectedFormat = '';
+  String _selectedFrequency = '';
+  String _setScheduleHour = '';
+  String _dosageInputted = '';
+  String _instructionInputted = '';
 
   bool _isInitialLoading = true;
   bool _isLoading = false;
@@ -49,9 +48,12 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   double get _progressValue => (_currentPage + 1) / 3;
 
   bool get _isNextEnabled {
-    if (_currentPage == 0) return _nameInputted.trim().isNotEmpty;
-    if (_currentPage == 1) return _selectedType.isNotEmpty;
-    if (_currentPage == 2) return _selectedSound.isNotEmpty;
+    if (_currentPage == 0) return _nameInputted.isNotEmpty;
+    if (_currentPage == 1) return _selectedFormat.isNotEmpty;
+    if (_currentPage == 2) return _selectedFrequency.isNotEmpty;
+    if (_currentPage == 3) return _setScheduleHour.isNotEmpty;
+    if (_currentPage == 4) return _dosageInputted.isNotEmpty;
+    if (_currentPage == 5) return _instructionInputted.isNotEmpty;
     return false;
   }
 
@@ -72,7 +74,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
 
   void _previousPage() {
     if (_currentPage == 2) {
-      _soundKey.currentState?.stopAudio();
+      // _soundKey.currentState?.stopAudio();
     }
 
     if (_currentPage > 0) {
@@ -86,7 +88,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   Future<void> _submitData() async {
-    await _soundKey.currentState?.stopAudio();
+    // await _soundKey.currentState?.stopAudio();
 
     setState(() => _isLoading = true);
 
@@ -94,7 +96,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;
-      Navigator.pushNamed(context, '/onboarding-permission');
+      Navigator.pushNamedAndRemoveUntil(context, '/medi', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -134,26 +136,26 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
                               setState(() => _currentPage = index);
                             },
                             children: [
-                              OnboardingInputNameContent(
-                                formKey: _formKeyName,
-                                initialValue: _nameInputted,
-                                onNameChanged: (val) {
-                                  setState(() => _nameInputted = val);
-                                },
-                              ),
-                              OnboardingReminderTypeContent(
-                                selectedType: _selectedType,
-                                onSelectType: (type) {
-                                  setState(() => _selectedType = type);
-                                },
-                              ),
-                              OnboardingReminderSoundContent(
-                                key: _soundKey,
-                                selectedSound: _selectedSound,
-                                onSelectSound: (sound) {
-                                  setState(() => _selectedSound = sound);
-                                },
-                              ),
+                              // OnboardingInputNameContent(
+                              //   formKey: _formKeyName,
+                              //   initialValue: _nameInputted,
+                              //   onNameChanged: (val) {
+                              //     setState(() => _nameInputted = val);
+                              //   },
+                              // ),
+                              // OnboardingReminderTypeContent(
+                              //   selectedType: _selectedFormat,
+                              //   onSelectType: (type) {
+                              //     setState(() => _selectedFormat = type);
+                              //   },
+                              // ),
+                              // OnboardingReminderSoundContent(
+                              //   key: _soundKey,
+                              //   selectedSound: _selectedFrequency,
+                              //   onSelectSound: (sound) {
+                              //     setState(() => _selectedFrequency = sound);
+                              //   },
+                              // ),
                             ],
                           ),
                         ),
@@ -255,9 +257,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Expanded(
-          child: CustomProgressBar(value: _progressValue, height: 18),
-        ),
+        Expanded(child: CustomProgressBar(value: _progressValue, height: 18)),
       ],
     );
   }

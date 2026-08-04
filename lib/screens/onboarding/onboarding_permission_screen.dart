@@ -138,7 +138,6 @@ class _OnboardingPermissionScreenState
       child: Column(
         children: [
           const SizedBox(height: 50),
-          // Skeleton Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 26),
             child: Column(
@@ -152,7 +151,6 @@ class _OnboardingPermissionScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Title Lines Skeleton
                 Container(
                   width: double.infinity,
                   height: 22,

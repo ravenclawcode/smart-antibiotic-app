@@ -49,13 +49,14 @@ class CustomBaseBottomSheet extends StatelessWidget {
               if (title != null && title!.isNotEmpty) ...[
                 Row(
                   children: [
-                    Text(
-                      title!,
-                      style: AppTextStyles.titleSmall.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        title!,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    const Spacer(),
                     if (reset != null && reset!.isNotEmpty)
                       InkWell(
                         focusColor: Colors.transparent,

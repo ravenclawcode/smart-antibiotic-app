@@ -203,7 +203,7 @@ Widget _buildContent(
         const SizedBox(height: 20),
         Expanded(child: _buildList(medicineData)),
         CustomButtonAdd(
-          onTap: () => Navigator.pushNamed(context, '/medicine-add'),
+          onTap: () => Navigator.pushNamed(context, '/medicine-input-name'),
           label: 'Tambah Obat',
         ),
       ],

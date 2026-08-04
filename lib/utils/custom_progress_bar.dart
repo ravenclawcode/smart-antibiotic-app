@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 
-class CustomProgressBarOnboarding extends StatefulWidget {
+class CustomProgressBar extends StatefulWidget {
   final num value;
   final double? height;
 
-  const CustomProgressBarOnboarding({
+  const CustomProgressBar({
     super.key,
     required this.value,
     required this.height,
   });
 
   @override
-  State<CustomProgressBarOnboarding> createState() =>
-      _CustomProgressBarOnboardingState();
+  State<CustomProgressBar> createState() => _CustomProgressBarState();
 }
 
-class _CustomProgressBarOnboardingState
-    extends State<CustomProgressBarOnboarding>
+class _CustomProgressBarState extends State<CustomProgressBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -37,7 +35,7 @@ class _CustomProgressBarOnboardingState
   }
 
   @override
-  void didUpdateWidget(covariant CustomProgressBarOnboarding oldWidget) {
+  void didUpdateWidget(covariant CustomProgressBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       _controller.reset();

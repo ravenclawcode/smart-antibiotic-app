@@ -10,11 +10,16 @@ import 'package:smart_antibiotic/screens/education/education_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_types_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_usage_screen.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_choose_format_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_choose_frequency_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_detail_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_edit_dosage_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_edit_name_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_edit_schedule_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_input_Instructions_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_input_name_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_set_schedule_hour_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_intro_screen.dart';
 import 'package:smart_antibiotic/screens/onboarding/onboarding_parent_screen.dart';
 import 'package:smart_antibiotic/screens/quiz/quiz_result_screen.dart';
@@ -31,6 +36,7 @@ import '../screens/medicine/medicine_edit_dose_amount_screen.dart';
 import '../screens/medicine/medicine_edit_duration_screen.dart';
 import '../screens/medicine/medicine_edit_instruction_screen.dart';
 import '../screens/medicine/medicine_history_screen.dart';
+import '../screens/medicine/medicine_input_dosage_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
 
 import '../screens/main_screen.dart';
@@ -52,6 +58,15 @@ class Routes {
   static const String medicine = '/medicine';
   static const String medicineDetail = '/medicine-detail';
   static const String medicineHistory = '/medicine-history';
+
+  static const String medicineInputName = '/medicine-input-name';
+  static const String medicineChooseFormat = '/medicine-choose-format';
+  static const String medicineChooseFrequency = '/medicine-choose-frequency';
+  static const String medicineSetScheduleHour = '/medicine-set-schedule-hour';
+  static const String medicineInputDosage = '/medicine-input-dosage';
+  static const String medicineInputInstructions =
+      '/medicine-input-instructions';
+
   static const String medicineEditName = '/medicine-edit-name';
   static const String medicineEditSchedule = '/medicine-edit-schedule';
   static const String medicineEditDosage = '/medicine-edit-dosage';
@@ -120,6 +135,38 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case Routes.medicineHistory:
       return MaterialPageRoute(builder: (_) => const MedicineHistoryScreen());
+
+    case Routes.medicineInputName:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineInputNameScreen(),
+        settings: settings,
+      );
+    case Routes.medicineChooseFormat:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineChooseFormatScreen(),
+        settings: settings,
+      );
+    case Routes.medicineChooseFrequency:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineChooseFrequencyScreen(),
+        settings: settings,
+      );
+    case Routes.medicineSetScheduleHour:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineSetScheduleHourScreen(),
+        settings: settings,
+      );
+    case Routes.medicineInputDosage:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineInputDosageScreen(),
+        settings: settings,
+      );
+    case Routes.medicineInputInstructions:
+      return MaterialPageRoute(
+        builder: (_) => const MedicineInputInstructionsScreen(),
+        settings: settings,
+      );
+
     case Routes.medicineEditName:
       final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(

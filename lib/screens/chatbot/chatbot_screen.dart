@@ -567,7 +567,7 @@ Widget _buildMessageInput({
               children: [
                 Expanded(
                   child: Container(
-                    height: 56,
+                    height: 60,
                     decoration: BoxDecoration(
                       color: AppColors.surfacePrimary,
                       borderRadius: BorderRadius.circular(8),
@@ -577,7 +577,7 @@ Widget _buildMessageInput({
                 const SizedBox(width: 12),
                 Container(
                   width: 60,
-                  height: 56,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: AppColors.surfacePrimary,
                     borderRadius: BorderRadius.circular(10),

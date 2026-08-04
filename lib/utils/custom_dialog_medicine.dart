@@ -57,7 +57,7 @@ class CustomDialogMedicine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: 26),
         child: Material(
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
@@ -246,7 +246,7 @@ class CustomDialogMedicine extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  height: 84,
+                  height: 94,
                   width: double.infinity,
                   color: AppColors.surfaceSecondary,
                   child: Padding(
@@ -385,19 +385,19 @@ class CustomDialogMedicine extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            height: 36,
-            width: 36,
+            height: 40,
+            width: 40,
             decoration: BoxDecoration(
               color: colorBg,
               shape: BoxShape.circle,
-              border: Border.all(color: colorBorder),
+              border: Border.all(color: colorBorder, width: 1.4),
             ),
             child: imageAsset != null
                 ? Padding(
                     padding: EdgeInsets.all(8),
                     child: Image.asset(imageAsset, color: colorIc),
                   )
-                : Icon(icon, color: colorIc, size: 22),
+                : Icon(icon, color: colorIc, size: 26),
           ),
           SizedBox(height: 6),
           Text(

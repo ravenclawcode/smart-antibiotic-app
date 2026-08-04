@@ -9,7 +9,7 @@ import '../../utils/custom_button.dart';
 import '../../utils/custom_button_off.dart';
 import '../../utils/custom_loading.dart';
 import '../../utils/custom_option_quiz.dart';
-import '../../utils/custom_progress_bar_onboarding.dart';
+import '../../utils/custom_progress_bar.dart';
 
 class QuizQuestion {
   final String question;
@@ -257,7 +257,6 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Skeleton Teks Pertanyaan
           Container(
             width: double.infinity,
             height: 20,
@@ -276,7 +275,6 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          // Skeleton Subtitle
           Container(
             width: 180,
             height: 14,
@@ -332,7 +330,6 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
               },
             ),
           ),
-          // Skeleton Button
           Container(
             width: double.infinity,
             height: 70,
@@ -463,7 +460,7 @@ Widget _buildHeader(
           ],
         ),
         const SizedBox(height: 14),
-        CustomProgressBarOnboarding(value: progressValue, height: 6),
+        CustomProgressBar(value: progressValue, height: 6),
       ],
     ],
   );

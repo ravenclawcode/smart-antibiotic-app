@@ -68,7 +68,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            // Shimmer Header Box
             Container(
               height: 330,
               width: double.infinity,
@@ -84,7 +83,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Spacer(),
-                        // Status Text Skeleton
                         Container(
                           width: 140,
                           height: 24,
@@ -94,7 +92,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Subtitle Text Skeleton
                         Container(
                           width: 220,
                           height: 16,
@@ -104,7 +101,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Big Percentage Skeleton
                         Container(
                           width: 120,
                           height: 56,
@@ -114,7 +110,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        // Score Detail Skeleton
                         Container(
                           width: 100,
                           height: 14,
@@ -130,7 +125,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                 ),
               ),
             ),
-            // Shimmer Floating Level Card
             Positioned(
               left: 20,
               right: 20,
@@ -138,7 +132,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 12,
+                  vertical: 16,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.surfacePrimary,
@@ -204,7 +198,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
           ],
         ),
         const SizedBox(height: 78),
-        // Action Buttons Shimmer
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Shimmer.fromColors(

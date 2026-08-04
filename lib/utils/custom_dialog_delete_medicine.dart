@@ -18,7 +18,7 @@ class _CustomDialogDeleteMedicineState
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 26),
         child: Material(
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,

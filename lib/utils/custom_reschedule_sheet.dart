@@ -97,7 +97,6 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                     ),
                   ),
                 ),
-                // Wheel Menit
                 SizedBox(
                   width: 50,
                   child: CupertinoPicker(
