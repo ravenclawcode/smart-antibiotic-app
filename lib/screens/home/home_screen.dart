@@ -311,7 +311,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
             else
               Expanded(
                 child: Text(
-                  'Syifa',
+                  'Serra Gohv',
                   style: AppTextStyles.titleLarge.copyWith(
                     color: AppColors.textWhite,
                   ),

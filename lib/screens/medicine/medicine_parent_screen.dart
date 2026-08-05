@@ -1,30 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_choose_format_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_choose_frequency_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_input_dosage_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_input_instructions_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_input_name_screen.dart';
+import 'package:smart_antibiotic/screens/medicine/medicine_set_schedule_hour_screen.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/custom_button.dart';
 import 'package:smart_antibiotic/utils/custom_button_off.dart';
 import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
-class OnboardingParentScreen extends StatefulWidget {
-  const OnboardingParentScreen({super.key});
+class MedicineParentScreen extends StatefulWidget {
+  const MedicineParentScreen({super.key});
 
   @override
-  State<OnboardingParentScreen> createState() => _OnboardingParentScreenState();
+  State<MedicineParentScreen> createState() => _MedicineParentScreenState();
 }
 
-class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
+class _MedicineParentScreenState extends State<MedicineParentScreen> {
   final PageController _pageController = PageController();
+
   final GlobalKey<FormState> _formKeyName = GlobalKey<FormState>();
-  // final GlobalKey<OnboardingReminderSoundContentState> _soundKey =
-  //     GlobalKey<OnboardingReminderSoundContentState>();
+  final GlobalKey<FormState> _formKeyFormat = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyFrequency = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeySchedule = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyDosage = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyInstruction = GlobalKey<FormState>();
 
   int _currentPage = 0;
   String _nameInputted = '';
   String _selectedFormat = '';
   String _selectedFrequency = '';
-  String _setScheduleHour = '';
-  String _dosageInputted = '';
+  String _setScheduleHour = '07:20';
+  int? _dosageInputted;
   String _instructionInputted = '';
 
   bool _isInitialLoading = true;
@@ -45,24 +55,26 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
     }
   }
 
-  double get _progressValue => (_currentPage + 1) / 3;
+  double get _progressValue => (_currentPage + 1) / 6;
 
   bool get _isNextEnabled {
-    if (_currentPage == 0) return _nameInputted.isNotEmpty;
+    if (_currentPage == 0) return _nameInputted.trim().isNotEmpty;
     if (_currentPage == 1) return _selectedFormat.isNotEmpty;
     if (_currentPage == 2) return _selectedFrequency.isNotEmpty;
     if (_currentPage == 3) return _setScheduleHour.isNotEmpty;
-    if (_currentPage == 4) return _dosageInputted.isNotEmpty;
-    if (_currentPage == 5) return _instructionInputted.isNotEmpty;
+    if (_currentPage == 4) {
+      return _dosageInputted != null && _dosageInputted! > 0;
+    }
+    if (_currentPage == 5) return true;
     return false;
   }
 
   void _nextPage() {
     if (_currentPage == 0) {
-      if (!(_formKeyName.currentState?.validate() ?? false)) return;
+      if (!(_formKeyName.currentState?.validate() ?? true)) return;
     }
 
-    if (_currentPage < 2) {
+    if (_currentPage < 5) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -73,10 +85,6 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   void _previousPage() {
-    if (_currentPage == 2) {
-      // _soundKey.currentState?.stopAudio();
-    }
-
     if (_currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -88,15 +96,12 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   Future<void> _submitData() async {
-    // await _soundKey.currentState?.stopAudio();
-
     setState(() => _isLoading = true);
-
     try {
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/medi', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -136,26 +141,55 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
                               setState(() => _currentPage = index);
                             },
                             children: [
-                              // OnboardingInputNameContent(
-                              //   formKey: _formKeyName,
-                              //   initialValue: _nameInputted,
-                              //   onNameChanged: (val) {
-                              //     setState(() => _nameInputted = val);
-                              //   },
-                              // ),
-                              // OnboardingReminderTypeContent(
-                              //   selectedType: _selectedFormat,
-                              //   onSelectType: (type) {
-                              //     setState(() => _selectedFormat = type);
-                              //   },
-                              // ),
-                              // OnboardingReminderSoundContent(
-                              //   key: _soundKey,
-                              //   selectedSound: _selectedFrequency,
-                              //   onSelectSound: (sound) {
-                              //     setState(() => _selectedFrequency = sound);
-                              //   },
-                              // ),
+                              MedicineInputNameScreen(
+                                formKey: _formKeyName,
+                                initialValue: _nameInputted,
+                                onNameChanged: (val) {
+                                  setState(() => _nameInputted = val);
+                                },
+                              ),
+                              MedicineChooseFormatScreen(
+                                formKey: _formKeyFormat,
+                                initialValue: _selectedFormat,
+                                medicineName: _nameInputted,
+                                onNameChanged: (val) {
+                                  setState(() => _selectedFormat = val);
+                                },
+                              ),
+                              MedicineChooseFrequencyScreen(
+                                formKey: _formKeyFrequency,
+                                initialValue: _selectedFrequency,
+                                onNameChanged: (val) {
+                                  setState(() => _selectedFrequency = val);
+                                },
+                              ),
+                              MedicineSetScheduleHourScreen(
+                                formKey: _formKeySchedule,
+                                initialValue: const TimeOfDay(
+                                  hour: 7,
+                                  minute: 20,
+                                ),
+                                selectedFrequency: _selectedFrequency,
+                                onNameChanged: (val) {
+                                  setState(() => _setScheduleHour = val);
+                                },
+                              ),
+                              MedicineInputDosageScreen(
+                                formKey: _formKeyDosage,
+                                initialValue: _dosageInputted?.toString() ?? '',
+                                onNameChanged: (val) {
+                                  setState(() {
+                                    _dosageInputted = int.tryParse(val);
+                                  });
+                                },
+                              ),
+                              MedicineInputInstructionsScreen(
+                                formKey: _formKeyInstruction,
+                                initialValue: _instructionInputted,
+                                onNameChanged: (val) {
+                                  setState(() => _instructionInputted = val);
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -180,9 +214,9 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
       baseColor: AppColors.surfaceSecondary,
       highlightColor: AppColors.surfaceCool,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Row(
             children: [
               Container(
@@ -214,13 +248,13 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 14),
           Container(
             width: double.infinity,
-            height: 64,
+            height: 60,
             decoration: BoxDecoration(
               color: AppColors.surfacePrimary,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
           const Spacer(),
@@ -263,7 +297,7 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   }
 
   Widget _buildActionButton() {
-    final String label = _currentPage == 2 ? 'Simpan' : 'Lanjut';
+    final String label = _currentPage == 5 ? 'Simpan' : 'Lanjut';
 
     return _isNextEnabled
         ? CustomButton(onTap: _nextPage, label: label)
