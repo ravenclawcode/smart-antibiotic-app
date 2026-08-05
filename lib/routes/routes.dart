@@ -28,6 +28,7 @@ import 'package:smart_antibiotic/screens/settings/settings_detail_app_permission
 import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_edit_preference_screen.dart';
 import 'package:smart_antibiotic/screens/settings/settings_screen.dart';
+import 'package:smart_antibiotic/utils/custom_reminder.dart';
 import '../screens/medicine/medicine_edit_dose_amount_screen.dart';
 import '../screens/medicine/medicine_edit_duration_screen.dart';
 import '../screens/medicine/medicine_edit_instruction_screen.dart';
@@ -72,6 +73,8 @@ class Routes {
   static const String educationCategory = '/education-category';
   static const String educationAntibiotik = '/education-antibiotik';
   static const String educationDetail = '/education-detail';
+
+  static const String reminder = '/reminder';
 
   static const String quiz = '/quiz';
   static const String quizDetail = '/quiz-detail';
@@ -193,6 +196,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => const EducationAntibiotikDetailScreen(),
       );
+
+    case Routes.reminder:
+      return MaterialPageRoute(builder: (_) => const CustomReminder());
 
     case Routes.quiz:
       return MaterialPageRoute(builder: (_) => const QuizScreen());
