@@ -27,13 +27,25 @@ class _MedicineInputInstructionsScreenState
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
-    _controller.addListener(() {
-      widget.onNameChanged(_controller.text);
-    });
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    widget.onNameChanged(_controller.text);
+  }
+
+  @override
+  void didUpdateWidget(covariant MedicineInputInstructionsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue;
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();
   }

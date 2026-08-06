@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
-import 'package:smart_antibiotic/utils/custom_button_add.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_list_card.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_button.dart';
 
 class MedicineScreen extends StatefulWidget {
   const MedicineScreen({super.key});
@@ -202,7 +202,7 @@ Widget _buildContent(
       children: [
         const SizedBox(height: 20),
         Expanded(child: _buildList(medicineData)),
-        CustomButtonAdd(
+        CustomButton(
           onTap: () => Navigator.pushNamed(context, '/medicine-steps'),
           label: 'Tambah Obat',
         ),

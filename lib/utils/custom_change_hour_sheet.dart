@@ -4,21 +4,23 @@ import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
-class CustomRescheduleSheet extends StatefulWidget {
+class CustomChangeHourSheet extends StatefulWidget {
+  final int slotIndex;
   final TimeOfDay initialTime;
   final Function(TimeOfDay newTime) onSave;
 
-  const CustomRescheduleSheet({
+  const CustomChangeHourSheet({
     super.key,
+    required this.slotIndex,
     required this.initialTime,
     required this.onSave,
   });
 
   @override
-  State<CustomRescheduleSheet> createState() => _CustomRescheduleSheetState();
+  State<CustomChangeHourSheet> createState() => _CustomChangeHourSheetState();
 }
 
-class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
+class _CustomChangeHourSheetState extends State<CustomChangeHourSheet> {
   late int selectedHour;
   late int selectedMinute;
   late FixedExtentScrollController hourController;
@@ -34,9 +36,8 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
     final initialMinute = (widget.initialTime.minute / 5).round() * 5;
     selectedMinute = initialMinute % 60;
 
-    final initialMinuteIndexStep = selectedMinute ~/ 5;
-
     final initialHourIndex = (_kLoopOffset * 24) + selectedHour;
+    final initialMinuteIndexStep = selectedMinute ~/ 5;
     final initialMinuteIndex = (_kLoopOffset * 12) + initialMinuteIndexStep;
 
     hourController = FixedExtentScrollController(initialItem: initialHourIndex);
@@ -66,11 +67,21 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
   @override
   Widget build(BuildContext context) {
     return CustomBaseBottomSheet(
-      title: 'Jadwalkan ulang pada',
+      title: 'Jadwal Minum Obat',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentGeometry.topLeft,
+            child: Text(
+              'Minum ke-${widget.slotIndex + 1}',
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontSize: 18,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
           SizedBox(
             height: 150,
             child: Row(
@@ -115,7 +126,7 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
                     ':',
-                    style: AppTextStyles.titleLarge.copyWith(
+                    style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -158,7 +169,7 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.only(bottom: 16, right: 18),
             child: Row(

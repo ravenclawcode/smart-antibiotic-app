@@ -44,8 +44,17 @@ class _MedicineChooseFrequencyScreenState
   void didUpdateWidget(covariant MedicineChooseFrequencyScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialValue != oldWidget.initialValue) {
-      _selectedFrequency = widget.initialValue;
+      setState(() {
+        _selectedFrequency = widget.initialValue;
+      });
     }
+  }
+
+  void _handleFrequencySelection(String frequencyName) {
+    setState(() {
+      _selectedFrequency = frequencyName;
+    });
+    widget.onNameChanged(frequencyName);
   }
 
   @override
@@ -72,12 +81,7 @@ class _MedicineChooseFrequencyScreenState
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: () {
-                      setState(() {
-                        _selectedFrequency = frequencyName;
-                      });
-                      widget.onNameChanged(frequencyName);
-                    },
+                    onTap: () => _handleFrequencySelection(frequencyName),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,

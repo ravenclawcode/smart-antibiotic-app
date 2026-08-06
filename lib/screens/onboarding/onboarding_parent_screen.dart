@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/custom_button.dart';
@@ -113,62 +114,69 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: _isInitialLoading
-                  ? _buildShimmerContent()
-                  : Column(
-                      children: [
-                        const SizedBox(height: 14),
-                        _buildHeader(),
-                        const SizedBox(height: 20),
-                        Expanded(
-                          child: PageView(
-                            controller: _pageController,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onPageChanged: (index) {
-                              setState(() => _currentPage = index);
-                            },
-                            children: [
-                              OnboardingInputNameContent(
-                                formKey: _formKeyName,
-                                initialValue: _nameInputted,
-                                onNameChanged: (val) {
-                                  setState(() => _nameInputted = val);
-                                },
-                              ),
-                              OnboardingReminderTypeContent(
-                                selectedType: _selectedType,
-                                onSelectType: (type) {
-                                  setState(() => _selectedType = type);
-                                },
-                              ),
-                              OnboardingReminderSoundContent(
-                                key: _soundKey,
-                                selectedSound: _selectedSound,
-                                onSelectSound: (sound) {
-                                  setState(() => _selectedSound = sound);
-                                },
-                              ),
-                            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        body: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 26),
+                child: _isInitialLoading
+                    ? _buildShimmerContent()
+                    : Column(
+                        children: [
+                          const SizedBox(height: 14),
+                          _buildHeader(),
+                          const SizedBox(height: 20),
+                          Expanded(
+                            child: PageView(
+                              controller: _pageController,
+                              physics: const NeverScrollableScrollPhysics(),
+                              onPageChanged: (index) {
+                                setState(() => _currentPage = index);
+                              },
+                              children: [
+                                OnboardingInputNameContent(
+                                  formKey: _formKeyName,
+                                  initialValue: _nameInputted,
+                                  onNameChanged: (val) {
+                                    setState(() => _nameInputted = val);
+                                  },
+                                ),
+                                OnboardingReminderTypeContent(
+                                  selectedType: _selectedType,
+                                  onSelectType: (type) {
+                                    setState(() => _selectedType = type);
+                                  },
+                                ),
+                                OnboardingReminderSoundContent(
+                                  key: _soundKey,
+                                  selectedSound: _selectedSound,
+                                  onSelectSound: (sound) {
+                                    setState(() => _selectedSound = sound);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        _buildActionButton(),
-                        const SizedBox(height: 30),
-                      ],
-                    ),
+                          _buildActionButton(),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+              ),
             ),
-          ),
-          if (_isLoading)
-            Container(
-              color: AppColors.textPrimary.withValues(alpha: 0.4),
-              child: const Center(child: CustomLoading()),
-            ),
-        ],
+            if (_isLoading)
+              Container(
+                color: AppColors.textPrimary.withValues(alpha: 0.4),
+                child: const Center(child: CustomLoading()),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -239,25 +247,26 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        InkWell(
-          focusColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          onTap: _previousPage,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 26,
-              color: AppColors.primary,
+        Transform.translate(
+          offset: Offset(-4, 0),
+          child: InkWell(
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onTap: _previousPage,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 26,
+                color: AppColors.primary,
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: CustomProgressBar(value: _progressValue, height: 18),
-        ),
+        const SizedBox(width: 4),
+        Expanded(child: CustomProgressBar(value: _progressValue, height: 18)),
       ],
     );
   }

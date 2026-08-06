@@ -52,7 +52,7 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
         children: [
           const SizedBox(height: 12),
           SizedBox(
-            height: 140,
+            height: 150,
             child: CupertinoPicker(
               itemExtent: 50,
               diameterRatio: 10000,
@@ -89,7 +89,7 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
               }),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
         ],
       ),
     );

@@ -155,7 +155,7 @@ Widget _buildShimmerContent() {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 18,
+                  vertical: 19,
                 ),
                 child: Shimmer.fromColors(
                   baseColor: AppColors.surfaceSecondary,
@@ -185,7 +185,7 @@ Widget _buildShimmerContent() {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 18,
+                  vertical: 19,
                 ),
                 child: Shimmer.fromColors(
                   baseColor: AppColors.surfaceSecondary,

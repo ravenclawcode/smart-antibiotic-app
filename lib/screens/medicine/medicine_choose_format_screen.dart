@@ -37,8 +37,17 @@ class _MedicineChooseFormatScreenState
   void didUpdateWidget(covariant MedicineChooseFormatScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialValue != oldWidget.initialValue) {
-      _selectedFormat = widget.initialValue;
+      setState(() {
+        _selectedFormat = widget.initialValue;
+      });
     }
+  }
+
+  void _handleFormatSelection(String formatName) {
+    setState(() {
+      _selectedFormat = formatName;
+    });
+    widget.onNameChanged(formatName);
   }
 
   @override
@@ -51,19 +60,17 @@ class _MedicineChooseFormatScreenState
           Text(
             'Pilih Bentuk Obat',
             style: AppTextStyles.titleLarge,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           Text(
-            widget.medicineName.isNotEmpty
-                ? widget.medicineName
-                : 'Amoxicillin',
+            widget.medicineName.isNotEmpty ? widget.medicineName : 'Obat',
             style: AppTextStyles.bodyMedium.copyWith(
               fontSize: 18,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(formatOptions.length, (index) {
@@ -79,12 +86,7 @@ class _MedicineChooseFormatScreenState
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: () {
-                      setState(() {
-                        _selectedFormat = formatName;
-                      });
-                      widget.onNameChanged(formatName);
-                    },
+                    onTap: () => _handleFormatSelection(formatName),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,

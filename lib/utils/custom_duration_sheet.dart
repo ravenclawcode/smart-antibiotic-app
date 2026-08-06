@@ -87,19 +87,19 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
         Navigator.pop(context);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.only(left: 30, right: 30, bottom: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
             SizedBox(
-              height: 140,
+              height: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
                     child: CupertinoPicker(
-                      itemExtent: 40,
+                      itemExtent: 50,
                       diameterRatio: 10000,
                       squeeze: 1.0,
                       magnification: 1.0,
@@ -120,7 +120,7 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOut,
-                            style: AppTextStyles.titleMedium.copyWith(
+                            style: AppTextStyles.titleLarge.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? AppColors.textPrimary
@@ -136,7 +136,7 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
                   Expanded(
                     flex: 2,
                     child: CupertinoPicker(
-                      itemExtent: 40,
+                      itemExtent: 50,
                       diameterRatio: 10000,
                       squeeze: 1.0,
                       magnification: 1.0,
@@ -156,7 +156,7 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOut,
-                            style: AppTextStyles.titleMedium.copyWith(
+                            style: AppTextStyles.titleLarge.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? AppColors.textPrimary
@@ -171,7 +171,7 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
                   const SizedBox(width: 20),
                   Expanded(
                     child: CupertinoPicker(
-                      itemExtent: 40,
+                      itemExtent: 50,
                       diameterRatio: 10000,
                       squeeze: 1.0,
                       magnification: 1.0,
@@ -191,7 +191,7 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOut,
-                            style: AppTextStyles.titleMedium.copyWith(
+                            style: AppTextStyles.titleLarge.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? AppColors.textPrimary

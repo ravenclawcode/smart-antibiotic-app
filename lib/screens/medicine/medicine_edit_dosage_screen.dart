@@ -130,7 +130,7 @@ Widget _buildShimmerContent() {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE7ECF0)),
