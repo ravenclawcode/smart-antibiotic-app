@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/custom_button_reminder.dart';
 import 'package:smart_antibiotic/utils/custom_button_schedule.dart';
+import 'package:smart_antibiotic/utils/custom_reschedule_reminder_sheet.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -17,7 +18,7 @@ class CustomReminder extends StatefulWidget {
 
 class _CustomReminderState extends State<CustomReminder> {
   bool _isLoading = true;
-  final bool _isReminder = true;
+  bool _isReminder = true;
 
   @override
   void initState() {
@@ -32,6 +33,12 @@ class _CustomReminderState extends State<CustomReminder> {
         _isLoading = false;
       });
     }
+  }
+
+  void _toggleReminder() {
+    setState(() {
+      _isReminder = !_isReminder;
+    });
   }
 
   @override
@@ -53,9 +60,10 @@ class _CustomReminderState extends State<CustomReminder> {
                   context,
                   isLoading: _isLoading,
                   isReminder: _isReminder,
+                  onToggleReminder: _toggleReminder,
                 ),
                 const SizedBox(height: 14),
-                Expanded(child: _buildContent()),
+                Expanded(child: _buildContent(context)),
               ],
             ),
           ),
@@ -69,6 +77,7 @@ Widget _buildHeader(
   BuildContext context, {
   required bool isLoading,
   required bool isReminder,
+  required VoidCallback onToggleReminder,
 }) {
   if (isLoading) {
     return Shimmer.fromColors(
@@ -93,7 +102,7 @@ Widget _buildHeader(
     hoverColor: Colors.transparent,
     highlightColor: Colors.transparent,
     splashColor: Colors.transparent,
-    onTap: () {},
+    onTap: onToggleReminder,
     child: Align(
       alignment: Alignment.topRight,
       child: Container(
@@ -105,16 +114,35 @@ Widget _buildHeader(
         ),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: isReminder
-              ? Image.asset(icUnmute, height: 16, color: AppColors.primary)
-              : Image.asset(icMute, height: 16, color: AppColors.primary),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return ScaleTransition(
+                scale: animation,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: isReminder
+                ? Image.asset(
+                    icUnmute,
+                    key: const ValueKey('icUnmute'),
+                    height: 16,
+                    color: AppColors.primary,
+                  )
+                : Image.asset(
+                    icMute,
+                    key: const ValueKey('icMute'),
+                    height: 16,
+                    color: AppColors.primary,
+                  ),
+          ),
         ),
       ),
     ),
   );
 }
 
-Widget _buildContent() {
+Widget _buildContent(BuildContext context) {
   return SingleChildScrollView(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -141,9 +169,9 @@ Widget _buildContent() {
         Image.asset(imgTablet, height: 44),
         const SizedBox(height: 40),
         Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Color(0xFFE9E9E9)),
+            border: Border.all(color: const Color(0xFFE9E9E9)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -170,7 +198,21 @@ Widget _buildContent() {
           colorText: AppColors.textSecondary,
         ),
         const SizedBox(height: 30),
-        CustomButtonSchedule(onTap: () {}, label: 'Jadwalkan ulang'),
+        CustomButtonSchedule(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => CustomRescheduleReminderSheet(
+                initialValue: 5,
+                initialUnit: SnoozeUnit.minute,
+                onSave: (value, unit) {},
+              ),
+            );
+          },
+          label: 'Jadwal Ulang',
+        ),
       ],
     ),
   );

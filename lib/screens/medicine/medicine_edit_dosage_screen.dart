@@ -140,7 +140,7 @@ Widget _buildShimmerContent() {
         highlightColor: AppColors.surfaceCool,
         child: Column(
           children: [
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Row(
               children: [
                 const SizedBox(width: 10),

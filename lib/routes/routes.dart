@@ -155,8 +155,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
       );
     case Routes.medicineEditDoseAmount:
+      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => const MedicineEditDoseAmountScreen(),
+        builder: (_) => MedicineEditDoseAmountScreen(
+          onNameChanged: args?['onNameChanged'] ?? (value) {},
+        ),
         settings: settings,
       );
     case Routes.medicineEditInstruction:

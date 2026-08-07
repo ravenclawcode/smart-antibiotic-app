@@ -64,7 +64,7 @@ class _MedicineInputInstructionsScreenState
             child: CustomAddMedicineForm(
               controller: _controller,
               keyboardType: TextInputType.text,
-              hintText: 'Tulis instruksi di sini...',
+              hintText: 'Ketik di sini...',
             ),
           ),
         ],

@@ -63,7 +63,7 @@ class _MedicineInputDosageScreenState extends State<MedicineInputDosageScreen> {
             child: CustomAddMedicineForm(
               controller: _controller,
               keyboardType: TextInputType.number,
-              hintText: 'Masukkan dosis',
+              hintText: 'Ketik di sini...',
             ),
           ),
         ],

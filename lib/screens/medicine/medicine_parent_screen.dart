@@ -47,6 +47,14 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
   final GlobalKey<FormState> _formKeyName = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyFormat = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyFrequency = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyInterval = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyChooseDays = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyChooseMonthDates = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyTimesPerDay = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyScheduleSummary = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeySingleHourPicker = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyDosage = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyInstructions = GlobalKey<FormState>();
 
   int _currentPageIndex = 0;
 
@@ -61,7 +69,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
   int _timesPerDay = 1;
   List<TimeOfDay> _scheduleTimes = [const TimeOfDay(hour: 7, minute: 0)];
 
-  int? _dosageInputted = 1;
+  int? _dosageInputted;
   String _instructionInputted = '';
 
   bool _isInitialLoading = true;
@@ -345,7 +353,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.interval:
         return MedicineSetIntervalScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyInterval,
           frequencyType: _selectedFrequency,
           initialValue: int.tryParse(_intervalValue) ?? 1,
           onNameChanged: (val) => setState(() => _intervalValue = val),
@@ -353,7 +361,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.chooseDays:
         return MedicineChooseDayScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyChooseDays,
           initialSelectedDays: _selectedDaysOfWeek,
           onNameChanged: (val) {
             final days = val
@@ -367,14 +375,14 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.chooseMonthDates:
         return MedicineManyTimesMonthScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyChooseMonthDates,
           initialValue: _selectedMonthDates,
           onNameChanged: (val) => setState(() => _selectedMonthDates = val),
         );
 
       case StepType.timesPerDay:
         return MedicineManyTimesDayScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyTimesPerDay,
           initialValue: _timesPerDay,
           selectedFrequency: _selectedFrequency,
           onNameChanged: (val) {
@@ -388,7 +396,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.scheduleSummary:
         return MedicineInformationScheduleScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyScheduleSummary,
           selectedFrequency: _selectedFrequency,
           subtitle: _scheduleSubtitle,
           scheduleTimes: _scheduleTimes,
@@ -397,7 +405,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.singleHourPicker:
         return MedicineSetScheduleHourScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeySingleHourPicker,
           initialValue: _scheduleTimes.isNotEmpty
               ? _scheduleTimes.first
               : const TimeOfDay(hour: 7, minute: 0),
@@ -416,8 +424,8 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.dosage:
         return MedicineInputDosageScreen(
-          formKey: GlobalKey<FormState>(),
-          initialValue: _dosageInputted?.toString() ?? '1',
+          formKey: _formKeyDosage,
+          initialValue: _dosageInputted?.toString() ?? '',
           onNameChanged: (val) {
             setState(() {
               _dosageInputted = int.tryParse(val);
@@ -427,7 +435,7 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       case StepType.instructions:
         return MedicineInputInstructionsScreen(
-          formKey: GlobalKey<FormState>(),
+          formKey: _formKeyInstructions,
           initialValue: _instructionInputted,
           onNameChanged: (val) {
             setState(() => _instructionInputted = val);
