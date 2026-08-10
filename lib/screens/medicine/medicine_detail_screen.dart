@@ -590,6 +590,7 @@ Widget _buildSchedule({
                 child: Text(
                   frequency,
                   style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -614,6 +615,7 @@ Widget _buildSchedule({
                 child: Text(
                   duration,
                   style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -686,6 +688,7 @@ Widget _buildDosage({
                 child: Text(
                   dosage,
                   style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -710,6 +713,7 @@ Widget _buildDosage({
                 child: Text(
                   instruction,
                   style: AppTextStyles.bodyMedium.copyWith(
+                    fontSize: 18,
                     color: AppColors.textSecondary,
                   ),
                 ),

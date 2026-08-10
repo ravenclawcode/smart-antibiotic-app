@@ -4,7 +4,8 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
-import '../../utils/custom_medicine_sheet.dart';
+import '../../utils/custom_change_hour_sheet.dart';
+import '../../utils/custom_edit_medicine_parent_sheet.dart';
 
 class MedicineEditScheduleScreen extends StatefulWidget {
   const MedicineEditScheduleScreen({super.key});
@@ -55,6 +56,21 @@ class _MedicineEditScheduleScreenState
     } catch (_) {
       return dateStr;
     }
+  }
+
+  void _openChangeHourSheet(int index, TimeOfDay initialTime) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return CustomChangeHourSheet(
+          slotIndex: index,
+          initialTime: initialTime,
+          onSave: (newTime) {},
+        );
+      },
+    );
   }
 
   @override
@@ -110,6 +126,24 @@ class _MedicineEditScheduleScreenState
                       times: timesList,
                       timesPerDay: timesPerDay,
                       medicineData: medicineData,
+                      onSlotTapped: (index) {
+                        TimeOfDay initialTime = const TimeOfDay(
+                          hour: 7,
+                          minute: 0,
+                        );
+                        if (index < timesList.length) {
+                          final timeParts = timesList[index].toString().split(
+                            ':',
+                          );
+                          if (timeParts.length == 2) {
+                            initialTime = TimeOfDay(
+                              hour: int.tryParse(timeParts[0]) ?? 7,
+                              minute: int.tryParse(timeParts[1]) ?? 0,
+                            );
+                          }
+                        }
+                        _openChangeHourSheet(index, initialTime);
+                      },
                     ),
             ),
           ],
@@ -331,6 +365,7 @@ Widget _buildContent({
   required List<dynamic> times,
   required int timesPerDay,
   required Map<String, dynamic> medicineData,
+  required Function(int) onSlotTapped,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -341,6 +376,7 @@ Widget _buildContent({
           frequency: frequency,
           times: times,
           timesPerDay: timesPerDay,
+          onSlotTapped: onSlotTapped,
         ),
         const SizedBox(height: 18),
         _buildDuration(
@@ -358,25 +394,8 @@ Widget _buildFrequency({
   required String frequency,
   required List<dynamic> times,
   required int timesPerDay,
+  required Function(int) onSlotTapped,
 }) {
-  final List<String> frequencyOptions = [
-    '1 kali sehari',
-    '2 kali sehari',
-    '3 kali sehari',
-    'Lebih dari 3 kali sehari',
-    'Hari Tertentu',
-    'Setiap X Hari',
-    'Setiap X Minggu',
-    'Setiap X Bulan',
-  ];
-
-  int? currentSelectedIndex;
-  if (timesPerDay >= 1 && timesPerDay <= 3) {
-    currentSelectedIndex = timesPerDay - 1;
-  } else if (timesPerDay > 3) {
-    currentSelectedIndex = 3;
-  }
-
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
     width: double.infinity,
@@ -418,14 +437,12 @@ Widget _buildFrequency({
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (bottomSheetContext) => CustomMedicineSheet(
-                      title: 'Atur Frekuensi',
-                      list: frequencyOptions,
-                      selectedIndex: currentSelectedIndex,
-                      onItemTap: (index) {
-                        Navigator.pop(bottomSheetContext);
-                      },
-                    ),
+                    builder: (context) {
+                      return FractionallySizedBox(
+                        heightFactor: 0.85,
+                        child: const CustomEditMedicineParentSheet(),
+                      );
+                    },
                   );
                 },
                 child: Text(
@@ -452,11 +469,22 @@ Widget _buildFrequency({
                     style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                   ),
                   const Spacer(),
-                  Text(
-                    timeText,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                  InkWell(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    onTap: () => onSlotTapped(index),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        timeText,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontSize: 18,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -507,7 +535,7 @@ Widget _buildDuration({
                 child: Text(
                   duration,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                     color: AppColors.primary,
                   ),
                 ),
