@@ -367,16 +367,6 @@ Widget _buildActionButton(BuildContext context, bool isNextEnabled) {
     child: isNextEnabled
         ? CustomButton(
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Profil berhasil diperbarui',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textWhite,
-                    ),
-                  ),
-                ),
-              );
               Navigator.pop(context);
             },
             label: 'Simpan Perubahan',

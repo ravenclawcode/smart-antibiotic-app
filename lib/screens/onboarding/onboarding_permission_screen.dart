@@ -72,17 +72,6 @@ class _OnboardingPermissionScreenState
 
     if (status.isGranted) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Izin sudah diberikan!',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textWhite,
-              ),
-            ),
-          ),
-        );
-
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } else {

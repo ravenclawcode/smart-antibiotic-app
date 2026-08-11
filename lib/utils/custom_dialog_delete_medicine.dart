@@ -116,7 +116,7 @@ class _CustomDialogDeleteMedicineState
                         Navigator.pop(context);
                       },
                       child: Text(
-                        'TERAPKAN',
+                        'HAPUS',
                         style: AppTextStyles.bodySmall.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,

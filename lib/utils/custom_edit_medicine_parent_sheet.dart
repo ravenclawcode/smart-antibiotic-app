@@ -239,7 +239,7 @@ class _CustomEditMedicineParentSheetState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data')));
     }
   }
 

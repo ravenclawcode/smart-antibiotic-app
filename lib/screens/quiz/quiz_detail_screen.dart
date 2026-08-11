@@ -163,7 +163,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data: $e')));
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

@@ -276,16 +276,6 @@ Widget _buildActionButton(
   return isNextEnabled
       ? CustomButton(
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Dosis berhasil diperbarui',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textWhite,
-                  ),
-                ),
-              ),
-            );
             Navigator.pop(context, controller.text.trim());
           },
           label: 'Simpan Perubahan',
