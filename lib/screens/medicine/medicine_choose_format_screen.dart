@@ -70,7 +70,7 @@ class _MedicineChooseFormatScreenState
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(formatOptions.length, (index) {

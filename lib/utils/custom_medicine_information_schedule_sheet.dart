@@ -120,7 +120,7 @@ class _CustomMedicineInformationScheduleSheetState
                     onTap: () => _openChangeHourDialog(index),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8,
+                        vertical: 2,
                         horizontal: 12,
                       ),
                       child: Text(

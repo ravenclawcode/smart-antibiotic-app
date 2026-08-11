@@ -81,11 +81,6 @@ class _CustomDurationSheetState extends State<CustomDurationSheet> {
 
     return CustomBaseBottomSheet(
       title: widget.title,
-      reset: 'HAPUS',
-      onResetTap: () {
-        if (widget.onDelete != null) widget.onDelete!();
-        Navigator.pop(context);
-      },
       child: Padding(
         padding: const EdgeInsets.only(left: 30, right: 30, bottom: 16),
         child: Column(

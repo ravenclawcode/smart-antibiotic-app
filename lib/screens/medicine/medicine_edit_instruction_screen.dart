@@ -217,10 +217,10 @@ Widget _buildShimmerContent() {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Container(
           width: double.infinity,
-          height: 120,
+          height: 135,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),

@@ -22,7 +22,7 @@ class _SettingsCommentsAndFeedbackState
 
   List<Map<String, String>> feedbacks = [
     {
-      'name': 'Syifa',
+      'name': 'Serra Gohv',
       'time': '30 July 2026',
       'comment': 'Apakah Amoxicillin aman dikonsumsi bersama makanan?',
       'reply':
@@ -58,7 +58,7 @@ class _SettingsCommentsAndFeedbackState
 
     setState(() {
       feedbacks.insert(0, {
-        'name': 'Syifa',
+        'name': 'Serra Gohv',
         'time': 'Hari ini',
         'comment': text,
         'reply': '',
@@ -98,7 +98,7 @@ class _SettingsCommentsAndFeedbackState
                             const SizedBox(height: 20),
                             CustomInputFeedbackForm(
                               controller: feedbackController,
-                              userName: 'Syifa',
+                              userName: 'Serra Gohv',
                               onSubmit: _addFeedback,
                             ),
                             const SizedBox(height: 30),
@@ -127,7 +127,7 @@ class _SettingsCommentsAndFeedbackState
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE7ECF0), width: 1.5),
+                border: Border.all(color: const Color(0xFFE7ECF0), width: 1),
               ),
               child: Column(
                 children: [

@@ -4,17 +4,9 @@ import 'package:smart_antibiotic/utils/app_text.dart';
 
 class CustomBaseBottomSheet extends StatelessWidget {
   final String? title;
-  final String? reset;
   final Widget child;
-  final VoidCallback? onResetTap;
 
-  const CustomBaseBottomSheet({
-    super.key,
-    this.title,
-    required this.child,
-    this.reset,
-    this.onResetTap,
-  });
+  const CustomBaseBottomSheet({super.key, this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -57,21 +49,6 @@ class CustomBaseBottomSheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (reset != null && reset!.isNotEmpty)
-                      InkWell(
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        onTap: onResetTap,
-                        child: Text(
-                          reset!,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 const SizedBox(height: 8),

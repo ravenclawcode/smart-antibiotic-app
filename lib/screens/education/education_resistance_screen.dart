@@ -117,7 +117,7 @@ class _EducationResistanceScreenState extends State<EducationResistanceScreen> {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.surfacePrimary, width: 1),
+                border: Border.all(color: AppColors.surfacePrimary),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Padding(
@@ -287,7 +287,7 @@ Widget _buildContent(BuildContext context) {
           width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFFEE4E2),
-            border: Border.all(color: AppColors.error),
+            border: Border.all(color: AppColors.error, width: 1.5),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Padding(
