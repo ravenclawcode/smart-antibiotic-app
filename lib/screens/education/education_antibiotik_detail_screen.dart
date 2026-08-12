@@ -5,6 +5,7 @@ import 'package:smart_antibiotic/utils/custom_video_card.dart';
 
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_youtube_player_screen.dart';
 
 class EducationAntibiotikDetailScreen extends StatefulWidget {
   const EducationAntibiotikDetailScreen({super.key});
@@ -46,6 +47,7 @@ class _EducationAntibiotikDetailScreenState
     {
       'title': 'Video',
       'description': 'Cara Kerja Amoxicillin dan Penggunaan yang Benar',
+      'videoUrl': 'https://youtu.be/mLmXe311KhQ?si=A82UiuqWu3KfBy4U',
     },
   ];
 
@@ -361,6 +363,7 @@ Widget _buildContent({
             final poin = items[index];
             final title = poin['title']!;
             final String rawDescription = poin['description']!;
+            final String? videoUrl = poin['videoUrl'];
             final List<String> lines = rawDescription.split('\n');
 
             final isVideoSection = title == 'Video';
@@ -386,7 +389,22 @@ Widget _buildContent({
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: isVideoSection
-                      ? CustomVideoCard(title: rawDescription)
+                      ? CustomVideoCard(
+                          title: rawDescription,
+                          onTap: () {
+                            if (videoUrl != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CustomYoutubePlayerScreen(
+                                        videoUrl: videoUrl,
+                                      ),
+                                ),
+                              );
+                            }
+                          },
+                        )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: lines.asMap().entries.map((entry) {

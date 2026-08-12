@@ -23,7 +23,7 @@ class CustomButtonDialog extends StatelessWidget {
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       onTap: onTap,
       child: Container(
-        height: 44,
+        height: 50,
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(30),

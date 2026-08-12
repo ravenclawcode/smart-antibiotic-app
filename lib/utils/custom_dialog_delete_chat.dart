@@ -21,7 +21,7 @@ class _CustomDialogDeleteChatState extends State<CustomDialogDeleteChat> {
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
           child: Container(
-            padding: EdgeInsets.only(top: 26, bottom: 20, left: 20, right: 20),
+            padding: EdgeInsets.only(top: 26, bottom: 20, left: 26, right: 26),
             decoration: BoxDecoration(color: AppColors.surfacePrimary),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -32,7 +32,7 @@ class _CustomDialogDeleteChatState extends State<CustomDialogDeleteChat> {
                 Text('Hapus Percakapan', style: AppTextStyles.titleMedium),
                 SizedBox(height: 6),
                 Text(
-                  'Apakah Anda yakin ingin menghapus semua pesan percakapan ini?',
+                  'Anda yakin ingin menghapus semua pesan ini?',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 18,
                     color: AppColors.textSecondary,
@@ -40,24 +40,18 @@ class _CustomDialogDeleteChatState extends State<CustomDialogDeleteChat> {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: CustomButtonDialog(
-                    onTap: () => Navigator.pop(context, true),
-                    label: 'Hapus',
-                    color: AppColors.surfaceAccent,
-                    textColor: AppColors.primary,
-                  ),
+                CustomButtonDialog(
+                  onTap: () => Navigator.pop(context, true),
+                  label: 'Hapus',
+                  color: AppColors.surfaceAccent,
+                  textColor: AppColors.primary,
                 ),
                 SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: CustomButtonDialog(
-                    onTap: () => Navigator.pop(context, false),
-                    label: 'Batal',
-                    color: Colors.transparent,
-                    textColor: AppColors.textPrimary,
-                  ),
+                CustomButtonDialog(
+                  onTap: () => Navigator.pop(context, false),
+                  label: 'Batal',
+                  color: Colors.transparent,
+                  textColor: AppColors.textPrimary,
                 ),
               ],
             ),

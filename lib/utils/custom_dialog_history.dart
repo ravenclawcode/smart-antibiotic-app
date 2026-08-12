@@ -49,7 +49,7 @@ class _CustomDialogHistoryState extends State<CustomDialogHistory> {
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 30),
             decoration: BoxDecoration(color: AppColors.surfacePrimary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

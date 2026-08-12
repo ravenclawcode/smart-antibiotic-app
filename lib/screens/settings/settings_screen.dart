@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../utils/app_colors.dart';
@@ -14,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = true;
+  int _grantedPermissionsCount = 0;
 
   @override
   void initState() {
@@ -22,11 +24,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    final notification = await Permission.notification.status.isGranted;
+    final overlay = await Permission.systemAlertWindow.status.isGranted;
+    final battery =
+        await Permission.ignoreBatteryOptimizations.status.isGranted;
+
+    int count = 0;
+    if (notification) count++;
+    if (overlay) count++;
+    if (battery) count++;
+
     if (mounted) {
       setState(() {
+        _grantedPermissionsCount = count;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _navigateToOptimization() async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/settings-alarm-optimization',
+    );
+
+    if (result != null && result is int) {
+      setState(() {
+        _grantedPermissionsCount = result;
+      });
+    } else {
+      _fetchData();
     }
   }
 
@@ -81,6 +108,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildOptionMenu(BuildContext context) {
+    final item = [
+      {
+        'title': 'Edit Profil',
+        'subtitle': 'Nama, umur, jenis kelamin',
+        'status': '',
+        'route': '/settings-edit-profile',
+      },
+      {
+        'title': 'Preferensi',
+        'subtitle': 'Atur pengingat dan pemberitahuan',
+        'status': '',
+        'route': '/settings-preference',
+      },
+      {
+        'title': 'Pengoptimalan Alarm',
+        'subtitle': 'Solusi jika alarm tidak bunyi',
+        'status': '$_grantedPermissionsCount / 3 selesai',
+        'route': '/settings-alarm-optimization',
+      },
+      {
+        'title': 'Komentar & Masukan',
+        'subtitle': 'Tanya info obat atau beri masukan',
+        'status': '',
+        'route': '/settings-comments-and-feedback',
+      },
+    ];
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: item.length,
+      padding: EdgeInsets.zero,
+      itemBuilder: (context, index) {
+        final menu = item[index];
+        final bool isLastItem = index == item.length - 1;
+        final String statusText = menu['status'] as String;
+
+        return InkWell(
+          focusColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          onTap: () {
+            if (menu['route'] == '/settings-alarm-optimization') {
+              _navigateToOptimization();
+            } else {
+              Navigator.pushNamed(context, menu['route'] as String);
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 6, 0, isLastItem ? 8 : 0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              style: AppTextStyles.bodyLarge.copyWith(
+                                fontSize: 18,
+                                color: AppColors.textPrimary,
+                              ),
+                              children: [
+                                TextSpan(text: menu['title'] as String),
+                                if (statusText.isNotEmpty) ...[
+                                  TextSpan(
+                                    text: '  •  ',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: const Color(0xFFD9D9D9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: statusText,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Text(
+                            menu['subtitle'] as String,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              fontSize: 17,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    const Padding(
+                      padding: EdgeInsets.only(right: 10),
+                      child: Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    ),
+                  ],
+                ),
+                if (!isLastItem) ...[
+                  const SizedBox(height: 4),
+                  const Divider(color: Color(0xFFE7ECF0)),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -244,121 +393,5 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
         ),
       ),
     ),
-  );
-}
-
-Widget _buildOptionMenu(BuildContext context) {
-  final item = [
-    {
-      'title': 'Edit Profil',
-      'subtitle': 'Nama, umur, jenis kelamin',
-      'status': '',
-      'route': '/settings-edit-profile',
-    },
-    {
-      'title': 'Preferensi',
-      'subtitle': 'Atur pengingat dan pemberitahuan',
-      'status': '',
-      'route': '/settings-preference',
-    },
-    {
-      'title': 'Pengoptimalan Alarm',
-      'subtitle': 'Solusi jika alarm tidak bunyi',
-      'status': '2 / 3 selesai',
-      'route': '/settings-alarm-optimization',
-    },
-    {
-      'title': 'Komentar & Masukan',
-      'subtitle': 'Tanya info obat atau beri masukan',
-      'status': '',
-      'route': '/settings-comments-and-feedback',
-    },
-  ];
-
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: item.length,
-    padding: EdgeInsets.zero,
-    itemBuilder: (context, index) {
-      final menu = item[index];
-      final bool isLastItem = index == item.length - 1;
-      final String statusText = menu['status'] as String;
-
-      return InkWell(
-        focusColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        overlayColor: WidgetStateProperty.all(Colors.transparent),
-        onTap: () => Navigator.pushNamed(context, menu['route'] as String),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(0, 6, 0, isLastItem ? 8 : 0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          text: TextSpan(
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              fontSize: 18,
-                              color: AppColors.textPrimary,
-                            ),
-                            children: [
-                              TextSpan(text: menu['title'] as String),
-                              if (statusText.isNotEmpty) ...[
-                                TextSpan(
-                                  text: '  •  ',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: const Color(0xFFD9D9D9),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: statusText,
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Text(
-                          menu['subtitle'] as String,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 17,
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                  ),
-                ],
-              ),
-              if (!isLastItem) ...[
-                const SizedBox(height: 4),
-                const Divider(color: Color(0xFFE7ECF0)),
-              ],
-            ],
-          ),
-        ),
-      );
-    },
   );
 }

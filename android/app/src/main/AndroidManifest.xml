@@ -3,6 +3,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Permission untuk Display Over Other Apps -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- Permission untuk Battery Optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <!-- Permission untuk Internet -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Smart Antibiotik"
         android:name="${applicationName}"

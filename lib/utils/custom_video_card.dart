@@ -64,7 +64,7 @@ class CustomVideoCard extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.textPrimary.withValues(alpha: 0.75),
+                        color: AppColors.textPrimary.withValues(alpha: 0.65),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -84,7 +84,7 @@ class CustomVideoCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.textPrimary.withValues(alpha: 0.75),
+                      color: AppColors.textPrimary.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Text(

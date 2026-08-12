@@ -20,8 +20,11 @@ class _SettingsCommentsAndFeedbackState
   late TextEditingController feedbackController;
   bool _isLoading = true;
 
-  List<Map<String, String>> feedbacks = [
+  String? _newlyAddedId;
+
+  List<Map<String, dynamic>> feedbacks = [
     {
+      'id': '1',
       'name': 'Serra Gohv',
       'time': '30 July 2026',
       'comment': 'Apakah Amoxicillin aman dikonsumsi bersama makanan?',
@@ -37,6 +40,12 @@ class _SettingsCommentsAndFeedbackState
     _fetchData();
   }
 
+  @override
+  void dispose() {
+    feedbackController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
@@ -46,18 +55,16 @@ class _SettingsCommentsAndFeedbackState
     }
   }
 
-  @override
-  void dispose() {
-    feedbackController.dispose();
-    super.dispose();
-  }
-
   void _addFeedback() {
     final text = feedbackController.text.trim();
     if (text.isEmpty) return;
 
+    final newId = DateTime.now().millisecondsSinceEpoch.toString();
+
     setState(() {
+      _newlyAddedId = newId;
       feedbacks.insert(0, {
+        'id': newId,
         'name': 'Serra Gohv',
         'time': 'Hari ini',
         'comment': text,
@@ -112,6 +119,26 @@ class _SettingsCommentsAndFeedbackState
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFeedbackList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: feedbacks.length,
+      padding: EdgeInsets.zero,
+      itemBuilder: (context, index) {
+        final item = feedbacks[index];
+        final isNew = item['id'] == _newlyAddedId;
+
+        return _FeedbackCardItem(
+          key: ValueKey(item['id']),
+          data: item,
+          isNewItem: isNew,
+          onDelete: () => _deleteFeedback(index),
+        );
+      },
     );
   }
 
@@ -291,33 +318,68 @@ class _SettingsCommentsAndFeedbackState
       ),
     );
   }
+}
 
-  Widget _buildFeedbackList() {
-    if (feedbacks.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text(
-            'Belum ada komentar atau masukan.',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-      );
+class _FeedbackCardItem extends StatefulWidget {
+  final Map<String, dynamic> data;
+  final bool isNewItem;
+  final VoidCallback onDelete;
+
+  const _FeedbackCardItem({
+    super.key,
+    required this.data,
+    required this.isNewItem,
+    required this.onDelete,
+  });
+
+  @override
+  State<_FeedbackCardItem> createState() => _FeedbackCardItemState();
+}
+
+class _FeedbackCardItemState extends State<_FeedbackCardItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    if (widget.isNewItem) {
+      _controller.forward();
+    } else {
+      _controller.value = 1.0;
     }
+  }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: feedbacks.length,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        final list = feedbacks[index];
-        final String replyText = list['reply'] ?? '';
-        final bool hasReply = replyText.trim().isNotEmpty;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-        return Padding(
+  @override
+  Widget build(BuildContext context) {
+    final String replyText = widget.data['reply'] ?? '';
+    final bool hasReply = replyText.trim().isNotEmpty;
+
+    return FadeTransition(
+      opacity: _fadeAnim,
+      child: SlideTransition(
+        position: _slideAnim,
+        child: Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -338,7 +400,7 @@ class _SettingsCommentsAndFeedbackState
                           Row(
                             children: [
                               Text(
-                                list['name'] as String,
+                                widget.data['name'] as String,
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -346,7 +408,7 @@ class _SettingsCommentsAndFeedbackState
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                list['time'] as String,
+                                widget.data['time'] as String,
                                 style: AppTextStyles.bodySmall.copyWith(
                                   color: AppColors.textSecondary,
                                 ),
@@ -355,7 +417,7 @@ class _SettingsCommentsAndFeedbackState
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            list['comment'] as String,
+                            widget.data['comment'] as String,
                             style: AppTextStyles.bodyMedium.copyWith(
                               fontSize: 18,
                             ),
@@ -368,7 +430,7 @@ class _SettingsCommentsAndFeedbackState
                       hoverColor: Colors.transparent,
                       highlightColor: Colors.transparent,
                       splashColor: Colors.transparent,
-                      onTap: () => _deleteFeedback(index),
+                      onTap: widget.onDelete,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: Image.asset(
@@ -421,8 +483,8 @@ class _SettingsCommentsAndFeedbackState
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
