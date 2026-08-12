@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/custom_button.dart';
@@ -7,6 +8,7 @@ import 'package:smart_antibiotic/utils/custom_button_off.dart';
 import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
+import '../../providers/onboarding_provider.dart';
 import 'onboarding_input_name_screen.dart';
 import 'onboarding_reminder_sound_screen.dart';
 import 'onboarding_reminder_type_screen.dart';
@@ -89,20 +91,40 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
   Future<void> _submitData() async {
     await _soundKey.currentState?.stopAudio();
 
-    setState(() => _isLoading = true);
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final provider = context.read<OnboardingProvider>();
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final success = await provider.submitOnboarding(
+        name: _nameInputted,
+        reminderType: _selectedType,
+        reminderSound: _selectedSound,
+      );
 
       if (!mounted) return;
-      Navigator.pushNamed(context, '/onboarding-permission');
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data')));
+
+      if (success) {
+        Navigator.pushNamed(context, '/onboarding-permission');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider.errorMessage ?? 'Gagal menyimpan data onboarding.',
+            ),
+          ),
+        );
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

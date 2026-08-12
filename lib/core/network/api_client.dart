@@ -13,6 +13,7 @@ class ApiClient {
   Future<dynamic> get(
     String endpoint, {
     Map<String, String>? queryParameters,
+    Map<String, String>? headers,
   }) async {
     try {
       final uri = Uri.parse(
@@ -21,7 +22,7 @@ class ApiClient {
 
       final response = await client.get(
         uri,
-        headers: {'Accept': 'application/json'},
+        headers: {'Accept': 'application/json', ...?headers},
       );
 
       return _handleResponse(response);
@@ -30,11 +31,15 @@ class ApiClient {
         rethrow;
       }
 
-      throw ApiException(message: 'Tidak dapat terhubung ke server.');
+      throw const ApiException(message: 'Tidak dapat terhubung ke server.');
     }
   }
 
-  Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
+  Future<dynamic> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) async {
     try {
       final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
 
@@ -43,6 +48,7 @@ class ApiClient {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          ...?headers,
         },
         body: body != null ? jsonEncode(body) : null,
       );
@@ -53,11 +59,15 @@ class ApiClient {
         rethrow;
       }
 
-      throw ApiException(message: 'Tidak dapat terhubung ke server.');
+      throw const ApiException(message: 'Tidak dapat terhubung ke server.');
     }
   }
 
-  Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
+  Future<dynamic> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) async {
     try {
       final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
 
@@ -66,6 +76,7 @@ class ApiClient {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          ...?headers,
         },
         body: body != null ? jsonEncode(body) : null,
       );
@@ -76,17 +87,20 @@ class ApiClient {
         rethrow;
       }
 
-      throw ApiException(message: 'Tidak dapat terhubung ke server.');
+      throw const ApiException(message: 'Tidak dapat terhubung ke server.');
     }
   }
 
-  Future<dynamic> delete(String endpoint) async {
+  Future<dynamic> delete(
+    String endpoint, {
+    Map<String, String>? headers,
+  }) async {
     try {
       final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
 
       final response = await client.delete(
         uri,
-        headers: {'Accept': 'application/json'},
+        headers: {'Accept': 'application/json', ...?headers},
       );
 
       return _handleResponse(response);
@@ -95,7 +109,7 @@ class ApiClient {
         rethrow;
       }
 
-      throw ApiException(message: 'Tidak dapat terhubung ke server.');
+      throw const ApiException(message: 'Tidak dapat terhubung ke server.');
     }
   }
 
@@ -103,7 +117,9 @@ class ApiClient {
     dynamic data;
 
     try {
-      data = jsonDecode(response.body);
+      if (response.body.isNotEmpty) {
+        data = jsonDecode(response.body);
+      }
     } catch (_) {
       data = null;
     }
@@ -116,6 +132,18 @@ class ApiClient {
 
     if (data is Map && data['message'] != null) {
       message = data['message'].toString();
+    }
+
+    if (data is Map && data['errors'] is Map) {
+      final errors = data['errors'] as Map;
+
+      if (errors.isNotEmpty) {
+        final firstError = errors.values.first;
+
+        if (firstError is List && firstError.isNotEmpty) {
+          message = firstError.first.toString();
+        }
+      }
     }
 
     throw ApiException(message: message, statusCode: response.statusCode);

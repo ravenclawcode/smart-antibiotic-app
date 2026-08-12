@@ -219,20 +219,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.settings:
       return MaterialPageRoute(builder: (_) => const SettingsScreen());
     case Routes.settingsEditProfile:
-      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => SettingsEditProfilScreen(
-          initialValue: args?['initialValue'] ?? 'Serra Gohv',
-          onNameChanged: args?['onNameChanged'] ?? (value) {},
-        ),
+        builder: (_) => const SettingsEditProfilScreen(),
       );
     case Routes.settingsPreferences:
-      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (_) => SettingsEditPreferenceScreen(
-          selectedType: args?['selectedType'] ?? 'Layar Penuh',
-          onSelectType: args?['onSelectType'] ?? (value) {},
-        ),
+        builder: (_) => const SettingsEditPreferenceScreen(),
       );
     case Routes.settingsAlarmOptimization:
       return MaterialPageRoute(

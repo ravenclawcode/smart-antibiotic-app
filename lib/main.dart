@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_antibiotic/core/network/api_client.dart';
+import 'package:smart_antibiotic/providers/onboarding_provider.dart';
+import 'package:smart_antibiotic/providers/settings_provider.dart';
+import 'package:smart_antibiotic/services/local_storage_service.dart';
+import 'package:smart_antibiotic/services/user_service.dart';
 
 import 'routes/routes.dart';
 import 'utils/app_theme.dart';
@@ -17,7 +25,30 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MyApp());
+  final preferences = await SharedPreferences.getInstance();
+
+  final localStorage = LocalStorageService(preferences);
+
+  final apiClient = ApiClient(client: http.Client());
+
+  final userService = UserService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => OnboardingProvider(userService: userService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(userService: userService),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +59,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Antibiotik',
-      initialRoute: '/',
+      initialRoute: '/onboarding-splash',
       onGenerateRoute: generateRoute,
       theme: AppTheme.lightTheme,
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
+import '../../providers/onboarding_provider.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_text.dart';
 
@@ -27,7 +29,21 @@ class _OnboardingSplashScreenState extends State<OnboardingSplashScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushReplacementNamed(context, '/onboarding-welcome');
+    final provider = context.read<OnboardingProvider>();
+
+    final isRegistered = await provider.checkRegistration();
+
+    if (!mounted) return;
+
+    if (isRegistered) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    } else {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/onboarding-welcome',
+        (route) => false,
+      );
+    }
   }
 
   Future<void> _requestNotificationPermission() async {

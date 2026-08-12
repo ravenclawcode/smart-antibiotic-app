@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:smart_antibiotic/utils/custom_reminder_sound_sheet.dart';
 
+import '../../providers/settings_provider.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_button.dart';
+import '../../utils/custom_button_off.dart';
 import '../../utils/custom_checkbox.dart';
+import '../../utils/custom_reminder_sound_sheet.dart';
 
 class SettingsEditPreferenceScreen extends StatefulWidget {
-  final String selectedType;
-  final ValueChanged<String> onSelectType;
-
-  const SettingsEditPreferenceScreen({
-    super.key,
-    required this.selectedType,
-    required this.onSelectType,
-  });
+  const SettingsEditPreferenceScreen({super.key});
 
   @override
   State<SettingsEditPreferenceScreen> createState() =>
@@ -25,34 +22,105 @@ class SettingsEditPreferenceScreen extends StatefulWidget {
 
 class _SettingsEditPreferenceScreenState
     extends State<SettingsEditPreferenceScreen> {
-  late String _currentSelectedType;
+  String _currentSelectedType = '';
+  String _initialSelectedType = '';
+
+  String _selectedSound = '';
+  String _initialSelectedSound = '';
+
   bool _isLoading = true;
+
+  bool get _hasChanges {
+    return _currentSelectedType != _initialSelectedType ||
+        _selectedSound != _initialSelectedSound;
+  }
 
   @override
   void initState() {
     super.initState();
-    _currentSelectedType = widget.selectedType;
-    _fetchData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchData();
+      }
+    });
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    final provider = context.read<SettingsProvider>();
+
+    final success = await provider.loadPreferences();
+
+    if (!mounted) {
+      return;
     }
+
+    if (success && provider.preferences != null) {
+      final preferences = provider.preferences!;
+
+      _initialSelectedType = preferences.reminderType;
+
+      _initialSelectedSound = preferences.reminderSound;
+
+      _currentSelectedType = preferences.reminderType;
+
+      _selectedSound = preferences.reminderSound;
+    } else {
+      _initialSelectedType = '';
+      _currentSelectedType = '';
+
+      _initialSelectedSound = '';
+      _selectedSound = '';
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _handleTap(String type) {
     setState(() {
-      if (_currentSelectedType == type) {
-        _currentSelectedType = '';
-      } else {
-        _currentSelectedType = type;
-      }
+      _currentSelectedType = type;
     });
-    widget.onSelectType(_currentSelectedType);
+  }
+
+  Future<void> _savePreferences() async {
+    if (_currentSelectedType.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan pilih jenis pengingat.')),
+      );
+
+      return;
+    }
+
+    final provider = context.read<SettingsProvider>();
+
+    final success = await provider.updatePreferences(
+      reminderType: _currentSelectedType,
+      reminderSound: _selectedSound,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (success) {
+      Navigator.pop(context, true);
+
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          provider.errorMessage ?? 'Gagal menyimpan perubahan preferensi.',
+        ),
+      ),
+    );
   }
 
   void _showReminderSound() {
@@ -60,8 +128,20 @@ class _SettingsEditPreferenceScreenState
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          CustomReminderSoundSheet(onSoundSelected: (String selectedSound) {}),
+      builder: (context) {
+        return CustomReminderSoundSheet(
+          initialSound: _selectedSound,
+          onSoundSelected: (String selectedSound) {
+            if (!mounted) {
+              return;
+            }
+
+            setState(() {
+              _selectedSound = selectedSound;
+            });
+          },
+        );
+      },
     );
   }
 
@@ -81,15 +161,40 @@ class _SettingsEditPreferenceScreenState
             Expanded(
               child: _isLoading
                   ? _buildShimmerContent()
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _buildReminderType(_currentSelectedType, _handleTap),
-                          const SizedBox(height: 16),
-                          _buildReminderSound(_showReminderSound),
-                          const SizedBox(height: 20),
-                        ],
-                      ),
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                children: [
+                                  _buildReminderType(
+                                    _currentSelectedType,
+                                    _handleTap,
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  _buildReminderSound(_showReminderSound),
+
+                                  const Spacer(),
+
+                                  _buildActionButton(
+                                    context,
+                                    _hasChanges,
+                                    _savePreferences,
+                                  ),
+
+                                  const SizedBox(height: 60),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
             ),
           ],
@@ -130,8 +235,6 @@ class _SettingsEditPreferenceScreenState
                     ),
                     const SizedBox(height: 20),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(child: _buildSkeletonOptionCard()),
                         const SizedBox(width: 16),
@@ -144,31 +247,10 @@ class _SettingsEditPreferenceScreenState
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                height: 60,
                 decoration: BoxDecoration(
                   color: AppColors.surfacePrimary,
                   borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      width: 40,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -182,7 +264,7 @@ class _SettingsEditPreferenceScreenState
     return Column(
       children: [
         Container(
-          height: 170,
+          height: 150,
           width: 95,
           decoration: BoxDecoration(
             color: AppColors.surfacePrimary,
@@ -238,10 +320,6 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
               )
             else
               InkWell(
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                splashColor: Colors.transparent,
                 onTap: () => Navigator.pop(context),
                 child: Container(
                   width: 36,
@@ -278,7 +356,6 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                   color: AppColors.textWhite,
                 ),
               ),
-            const Spacer(),
           ],
         ),
       ),
@@ -287,9 +364,6 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 }
 
 Widget _buildReminderType(String selectedType, Function(String) handleTap) {
-  final isFullScreenSelected = selectedType == 'Layar Penuh';
-  final isCompactSelected = selectedType == 'Ringkas';
-
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Container(
@@ -305,14 +379,12 @@ Widget _buildReminderType(String selectedType, Function(String) handleTap) {
           Text('Jenis Pengingat', style: AppTextStyles.bodyLarge),
           const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _buildOptionCard(
                   title: 'Layar Penuh',
                   imageAsset: imgFullScreen,
-                  isSelected: isFullScreenSelected,
+                  isSelected: selectedType == 'Layar Penuh',
                   onTap: () => handleTap('Layar Penuh'),
                 ),
               ),
@@ -321,7 +393,7 @@ Widget _buildReminderType(String selectedType, Function(String) handleTap) {
                 child: _buildOptionCard(
                   title: 'Ringkas',
                   imageAsset: imgSmall,
-                  isSelected: isCompactSelected,
+                  isSelected: selectedType == 'Ringkas',
                   onTap: () => handleTap('Ringkas'),
                 ),
               ),
@@ -387,10 +459,6 @@ Widget _buildReminderSound(VoidCallback showReminderSound) {
           Text('Suara Pengingat', style: AppTextStyles.bodyLarge),
           const Spacer(),
           InkWell(
-            focusColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            splashColor: Colors.transparent,
             onTap: showReminderSound,
             child: Text(
               'Edit',
@@ -402,5 +470,18 @@ Widget _buildReminderSound(VoidCallback showReminderSound) {
         ],
       ),
     ),
+  );
+}
+
+Widget _buildActionButton(
+  BuildContext context,
+  bool isEnabled,
+  VoidCallback savePreferences,
+) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: isEnabled
+        ? CustomButton(onTap: savePreferences, label: 'Simpan Perubahan')
+        : CustomButtonOff(label: 'Simpan Perubahan'),
   );
 }
