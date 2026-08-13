@@ -25,6 +25,7 @@ class _OnboardingPermissionScreenState
   int _currentPage = 0;
   Timer? _timer;
   bool _isLoading = true;
+  bool _isPermissionGranted = false;
 
   final List<String> _carouselImages = [imgCarousel1, imgCarousel2];
 
@@ -35,9 +36,14 @@ class _OnboardingPermissionScreenState
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    final results = await Future.wait([
+      Permission.systemAlertWindow.status.isGranted,
+      Future.delayed(const Duration(milliseconds: 600)),
+    ]);
+
     if (mounted) {
       setState(() {
+        _isPermissionGranted = results[0] as bool;
         _isLoading = false;
       });
       _startTimer();
@@ -68,32 +74,21 @@ class _OnboardingPermissionScreenState
   }
 
   Future<void> _requestOverlayPermission() async {
-    var status = await Permission.systemAlertWindow.status;
-
-    if (status.isGranted) {
+    if (_isPermissionGranted) {
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
-    } else {
-      final newStatus = await Permission.systemAlertWindow.request();
+      return;
+    }
 
-      if (newStatus.isGranted) {
-        if (mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Izin diperlukan agar pengingat bisa tampil.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textWhite,
-                ),
-              ),
-            ),
-          );
-        }
+    final status = await Permission.systemAlertWindow.request();
+
+    if (mounted) {
+      if (status.isGranted) {
+        setState(() {
+          _isPermissionGranted = true;
+        });
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     }
   }
@@ -307,7 +302,7 @@ class _OnboardingPermissionScreenState
       padding: const EdgeInsets.symmetric(horizontal: 26),
       child: CustomButton(
         onTap: _requestOverlayPermission,
-        label: 'Buka Pengaturan',
+        label: _isPermissionGranted ? 'Mulai' : 'Buka Pengaturan',
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/error/api_exception.dart';
@@ -15,6 +16,16 @@ class OnboardingProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  Future<String> _getDeviceTimezone() async {
+    try {
+      final timezone = await FlutterTimezone.getLocalTimezone();
+
+      return timezone.identifier;
+    } catch (e) {
+      return 'UTC';
+    }
+  }
 
   Future<bool> submitOnboarding({
     required String name,
@@ -33,12 +44,21 @@ class OnboardingProvider extends ChangeNotifier {
     try {
       final uuid = const Uuid().v4();
 
+      final timezone = await _getDeviceTimezone();
+
+      final formattedName = name
+          .trim()
+          .split(RegExp(r'\s+'))
+          .where((word) => word.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+
       final onboarding = OnboardingModel(
         uuid: uuid,
-        name: name.trim(),
+        name: formattedName,
         reminderType: reminderType,
         reminderSound: reminderSound,
-        timezone: 'Asia/Jakarta',
+        timezone: timezone,
       );
 
       await userService.onboarding(onboarding);

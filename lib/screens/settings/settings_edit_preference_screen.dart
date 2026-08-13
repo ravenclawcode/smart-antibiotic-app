@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smart_antibiotic/screens/settings/settings_edit_profil_screen.dart';
 
 import '../../providers/settings_provider.dart';
 import '../../utils/app_assets.dart';
@@ -49,7 +50,12 @@ class _SettingsEditPreferenceScreenState
   Future<void> _fetchData() async {
     final provider = context.read<SettingsProvider>();
 
-    final success = await provider.loadPreferences();
+    final results = await Future.wait([
+      provider.loadPreferences(),
+      Future.delayed(const Duration(milliseconds: 600)),
+    ]);
+
+    final success = results[0] as bool;
 
     if (!mounted) {
       return;
@@ -59,16 +65,12 @@ class _SettingsEditPreferenceScreenState
       final preferences = provider.preferences!;
 
       _initialSelectedType = preferences.reminderType;
-
       _initialSelectedSound = preferences.reminderSound;
-
       _currentSelectedType = preferences.reminderType;
-
       _selectedSound = preferences.reminderSound;
     } else {
       _initialSelectedType = '';
       _currentSelectedType = '';
-
       _initialSelectedSound = '';
       _selectedSound = '';
     }
@@ -90,10 +92,6 @@ class _SettingsEditPreferenceScreenState
 
   Future<void> _savePreferences() async {
     if (_currentSelectedType.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan pilih jenis pengingat.')),
-      );
-
       return;
     }
 
@@ -113,14 +111,6 @@ class _SettingsEditPreferenceScreenState
 
       return;
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          provider.errorMessage ?? 'Gagal menyimpan perubahan preferensi.',
-        ),
-      ),
-    );
   }
 
   void _showReminderSound() {
@@ -207,55 +197,71 @@ class _SettingsEditPreferenceScreenState
     return Shimmer.fromColors(
       baseColor: AppColors.surfaceSecondary,
       highlightColor: AppColors.surfaceCool,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 26,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surfacePrimary,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 140,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfacePrimary,
-                        borderRadius: BorderRadius.circular(4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 26,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 140,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: AppColors.surfacePrimary,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Expanded(child: _buildSkeletonOptionCard()),
+                                const SizedBox(width: 16),
+                                Expanded(child: _buildSkeletonOptionCard()),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(child: _buildSkeletonOptionCard()),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildSkeletonOptionCard()),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      const Spacer(),
+                      const SkeletonBox(
+                        width: double.infinity,
+                        height: 70,
+                        radius: 50,
+                      ),
+                      const SizedBox(height: 60),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.surfacePrimary,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

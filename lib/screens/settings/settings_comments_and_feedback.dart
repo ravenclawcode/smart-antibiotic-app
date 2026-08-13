@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:smart_antibiotic/utils/app_assets.dart';
 
+import '../../models/feedback_model.dart';
+import '../../providers/feedback_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_feedback_card.dart';
 import '../../utils/custom_input_feedback_form.dart';
 
 class SettingsCommentsAndFeedback extends StatefulWidget {
@@ -18,26 +22,19 @@ class SettingsCommentsAndFeedback extends StatefulWidget {
 class _SettingsCommentsAndFeedbackState
     extends State<SettingsCommentsAndFeedback> {
   late TextEditingController feedbackController;
-  bool _isLoading = true;
+  String _userName = '';
 
-  String? _newlyAddedId;
-
-  List<Map<String, dynamic>> feedbacks = [
-    {
-      'id': '1',
-      'name': 'Serra Gohv',
-      'time': '30 July 2026',
-      'comment': 'Apakah Amoxicillin aman dikonsumsi bersama makanan?',
-      'reply':
-          'Ya, Amoxicillin bisa diminum bersama makanan untuk mengurangi gangguan lambung.',
-    },
-  ];
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     feedbackController = TextEditingController();
-    _fetchData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
   }
 
   @override
@@ -47,39 +44,46 @@ class _SettingsCommentsAndFeedbackState
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    final feedbackProvider = context.read<FeedbackProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+
+    await Future.wait([
+      feedbackProvider.fetchFeedbacks(),
+      settingsProvider.loadProfile(),
+      Future.delayed(const Duration(milliseconds: 600)),
+    ]);
+
+    if (!mounted) return;
+
+    setState(() {
+      _userName = settingsProvider.profile?.name ?? 'Pengguna';
+      _isInitialLoading = false;
+    });
+  }
+
+  Future<void> _addFeedback() async {
+    final text = feedbackController.text.trim();
+
+    if (text.isEmpty) {
+      return;
+    }
+
+    final provider = context.read<FeedbackProvider>();
+
+    final success = await provider.submitFeedback(text);
+
+    if (!mounted) return;
+
+    if (success) {
+      feedbackController.clear();
+      FocusScope.of(context).unfocus();
     }
   }
 
-  void _addFeedback() {
-    final text = feedbackController.text.trim();
-    if (text.isEmpty) return;
+  Future<void> _deleteFeedback(FeedbackModel feedback) async {
+    final provider = context.read<FeedbackProvider>();
 
-    final newId = DateTime.now().millisecondsSinceEpoch.toString();
-
-    setState(() {
-      _newlyAddedId = newId;
-      feedbacks.insert(0, {
-        'id': newId,
-        'name': 'Serra Gohv',
-        'time': 'Hari ini',
-        'comment': text,
-        'reply': '',
-      });
-      feedbackController.clear();
-    });
-
-    FocusScope.of(context).unfocus();
-  }
-
-  void _deleteFeedback(int index) {
-    setState(() {
-      feedbacks.removeAt(index);
-    });
+    await provider.deleteFeedback(feedback.id);
   }
 
   @override
@@ -93,52 +97,16 @@ class _SettingsCommentsAndFeedbackState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context, isLoading: _isLoading),
+            _buildHeader(context, isLoading: _isInitialLoading),
             Expanded(
-              child: _isLoading
+              child: _isInitialLoading
                   ? _buildShimmerContent()
-                  : SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-                            CustomInputFeedbackForm(
-                              controller: feedbackController,
-                              userName: 'Serra Gohv',
-                              onSubmit: _addFeedback,
-                            ),
-                            const SizedBox(height: 30),
-                            _buildFeedbackList(),
-                          ],
-                        ),
-                      ),
-                    ),
+                  : _buildContent(),
             ),
             const SizedBox(height: 26),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFeedbackList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: feedbacks.length,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        final item = feedbacks[index];
-        final isNew = item['id'] == _newlyAddedId;
-
-        return _FeedbackCardItem(
-          key: ValueKey(item['id']),
-          data: item,
-          isNewItem: isNew,
-          onDelete: () => _deleteFeedback(index),
-        );
-      },
     );
   }
 
@@ -318,247 +286,131 @@ class _SettingsCommentsAndFeedbackState
       ),
     );
   }
-}
 
-class _FeedbackCardItem extends StatefulWidget {
-  final Map<String, dynamic> data;
-  final bool isNewItem;
-  final VoidCallback onDelete;
-
-  const _FeedbackCardItem({
-    super.key,
-    required this.data,
-    required this.isNewItem,
-    required this.onDelete,
-  });
-
-  @override
-  State<_FeedbackCardItem> createState() => _FeedbackCardItemState();
-}
-
-class _FeedbackCardItemState extends State<_FeedbackCardItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnim;
-  late Animation<Offset> _slideAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-
-    if (widget.isNewItem) {
-      _controller.forward();
-    } else {
-      _controller.value = 1.0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final String replyText = widget.data['reply'] ?? '';
-    final bool hasReply = replyText.trim().isNotEmpty;
-
-    return FadeTransition(
-      opacity: _fadeAnim,
-      child: SlideTransition(
-        position: _slideAnim,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE7ECF0)),
+  Widget _buildContent() {
+    return Consumer<FeedbackProvider>(
+      builder: (context, provider, child) {
+        return RefreshIndicator(
+          onRefresh: provider.refresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  CustomInputFeedbackForm(
+                    controller: feedbackController,
+                    userName: _userName,
+                    onSubmit: provider.isSubmitting ? () {} : _addFeedback,
+                  ),
+                  const SizedBox(height: 30),
+                  _buildFeedbackList(provider),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                widget.data['name'] as String,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                widget.data['time'] as String,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.data['comment'] as String,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      onTap: widget.onDelete,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Image.asset(
-                          icDelete,
-                          height: 16,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (hasReply)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceAccent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Admin Smart Antibiotik',
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            fontSize: 17,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(replyText, style: AppTextStyles.bodyMedium),
-                      ],
-                    ),
-                  )
-                else
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Menunggu balasan...',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeedbackList(FeedbackProvider provider) {
+    if (provider.feedbacks.isEmpty) {
+      return SizedBox();
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: provider.feedbacks.length,
+      padding: EdgeInsets.zero,
+      itemBuilder: (context, index) {
+        final feedback = provider.feedbacks[index];
+
+        return CustomFeedbackCard(
+          provider,
+          key: ValueKey(feedback.id),
+          feedback: feedback,
+          onDelete: () {
+            _deleteFeedback(feedback);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+    return Container(
+      height: 115,
+      width: double.infinity,
+      color: AppColors.primary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              if (isLoading)
+                Shimmer.fromColors(
+                  baseColor: AppColors.accent,
+                  highlightColor: AppColors.primary,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: AppColors.accent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-              ],
-            ),
+                )
+              else
+                InkWell(
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                      color: AppColors.surfacePrimary,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 14),
+              if (isLoading)
+                Shimmer.fromColors(
+                  baseColor: AppColors.accent,
+                  highlightColor: AppColors.primary,
+                  child: Container(
+                    width: 180,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  'Komentar & Masukan',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: AppColors.textWhite,
+                  ),
+                ),
+              const Spacer(),
+            ],
           ),
         ),
       ),
     );
   }
-}
-
-Widget _buildHeader(BuildContext context, {required bool isLoading}) {
-  return Container(
-    height: 115,
-    width: double.infinity,
-    color: AppColors.primary,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            if (isLoading)
-              Shimmer.fromColors(
-                baseColor: AppColors.accent,
-                highlightColor: AppColors.primary,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              )
-            else
-              InkWell(
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20,
-                    color: AppColors.surfacePrimary,
-                  ),
-                ),
-              ),
-            const SizedBox(width: 14),
-            if (isLoading)
-              Shimmer.fromColors(
-                baseColor: AppColors.accent,
-                highlightColor: AppColors.primary,
-                child: Container(
-                  width: 180,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              )
-            else
-              Text(
-                'Komentar & Masukan',
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textWhite,
-                ),
-              ),
-            const Spacer(),
-          ],
-        ),
-      ),
-    ),
-  );
 }

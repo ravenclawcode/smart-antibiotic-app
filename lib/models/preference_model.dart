@@ -13,7 +13,7 @@ class PreferenceModel {
     return PreferenceModel(
       reminderType: json['reminder_type']?.toString() ?? '',
       reminderSound: json['reminder_sound']?.toString() ?? '',
-      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
+      timezone: json['timezone']?.toString() ?? '',
     );
   }
 

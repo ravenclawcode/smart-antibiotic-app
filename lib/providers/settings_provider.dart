@@ -169,7 +169,7 @@ class SettingsProvider extends ChangeNotifier {
       final preference = PreferenceModel(
         reminderType: reminderType,
         reminderSound: reminderSound,
-        timezone: _preferences?.timezone ?? 'Asia/Jakarta',
+        timezone: _preferences?.timezone ?? '',
       );
 
       final updatedPreference = await userService.updatePreferences(

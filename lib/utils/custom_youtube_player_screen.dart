@@ -64,34 +64,30 @@ class _CustomYoutubePlayerScreenState extends State<CustomYoutubePlayerScreen> {
             child: YoutubePlayer(
               controller: _controller,
               showVideoProgressIndicator: true,
-              progressIndicatorColor: AppColors.error,
+              progressIndicatorColor: AppColors.primary,
+              bottomActions: [
+                const SizedBox(width: 40),
+                CurrentPosition(),
+                const SizedBox(width: 8),
+                ProgressBar(
+                  isExpanded: true,
+                  colors: const ProgressBarColors(
+                    playedColor: AppColors.primary,
+                    handleColor: AppColors.primary,
+                  ),
+                ),
+                RemainingDuration(),
+                const PlaybackSpeedButton(),
+                IconButton(
+                  icon: Icon(
+                    Icons.fullscreen_exit_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
           ),
-          // Positioned(
-          //   top: 16,
-          //   child: SafeArea(
-          //     child: InkWell(
-          //       focusColor: Colors.transparent,
-          //       hoverColor: Colors.transparent,
-          //       highlightColor: Colors.transparent,
-          //       splashColor: Colors.transparent,
-          //       onTap: () => Navigator.pop(context),
-          //       child: Container(
-          //         width: 36,
-          //         height: 36,
-          //         decoration: BoxDecoration(
-          //           color: AppColors.textPrimary.withValues(alpha: 0.65),
-          //           borderRadius: BorderRadius.circular(20),
-          //         ),
-          //         child: Icon(
-          //           Icons.arrow_back_ios_new_rounded,
-          //           size: 20,
-          //           color: AppColors.surfacePrimary,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );

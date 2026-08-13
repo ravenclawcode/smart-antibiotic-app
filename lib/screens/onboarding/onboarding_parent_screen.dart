@@ -100,24 +100,21 @@ class _OnboardingParentScreenState extends State<OnboardingParentScreen> {
     final provider = context.read<OnboardingProvider>();
 
     try {
-      final success = await provider.submitOnboarding(
-        name: _nameInputted,
-        reminderType: _selectedType,
-        reminderSound: _selectedSound,
-      );
+      final results = await Future.wait([
+        provider.submitOnboarding(
+          name: _nameInputted,
+          reminderType: _selectedType,
+          reminderSound: _selectedSound,
+        ),
+        Future.delayed(const Duration(seconds: 2)),
+      ]);
+
+      final success = results[0] as bool;
 
       if (!mounted) return;
 
       if (success) {
         Navigator.pushNamed(context, '/onboarding-permission');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              provider.errorMessage ?? 'Gagal menyimpan data onboarding.',
-            ),
-          ),
-        );
       }
     } finally {
       if (mounted) {

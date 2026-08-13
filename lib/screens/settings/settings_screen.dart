@@ -24,10 +24,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _fetchData() async {
-    final notification = await Permission.notification.status.isGranted;
-    final overlay = await Permission.systemAlertWindow.status.isGranted;
-    final battery =
-        await Permission.ignoreBatteryOptimizations.status.isGranted;
+    final results = await Future.wait([
+      Permission.notification.status.isGranted,
+      Permission.systemAlertWindow.status.isGranted,
+      Permission.ignoreBatteryOptimizations.status.isGranted,
+      Future.delayed(const Duration(milliseconds: 600)),
+    ]);
+
+    final notification = results[0] as bool;
+    final overlay = results[1] as bool;
+    final battery = results[2] as bool;
 
     int count = 0;
     if (notification) count++;

@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_antibiotic/core/network/api_client.dart';
+import 'package:smart_antibiotic/providers/feedback_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
 import 'package:smart_antibiotic/providers/settings_provider.dart';
+import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
 
@@ -36,6 +38,11 @@ void main() async {
     localStorage: localStorage,
   );
 
+  final feedbackService = FeedbackService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -44,6 +51,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(userService: userService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FeedbackProvider(feedbackService: feedbackService),
         ),
       ],
       child: const MyApp(),

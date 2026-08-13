@@ -161,9 +161,6 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan data')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

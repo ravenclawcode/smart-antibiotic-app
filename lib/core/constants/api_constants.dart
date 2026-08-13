@@ -11,4 +11,7 @@ class ApiConstants {
   static const String profile = '/profile';
   static const String preferences = '/preferences';
   static const String home = '/home';
+
+  // Feedback
+  static const String feedbacks = '/feedbacks';
 }
