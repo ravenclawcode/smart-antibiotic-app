@@ -4,10 +4,15 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:smart_antibiotic/core/network/api_client.dart';
+
+import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
 import 'package:smart_antibiotic/providers/feedback_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
 import 'package:smart_antibiotic/providers/settings_provider.dart';
+import 'package:smart_antibiotic/services/antibiotic_service.dart';
+
 import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
@@ -43,17 +48,25 @@ void main() async {
     localStorage: localStorage,
   );
 
+  final antibioticService = AntibioticService(apiClient: apiClient);
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
           create: (_) => OnboardingProvider(userService: userService),
         ),
+
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(userService: userService),
         ),
+
         ChangeNotifierProvider(
           create: (_) => FeedbackProvider(feedbackService: feedbackService),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => AntibioticProvider(service: antibioticService),
         ),
       ],
       child: const MyApp(),

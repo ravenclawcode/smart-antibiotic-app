@@ -192,12 +192,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.educationCategory:
       return MaterialPageRoute(builder: (_) => const EducationCategoryScreen());
     case Routes.educationAntibiotik:
+      final args = settings.arguments as Map<String, dynamic>;
+
       return MaterialPageRoute(
-        builder: (_) => const EducationAntibiotikScreen(),
+        builder: (_) => EducationAntibiotikScreen(
+          categoryId: args['categoryId'] as int,
+          categoryName: args['categoryName'] as String,
+        ),
       );
     case Routes.educationDetail:
+      final args = settings.arguments as Map<String, dynamic>;
       return MaterialPageRoute(
-        builder: (_) => const EducationAntibiotikDetailScreen(),
+        builder: (_) => EducationAntibiotikDetailScreen(
+          categoryId: args['categoryId'] as int,
+          antibioticId: args['antibioticId'] as int,
+        ),
       );
 
     case Routes.reminder:

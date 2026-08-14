@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+
+import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_category_card.dart';
 import 'package:smart_antibiotic/utils/custom_search_bar.dart';
-
-import '../../utils/app_colors.dart';
-import '../../utils/app_text.dart';
 
 class EducationCategoryScreen extends StatefulWidget {
   const EducationCategoryScreen({super.key});
@@ -18,6 +22,8 @@ class EducationCategoryScreen extends StatefulWidget {
 
 class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
   final searchController = TextEditingController();
+
+  Timer? _searchTimer;
   bool _isLoading = true;
 
   @override
@@ -29,34 +35,187 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      await context.read<AntibioticProvider>().loadCategories();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
+    _searchTimer?.cancel();
     searchController.dispose();
     super.dispose();
   }
 
+  void _onSearchChanged(String value) {
+    _searchTimer?.cancel();
+
+    _searchTimer = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+
+      context.read<AntibioticProvider>().searchCategories(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        body: Column(
-          children: [
-            _buildHeader(context, searchController, isLoading: _isLoading),
-            const SizedBox(height: 20),
-            Expanded(child: _isLoading ? _buildShimmerList() : _buildList()),
-          ],
+    return Consumer<AntibioticProvider>(
+      builder: (context, provider, child) {
+        final isLoading = _isLoading || provider.isLoadingCategories;
+        final hasSearch = searchController.text.trim().isNotEmpty;
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+          ),
+          child: Scaffold(
+            body: Column(
+              children: [
+                _buildHeader(
+                  context,
+                  searchController,
+                  isLoading: isLoading,
+                  onChanged: _onSearchChanged,
+                ),
+
+                const SizedBox(height: 20),
+
+                Expanded(
+                  child: isLoading
+                      ? _buildShimmerList()
+                      : hasSearch
+                      ? _buildSearchResults(provider)
+                      : _buildCategoryList(provider),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryList(AntibioticProvider provider) {
+    if (provider.categoryError != null) {
+      return _buildError(provider.categoryError!, () {
+        provider.loadCategories();
+      });
+    }
+
+    if (provider.categories.isEmpty) {
+      return Center(
+        child: Text(
+          'Belum ada kategori antibiotik.',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: provider.categories.length,
+      itemBuilder: (context, index) {
+        final category = provider.categories[index];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+          child: CustomCategoryCard(
+            title: category.name,
+            subtitle: '${category.antibioticsCount} Obat',
+            image: category.image != null
+                ? Image.network(category.image!, fit: BoxFit.contain)
+                : Image.asset(imgManyPills),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/education-antibiotik',
+                arguments: {
+                  'categoryId': category.id,
+                  'categoryName': category.name,
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResults(AntibioticProvider provider) {
+    if (provider.isSearching) {
+      return _buildShimmerList();
+    }
+
+    if (provider.searchError != null) {
+      return _buildError(provider.searchError!, () {
+        provider.searchCategories(searchController.text);
+      });
+    }
+
+    if (provider.searchResults.isEmpty) {
+      return Center(
+        child: Text(
+          'Kategori antibiotik tidak ditemukan.',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: provider.searchResults.length,
+      itemBuilder: (context, index) {
+        final category = provider.searchResults[index];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+          child: CustomCategoryCard(
+            title: category.name,
+            subtitle: '${category.antibioticsCount} Obat',
+            image: category.image != null
+                ? Image.network(
+                    category.image!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(imgManyPills, fit: BoxFit.contain);
+                    },
+                  )
+                : Image.asset(imgManyPills, fit: BoxFit.contain),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/education-antibiotik',
+                arguments: {
+                  'categoryId': category.id,
+                  'categoryName': category.name,
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildError(String message, VoidCallback retry) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: retry, child: const Text('Coba lagi')),
+        ],
       ),
     );
   }
@@ -66,8 +225,6 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
       baseColor: AppColors.surfaceSecondary,
       highlightColor: AppColors.surfaceCool,
       child: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
         itemCount: 4,
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {
@@ -129,6 +286,7 @@ Widget _buildHeader(
   BuildContext context,
   TextEditingController searchController, {
   required bool isLoading,
+  required ValueChanged<String> onChanged,
 }) {
   return Container(
     height: 180,
@@ -216,41 +374,13 @@ Widget _buildHeader(
                 ),
               )
             else
-              CustomSearchBar(controller: searchController),
+              CustomSearchBar(
+                controller: searchController,
+                onChanged: onChanged,
+              ),
           ],
         ),
       ),
     ),
-  );
-}
-
-Widget _buildList() {
-  final item = [
-    {
-      'title': 'Penisilin',
-      'subtitle': '4 obat',
-      'image': Image.asset(imgManyPills),
-      'route': '/education-antibiotik',
-    },
-  ];
-
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: item.length,
-    padding: EdgeInsets.zero,
-    itemBuilder: (context, index) {
-      final menu = item[index];
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-        child: CustomCategoryCard(
-          title: menu['title'] as String,
-          subtitle: menu['subtitle'] as String,
-          image: menu['image'] as Image,
-          onTap: () => Navigator.pushNamed(context, menu['route'] as String),
-        ),
-      );
-    },
   );
 }

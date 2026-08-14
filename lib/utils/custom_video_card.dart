@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/utils/app_assets.dart';
+
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
 class CustomVideoCard extends StatelessWidget {
-  final String title;
-  final String duration;
+  final String videoUrl;
+  final String? title;
+  final String? duration;
+  final String? thumbnailUrl;
   final VoidCallback? onTap;
 
   const CustomVideoCard({
     super.key,
-    required this.title,
-    this.duration = '12.30',
+    required this.videoUrl,
+    this.title,
+    this.duration,
+    this.thumbnailUrl,
     this.onTap,
   });
 
@@ -22,7 +26,7 @@ class CustomVideoCard extends StatelessWidget {
       hoverColor: Colors.transparent,
       highlightColor: Colors.transparent,
       overlayColor: WidgetStateProperty.all(Colors.transparent),
-      onTap: onTap ?? () {},
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -40,72 +44,82 @@ class CustomVideoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: SizedBox(
-                    height: 140,
-                    width: double.infinity,
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: Image.asset(imgThumbnail),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Center(
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.textPrimary.withValues(alpha: 0.65),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.play_arrow_rounded,
-                        size: 30,
-                        color: AppColors.surfacePrimary,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.textPrimary.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      duration,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.surfacePrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildThumbnail(),
+
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
               child: Text(
-                title,
+                title?.isNotEmpty == true ? title! : 'Video edukasi',
                 style: AppTextStyles.bodyLarge,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnail() {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: SizedBox(
+        height: 140,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty)
+              Image.network(
+                thumbnailUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(color: AppColors.surfaceSecondary);
+                },
+              )
+            else
+              Container(color: AppColors.surfaceSecondary),
+
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.textPrimary.withValues(alpha: 0.65),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    size: 30,
+                    color: AppColors.surfacePrimary,
+                  ),
+                ),
+              ),
+            ),
+
+            if (duration != null && duration!.isNotEmpty)
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.textPrimary.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    duration!,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.surfacePrimary,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

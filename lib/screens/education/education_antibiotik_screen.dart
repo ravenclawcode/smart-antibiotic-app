@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+
+import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
+import 'package:smart_antibiotic/utils/app_colors.dart';
+import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_antibiotik_card.dart';
 
-import '../../utils/app_assets.dart';
-import '../../utils/app_colors.dart';
-import '../../utils/app_text.dart';
-
 class EducationAntibiotikScreen extends StatefulWidget {
-  const EducationAntibiotikScreen({super.key});
+  final int categoryId;
+  final String categoryName;
+
+  const EducationAntibiotikScreen({
+    super.key,
+    required this.categoryId,
+    required this.categoryName,
+  });
 
   @override
   State<EducationAntibiotikScreen> createState() =>
@@ -27,34 +36,100 @@ class _EducationAntibiotikScreenState extends State<EducationAntibiotikScreen> {
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      await context.read<AntibioticProvider>().loadAntibiotics(
+        widget.categoryId,
+      );
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        body: Column(
-          children: [
-            _buildHeader(context, isLoading: _isLoading),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _isLoading ? _buildShimmerList() : _buildList(),
-              ),
+    return Consumer<AntibioticProvider>(
+      builder: (context, provider, child) {
+        final isLoading = _isLoading || provider.isLoadingAntibiotics;
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+          ),
+          child: Scaffold(
+            body: Column(
+              children: [
+                _buildHeader(
+                  context,
+                  categoryName: widget.categoryName,
+                  isLoading: isLoading,
+                  count: provider.antibiotics.length,
+                ),
+
+                const SizedBox(height: 20),
+
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: isLoading
+                        ? _buildShimmerList()
+                        : _buildList(context, provider),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildList(BuildContext context, AntibioticProvider provider) {
+    if (provider.antibioticError != null) {
+      return Center(child: Text(provider.antibioticError!));
+    }
+
+    if (provider.antibiotics.isEmpty) {
+      return const Center(
+        child: Text('Belum ada antibiotik pada kategori ini.'),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: provider.antibiotics.length,
+      itemBuilder: (context, index) {
+        final antibiotic = provider.antibiotics[index];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: CustomAntibiotikCard(
+            title: antibiotic.name,
+            image: antibiotic.image != null
+                ? Image.network(
+                    antibiotic.image!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(imgManyPills, fit: BoxFit.contain);
+                    },
+                  )
+                : Image.asset(imgManyPills, fit: BoxFit.contain),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/education-detail',
+                arguments: {
+                  'categoryId': widget.categoryId,
+                  'antibioticId': antibiotic.id,
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -108,7 +183,12 @@ class _EducationAntibiotikScreenState extends State<EducationAntibiotikScreen> {
   }
 }
 
-Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+Widget _buildHeader(
+  BuildContext context, {
+  required String categoryName,
+  required bool isLoading,
+  required int count,
+}) {
   return Container(
     height: 186,
     width: double.infinity,
@@ -128,6 +208,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
             ),
           ),
         ),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SafeArea(
@@ -163,14 +244,16 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                         color: AppColors.accent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 20,
                         color: AppColors.surfacePrimary,
                       ),
                     ),
                   ),
+
                 const SizedBox(height: 12),
+
                 if (isLoading)
                   Shimmer.fromColors(
                     baseColor: AppColors.accent,
@@ -200,20 +283,23 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                   )
                 else ...[
                   Text(
-                    'Penisilin',
+                    categoryName,
                     style: AppTextStyles.titleLarge.copyWith(
                       color: AppColors.textWhite,
                     ),
                   ),
+
                   const SizedBox(height: 4),
+
                   Text(
-                    '4 Obat',
+                    '$count Obat',
                     style: AppTextStyles.bodyMedium.copyWith(
                       fontSize: 18,
                       color: AppColors.textWhite,
                     ),
                   ),
                 ],
+
                 const SizedBox(height: 2),
               ],
             ),
@@ -221,49 +307,5 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
         ),
       ],
     ),
-  );
-}
-
-Widget _buildList() {
-  final item = [
-    {
-      'title': 'Amoxicillin',
-      'image': Image.asset(imgManyPills),
-      'route': '/education-detail',
-    },
-    {
-      'title': 'Ampicillin',
-      'image': Image.asset(imgManyPills),
-      'route': '/lorem-ipsum',
-    },
-    {
-      'title': 'Piperacillin',
-      'image': Image.asset(imgManyPills),
-      'route': '/lorem-ipsum',
-    },
-    {
-      'title': 'Oxacillin',
-      'image': Image.asset(imgManyPills),
-      'route': '/lorem-ipsum',
-    },
-  ];
-
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: item.length,
-    padding: EdgeInsets.zero,
-    itemBuilder: (context, index) {
-      final menu = item[index];
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: CustomAntibiotikCard(
-          title: menu['title'] as String,
-          image: menu['image'] as Image,
-          onTap: () => Navigator.pushNamed(context, menu['route'] as String),
-        ),
-      );
-    },
   );
 }

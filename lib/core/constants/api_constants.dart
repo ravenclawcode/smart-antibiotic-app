@@ -14,4 +14,9 @@ class ApiConstants {
 
   // Feedback
   static const String feedbacks = '/feedbacks';
+
+  // Antibiotics
+  static const String antibioticCategories = '/categories';
+
+  static const String antibioticSearch = '/categories/search';
 }

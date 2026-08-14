@@ -37,7 +37,7 @@ class CustomAntibiotikCard extends StatelessWidget {
                 color: Color(0xFFE0EEFB),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: image,
+              child: Padding(padding: const EdgeInsets.all(8), child: image),
             ),
             SizedBox(width: 10),
             Column(
