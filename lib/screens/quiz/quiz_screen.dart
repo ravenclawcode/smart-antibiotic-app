@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../providers/quiz_provider.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -25,11 +27,16 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+
+    if (!mounted) return;
+
+    await context.read<QuizProvider>().loadQuizzes();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -252,6 +259,15 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 }
 
 Widget _buildQuisList(BuildContext context) {
+  final provider = context.watch<QuizProvider>();
+  final quizzes = provider.quizzes;
+
+  if (provider.errorMessage != null) {
+    return Center(
+      child: Text(provider.errorMessage!, style: AppTextStyles.bodyMedium),
+    );
+  }
+
   return SingleChildScrollView(
     scrollDirection: Axis.vertical,
     clipBehavior: Clip.none,
@@ -260,29 +276,35 @@ Widget _buildQuisList(BuildContext context) {
       child: Column(
         children: [
           const SizedBox(height: 20),
-          CustomQuizCard(
-            title: 'Level 1',
-            subtitle: 'Lorem Ipsum',
-            image: Image.asset(imgKuis1),
-            color: AppColors.surfaceSecondary,
-            onTap: () => Navigator.pushNamed(context, '/quiz-detail'),
-          ),
-          const SizedBox(height: 10),
-          CustomQuizCard(
-            title: 'Level 2',
-            subtitle: 'Lorem Ipsum',
-            image: Image.asset(imgKuis2),
-            color: AppColors.surfaceSecondary,
-            onTap: () {},
-          ),
-          const SizedBox(height: 10),
-          CustomQuizCard(
-            title: 'Level 3',
-            subtitle: 'Lorem Ipsum',
-            image: Image.asset(imgKuis3),
-            color: AppColors.surfaceSecondary,
-            onTap: () {},
-          ),
+
+          ...quizzes.asMap().entries.map((entry) {
+            final index = entry.key;
+            final quiz = entry.value;
+
+            final images = [imgKuis1, imgKuis2, imgKuis3];
+
+            final imagePath = images[index % images.length];
+
+            return Column(
+              children: [
+                CustomQuizCard(
+                  title: 'Level ${quiz.level}',
+                  subtitle: quiz.description ?? '',
+                  image: Image.asset(imagePath),
+                  color: AppColors.surfaceSecondary,
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/quiz-detail',
+                      arguments: quiz.id,
+                    );
+                  },
+                ),
+
+                if (index < quizzes.length - 1) const SizedBox(height: 10),
+              ],
+            );
+          }),
         ],
       ),
     ),

@@ -215,14 +215,26 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case Routes.quiz:
       return MaterialPageRoute(builder: (_) => const QuizScreen());
     case Routes.quizDetail:
-      return MaterialPageRoute(builder: (_) => const QuizDetailScreen());
+      final quizId = settings.arguments as int;
+      return MaterialPageRoute(
+        builder: (_) => QuizDetailScreen(quizId: quizId),
+        settings: settings,
+      );
     case Routes.quizResult:
-      final args = settings.arguments as Map<String, dynamic>?;
+      final args = settings.arguments as Map<String, dynamic>;
       return MaterialPageRoute(
         builder: (_) => QuizResultScreen(
-          score: args?['score'] as int? ?? 0,
-          totalQuestions: args?['totalQuestions'] as int? ?? 0,
+          quizId: args['quizId'] as int,
+          score: args['score'] as int,
+          totalQuestions: args['totalQuestions'] as int,
+          isLastQuiz: args['isLastQuiz'] as bool,
+          nextQuizId: args['nextQuizId'] as int?,
+          currentLevel: args['currentLevel'] as int,
+          currentDescription: args['currentDescription'] as String?,
+          nextLevel: args['nextLevel'] as int?,
+          nextDescription: args['nextDescription'] as String?,
         ),
+        settings: settings,
       );
 
     case Routes.settings:

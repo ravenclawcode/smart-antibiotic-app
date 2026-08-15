@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/custom_dialog_quit_quiz.dart';
 
+import '../../providers/quiz_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -24,7 +26,9 @@ class QuizQuestion {
 }
 
 class QuizDetailScreen extends StatefulWidget {
-  const QuizDetailScreen({super.key});
+  final int quizId;
+
+  const QuizDetailScreen({super.key, required this.quizId});
 
   @override
   State<QuizDetailScreen> createState() => _QuizDetailScreenState();
@@ -37,55 +41,33 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   bool _isInitialLoading = true;
   bool _isSubmitting = false;
 
-  final List<QuizQuestion> _questions = [
-    QuizQuestion(
-      question: 'Apa fungsi utama dari antibiotik?',
-      options: [
-        'Menghilangkan virus penyebab penyakit',
-        'Membunuh atau menghambat pertumbuhan bakteri',
-        'Meredakan nyeri dan radang',
-        'Meningkatkan sistem kekebalan tubuh',
-      ],
-      correctAnswerIndex: 1,
-    ),
-    QuizQuestion(
-      question: 'Mengapa penting mengikuti jadwal minum antibiotik?',
-      options: [
-        'Agar warna obat tidak berubah',
-        'Agar obat terasa lebih enak',
-        'Agar tidak perlu kontrol ke dokter',
-        'Agar kadar antibiotik dalam tubuh tetap efektif melawan bakteri',
-      ],
-      correctAnswerIndex: 3,
-    ),
-    QuizQuestion(
-      question: 'Apa bahaya utama dari bahaya resistensi antibiotik?',
-      options: [
-        'Bakteri menjadi kebal sehingga infeksi makin sulit diobati',
-        'Tubuh menjadi alergi terhadap semua jenis makanan',
-        'Antibiotik bekerja 2x lebih cepat di masa depan',
-        'Sistem imun tubuh berhenti bekerja selamanya',
-      ],
-      correctAnswerIndex: 0,
-    ),
-  ];
-
   late List<int?> _userAnswers;
 
   @override
   void initState() {
     super.initState();
-    _userAnswers = List<int?>.filled(_questions.length, null);
+
     _fetchData();
   }
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isInitialLoading = false;
-      });
-    }
+
+    if (!mounted) return;
+
+    final provider = context.read<QuizProvider>();
+
+    await provider.loadQuizDetail(widget.quizId);
+
+    if (!mounted) return;
+
+    final questions = provider.questions;
+
+    _userAnswers = List<int?>.filled(questions.length, null);
+
+    setState(() {
+      _isInitialLoading = false;
+    });
   }
 
   @override
@@ -94,9 +76,23 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
     super.dispose();
   }
 
-  double get _progressValue => (_currentPage + 1) / _questions.length;
+  double get _progressValue {
+    final questions = context.read<QuizProvider>().questions;
 
-  bool get _isNextEnabled => _userAnswers[_currentPage] != null;
+    if (questions.isEmpty) {
+      return 0;
+    }
+
+    return (_currentPage + 1) / questions.length;
+  }
+
+  bool get _isNextEnabled {
+    if (_userAnswers.isEmpty) {
+      return false;
+    }
+
+    return _userAnswers[_currentPage] != null;
+  }
 
   void _onOptionSelected(int index) {
     setState(() {
@@ -105,24 +101,19 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < _questions.length - 1) {
+    final questions = context.read<QuizProvider>().questions;
+
+    if (questions.isEmpty) {
+      return;
+    }
+
+    if (_currentPage < questions.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
       _submitQuiz();
-    }
-  }
-
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _showExitDialog();
     }
   }
 
@@ -134,45 +125,122 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
 
     if (result == true) {
       if (!mounted) return false;
-      Navigator.pop(context);
+
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }
+
     return false;
   }
 
   Future<void> _submitQuiz() async {
-    int score = 0;
-    for (int i = 0; i < _questions.length; i++) {
-      if (_userAnswers[i] == _questions[i].correctAnswerIndex) {
-        score++;
+    final provider = context.read<QuizProvider>();
+
+    final questions = provider.questions;
+
+    if (questions.isEmpty) {
+      return;
+    }
+
+    final answers = <Map<String, dynamic>>[];
+
+    for (int i = 0; i < questions.length; i++) {
+      final selectedIndex = _userAnswers[i];
+
+      if (selectedIndex == null) {
+        continue;
       }
+
+      final answerLetters = ['A', 'B', 'C', 'D'];
+
+      answers.add({
+        'question_id': questions[i].id,
+        'answer': answerLetters[selectedIndex],
+      });
     }
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+    });
 
-    try {
-      await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/quiz-result',
-        (route) => false,
-        arguments: {'score': score, 'totalQuestions': _questions.length},
+    final success = await provider.submitQuiz(
+      quizId: widget.quizId,
+      answers: answers,
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Gagal mengirim kuis.'),
+        ),
       );
-    } catch (e) {
-      if (!mounted) return;
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+
+      return;
     }
+
+    final result = provider.result;
+
+    if (result == null) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      return;
+    }
+
+    final quizzes = provider.quizzes;
+
+    final currentIndex = quizzes.indexWhere((quiz) => quiz.id == widget.quizId);
+
+    if (currentIndex == -1) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      return;
+    }
+
+    final currentQuiz = quizzes[currentIndex];
+
+    final bool isLastQuiz = currentIndex == quizzes.length - 1;
+
+    final nextQuiz = !isLastQuiz ? quizzes[currentIndex + 1] : null;
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/quiz-result',
+      (route) => false,
+      arguments: {
+        'quizId': currentQuiz.id,
+        'currentLevel': currentQuiz.level,
+        'currentDescription': currentQuiz.description,
+        'score': result.correctAnswers,
+        'totalQuestions': result.totalQuestions,
+        'isLastQuiz': isLastQuiz,
+        'nextQuizId': nextQuiz?.id,
+        'nextLevel': nextQuiz?.level,
+        'nextDescription': nextQuiz?.description,
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<QuizProvider>();
+    final questions = provider.questions;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _previousPage();
+        _showExitDialog();
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
@@ -190,13 +258,15 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 14),
+
                       _buildHeader(
                         context,
                         progressValue: _progressValue,
                         currentPage: _currentPage + 1,
-                        totalQuestions: _questions.length,
-                        onBackTap: _previousPage,
+                        totalQuestions: questions.length,
+                        onBackTap: _showExitDialog,
                         isLoading: _isInitialLoading,
+                        level: provider.selectedQuiz?.level ?? 1,
                       ),
                       const SizedBox(height: 24),
                       Expanded(
@@ -210,9 +280,10 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                                     _currentPage = page;
                                   });
                                 },
-                                itemCount: _questions.length,
+                                itemCount: questions.length,
                                 itemBuilder: (context, index) {
-                                  final question = _questions[index];
+                                  final question = questions[index];
+
                                   return _buildContent(
                                     question: question.question,
                                     options: question.options,
@@ -225,7 +296,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                       if (!_isInitialLoading) ...[
                         _buildActionButton(
                           _currentPage,
-                          _questions.length,
+                          questions.length,
                           _isNextEnabled,
                           _nextPage,
                         ),
@@ -349,6 +420,7 @@ Widget _buildHeader(
   required int totalQuestions,
   required VoidCallback onBackTap,
   required bool isLoading,
+  required int level,
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,8 +453,8 @@ Widget _buildHeader(
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
+              Icons.close_rounded,
+              size: 22,
               color: AppColors.primary,
             ),
           ),
@@ -442,7 +514,7 @@ Widget _buildHeader(
                   vertical: 2,
                 ),
                 child: Text(
-                  'Level 1',
+                  'Level $level',
                   style: AppTextStyles.labelMedium.copyWith(
                     color: AppColors.textWhite,
                   ),

@@ -11,12 +11,14 @@ import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
 import 'package:smart_antibiotic/providers/chatbot_provider.dart';
 import 'package:smart_antibiotic/providers/feedback_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
+import 'package:smart_antibiotic/providers/quiz_provider.dart';
 import 'package:smart_antibiotic/providers/settings_provider.dart';
 
 import 'package:smart_antibiotic/services/antibiotic_service.dart';
 import 'package:smart_antibiotic/services/chatbot_service.dart';
 import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
+import 'package:smart_antibiotic/services/quiz_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
 
 import 'routes/routes.dart';
@@ -54,6 +56,11 @@ void main() async {
 
   final chatbotService = ChatbotService(apiClient: apiClient);
 
+  final quizService = QuizService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -78,6 +85,10 @@ void main() async {
             service: chatbotService,
             localStorage: localStorage,
           ),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => QuizProvider(service: quizService),
         ),
       ],
       child: const MyApp(),
