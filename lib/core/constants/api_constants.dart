@@ -17,6 +17,9 @@ class ApiConstants {
 
   // Antibiotics
   static const String antibioticCategories = '/categories';
-
   static const String antibioticSearch = '/categories/search';
+
+  // Chatbot
+  static const String chatbotSession = '/chatbot/session';
+  static const String chatbotSend = '/chatbot/send';
 }

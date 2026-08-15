@@ -8,11 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_antibiotic/core/network/api_client.dart';
 
 import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
+import 'package:smart_antibiotic/providers/chatbot_provider.dart';
 import 'package:smart_antibiotic/providers/feedback_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
 import 'package:smart_antibiotic/providers/settings_provider.dart';
-import 'package:smart_antibiotic/services/antibiotic_service.dart';
 
+import 'package:smart_antibiotic/services/antibiotic_service.dart';
+import 'package:smart_antibiotic/services/chatbot_service.dart';
 import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
@@ -50,6 +52,8 @@ void main() async {
 
   final antibioticService = AntibioticService(apiClient: apiClient);
 
+  final chatbotService = ChatbotService(apiClient: apiClient);
+
   runApp(
     MultiProvider(
       providers: [
@@ -67,6 +71,13 @@ void main() async {
 
         ChangeNotifierProvider(
           create: (_) => AntibioticProvider(service: antibioticService),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => ChatbotProvider(
+            service: chatbotService,
+            localStorage: localStorage,
+          ),
         ),
       ],
       child: const MyApp(),

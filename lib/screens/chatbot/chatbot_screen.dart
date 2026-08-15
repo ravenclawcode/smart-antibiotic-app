@@ -1,9 +1,13 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/chat_message_model.dart';
+import '../../providers/chatbot_provider.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -11,18 +15,6 @@ import '../../utils/custom_button_send.dart';
 import '../../utils/custom_dialog_delete_chat.dart';
 import '../../utils/custom_input_chat_form.dart';
 import '../../utils/custom_typing_indicator.dart';
-
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
-}
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -33,36 +25,45 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
+
   final ScrollController _scrollController = ScrollController();
 
   bool _isLoading = true;
   bool _hasText = false;
   bool _isBotTyping = false;
 
-  final List<ChatMessage> _messages = [];
-
   @override
   void initState() {
     super.initState();
+
     _messageController.addListener(() {
-      setState(() => _hasText = _messageController.text.trim().isNotEmpty);
+      if (!mounted) return;
+
+      setState(() {
+        _hasText = _messageController.text.trim().isNotEmpty;
+      });
     });
+
     _fetchData();
   }
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _messages.add(
-          ChatMessage(
-            text: "Hai! Saya Sherly. Ada yang bisa aku bantu hari ini?",
-            isUser: false,
-            timestamp: DateTime.now(),
-          ),
-        );
-        _isLoading = false;
-      });
+
+    if (!mounted) return;
+
+    final provider = context.read<ChatbotProvider>();
+
+    try {
+      await provider.fetchSession();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+      }
     }
   }
 
@@ -74,52 +75,62 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    if (!_scrollController.hasClients) return;
+
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+
+    if (text.isEmpty || _isBotTyping) return;
+
+    final provider = context.read<ChatbotProvider>();
 
     setState(() {
-      _messages.add(
-        ChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
-      );
       _hasText = false;
-      _isBotTyping = true;
     });
 
     _messageController.clear();
-    Future.delayed(const Duration(milliseconds: 50), () => _scrollToBottom());
 
-    Timer(const Duration(seconds: 2), () {
+    try {
+      final future = provider.sendMessage(text);
+
+      if (mounted) {
+        setState(() {
+          _isBotTyping = true;
+        });
+      }
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (mounted) {
+        _scrollToBottom();
+      }
+
+      await future;
+
+      if (!mounted) return;
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      _scrollToBottom();
+    } finally {
       if (mounted) {
         setState(() {
           _isBotTyping = false;
-          _messages.add(
-            ChatMessage(
-              text:
-                  "Terima kasih atas pesannya! Ada hal lain yang ingin ditanyakan?",
-              isUser: false,
-              timestamp: DateTime.now(),
-            ),
-          );
         });
-        Future.delayed(
-          const Duration(milliseconds: 100),
-          () => _scrollToBottom(),
-        );
+
+        Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
       }
-    });
+    }
   }
 
-  void _deleteChat() async {
+  Future<void> _deleteChat() async {
     FocusManager.instance.primaryFocus?.unfocus();
 
     final result = await showDialog<bool>(
@@ -128,20 +139,21 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       builder: (_) => const CustomDialogDeleteChat(),
     );
 
-    if (result == true && mounted) {
-      FocusScope.of(context).unfocus();
+    if (result != true || !mounted) return;
 
-      setState(() {
-        _messages.clear();
-        _messages.add(
-          ChatMessage(
-            text: 'Hai! Saya Sherly. Ada yang bisa aku bantu hari ini?',
-            isUser: false,
-            timestamp: DateTime.now(),
-          ),
-        );
-      });
-    }
+    FocusScope.of(context).unfocus();
+
+    final provider = context.read<ChatbotProvider>();
+
+    setState(() {
+      _isBotTyping = false;
+    });
+
+    await provider.deleteChat();
+
+    if (!mounted) return;
+
+    Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
 
   @override
@@ -153,30 +165,38 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: Column(
-          children: [
-            _buildHeader(
-              context,
-              messages: _messages,
-              onDeleteTap: _deleteChat,
-              isLoading: _isLoading,
-            ),
-            Expanded(
-              child: _isLoading
-                  ? _buildShimmerContent(context)
-                  : _buildMessagesList(
-                      messages: _messages,
-                      scrollController: _scrollController,
-                      isBotTyping: _isBotTyping,
-                    ),
-            ),
-            _buildMessageInput(
-              controller: _messageController,
-              hasText: _hasText,
-              onSendTap: _sendMessage,
-              isLoading: _isLoading,
-            ),
-          ],
+        body: Consumer<ChatbotProvider>(
+          builder: (context, provider, _) {
+            final messages = provider.messages;
+
+            return Column(
+              children: [
+                _buildHeader(
+                  context,
+                  messages: messages,
+                  onDeleteTap: _deleteChat,
+                  isLoading: _isLoading,
+                ),
+
+                Expanded(
+                  child: _isLoading
+                      ? _buildShimmerContent(context)
+                      : _buildMessagesList(
+                          messages: messages,
+                          scrollController: _scrollController,
+                          isBotTyping: _isBotTyping,
+                        ),
+                ),
+
+                _buildMessageInput(
+                  controller: _messageController,
+                  hasText: _hasText,
+                  onSendTap: _sendMessage,
+                  isLoading: _isLoading,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -257,7 +277,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
 Widget _buildHeader(
   BuildContext context, {
-  required List<ChatMessage> messages,
+  required List<ChatMessageModel> messages,
   required VoidCallback onDeleteTap,
   required bool isLoading,
 }) {
@@ -307,6 +327,7 @@ Widget _buildHeader(
                   ),
                 ),
               ),
+
             const SizedBox(width: 14),
 
             if (isLoading)
@@ -329,6 +350,7 @@ Widget _buildHeader(
                   color: AppColors.textWhite,
                 ),
               ),
+
             const Spacer(),
 
             if (isLoading)
@@ -377,7 +399,7 @@ Widget _buildHeader(
 }
 
 Widget _buildMessagesList({
-  required List<ChatMessage> messages,
+  required List<ChatMessageModel> messages,
   required ScrollController scrollController,
   required bool isBotTyping,
 }) {
@@ -393,7 +415,7 @@ Widget _buildMessagesList({
       }
 
       return _AnimatedMessageItem(
-        key: ValueKey(messages[index].timestamp),
+        key: ValueKey(messages[index].createdAt),
         child: _buildMessageBubble(context, messages[index]),
       );
     },
@@ -418,6 +440,7 @@ class _AnimatedMessageItemState extends State<_AnimatedMessageItem>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -451,7 +474,7 @@ class _AnimatedMessageItemState extends State<_AnimatedMessageItem>
   }
 }
 
-Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
+Widget _buildMessageBubble(BuildContext context, ChatMessageModel message) {
   if (message.isUser) {
     return Align(
       alignment: Alignment.centerRight,
@@ -474,14 +497,14 @@ Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              message.text,
+              message.message,
               style: AppTextStyles.bodyMedium.copyWith(
                 fontSize: 18,
                 color: AppColors.textWhite,
               ),
             ),
             Text(
-              DateFormat('HH.mm').format(message.timestamp),
+              DateFormat('HH.mm').format(message.createdAt),
               style: AppTextStyles.labelMedium.copyWith(
                 color: AppColors.textWhite,
               ),
@@ -490,55 +513,55 @@ Widget _buildMessageBubble(BuildContext context, ChatMessage message) {
         ),
       ),
     );
-  } else {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            margin: const EdgeInsets.only(right: 8),
-            child: Image.asset(imgChatbot, fit: BoxFit.contain),
+  }
+
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 15),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          margin: const EdgeInsets.only(right: 8),
+          child: Image.asset(imgChatbot, fit: BoxFit.contain),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.68,
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.68,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceSecondary,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(2.5),
+              topRight: Radius.circular(15),
+              bottomLeft: Radius.circular(15),
+              bottomRight: Radius.circular(15),
             ),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceSecondary,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(2.5),
-                topRight: Radius.circular(15),
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message.message,
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  message.text,
-                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    DateFormat('HH.mm').format(message.timestamp),
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  DateFormat('HH.mm').format(message.createdAt),
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
 Widget _buildMessageInput({
