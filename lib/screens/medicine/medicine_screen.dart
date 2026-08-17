@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smart_antibiotic/models/medicine_model.dart';
+import 'package:smart_antibiotic/providers/medicine_provider.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_list_card.dart';
 
@@ -18,30 +21,22 @@ class MedicineScreen extends StatefulWidget {
 class _MedicineScreenState extends State<MedicineScreen> {
   bool _isLoading = true;
 
-  final medicine = [
-    {
-      'name': 'Amoxicillin',
-      'dosage': '1 Tablet',
-      'instruction': 'Sebelum makan',
-      'start_date': '2026-08-03',
-      'end_date': '2026-09-03',
-      'frequency_type': 'daily',
-      'times_per_day': 2,
-      'interval_value': null,
-      'days': null,
-      'dates': null,
-      'times': ['08:00', '20:00'],
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
-    _fetchData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchData();
+      }
+    });
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    final provider = context.read<MedicineProvider>();
+
+    await provider.loadMedicines();
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -65,10 +60,36 @@ class _MedicineScreenState extends State<MedicineScreen> {
             Expanded(
               child: _isLoading
                   ? _buildShimmerContent()
-                  : _buildContent(medicine, context),
+                  : Consumer<MedicineProvider>(
+                      builder: (context, medicineProvider, child) {
+                        return _buildContent(
+                          medicineProvider.medicines,
+                          context,
+                        );
+                      },
+                    ),
             ),
-            const SizedBox(height: 26),
           ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.textPrimary.withValues(alpha: 0.20),
+                  blurRadius: 6,
+                  offset: const Offset(4, 8),
+                ),
+              ],
+            ),
+            child: CustomButton(
+              onTap: () => Navigator.pushNamed(context, '/medicine-steps'),
+              label: 'Tambah Obat',
+            ),
+          ),
         ),
       ),
     );
@@ -112,6 +133,7 @@ class _MedicineScreenState extends State<MedicineScreen> {
                 borderRadius: BorderRadius.circular(24),
               ),
             ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -192,26 +214,14 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
   );
 }
 
-Widget _buildContent(
-  List<Map<String, dynamic>> medicineData,
-  BuildContext context,
-) {
+Widget _buildContent(List<MedicineModel> medicineData, BuildContext context) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(
-      children: [
-        const SizedBox(height: 20),
-        Expanded(child: _buildList(medicineData)),
-        CustomButton(
-          onTap: () => Navigator.pushNamed(context, '/medicine-steps'),
-          label: 'Tambah Obat',
-        ),
-      ],
-    ),
+    child: _buildList(medicineData, context),
   );
 }
 
-Widget _buildList(List<Map<String, dynamic>> medicineData) {
+Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
   return ListView.builder(
     shrinkWrap: true,
     physics: const AlwaysScrollableScrollPhysics(),
@@ -219,12 +229,22 @@ Widget _buildList(List<Map<String, dynamic>> medicineData) {
     padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
       final item = medicineData[index];
+      final isFirstItem = index == 0;
+      final isLastItem = index == medicineData.length - 1;
+
+      final dosageUnit = item.dosageUnit?.trim().toLowerCase();
+      final Widget medicineImage = dosageUnit == 'kapsul'
+          ? Image.asset(imgTablet, height: 30)
+          : Image.asset(imgTablet, height: 30);
+
+      final double paddingTop = isFirstItem ? 20 : 0;
+      final double paddingBottom = isLastItem ? 120 : 10;
 
       return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(top: paddingTop, bottom: paddingBottom),
         child: CustomMedicineListCard(
-          title: (item['name'] as String?) ?? '-',
-          image: Image.asset(imgTablet, height: 30),
+          title: item.name,
+          image: medicineImage,
           onTap: () =>
               Navigator.pushNamed(context, '/medicine-detail', arguments: item),
         ),

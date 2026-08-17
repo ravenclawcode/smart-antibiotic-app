@@ -2,6 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   static const String baseUrl = 'http://10.0.2.2:8000/api';
+  // static const String baseUrl = 'http://10.229.207.109:8000/api';
 
   // Public
   static const String onboarding = '/onboarding';
@@ -25,4 +26,8 @@ class ApiConstants {
   // Chatbot
   static const String chatbotSession = '/chatbot/session';
   static const String chatbotSend = '/chatbot/send';
+
+  // Medicine
+  static const String medicines = '/medicines';
+  static const String medicineCatalogs = '/medicine-catalog';
 }

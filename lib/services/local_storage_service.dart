@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageService {
   static const String _userUuidKey = 'user_uuid';
+  static const String _userTimezoneKey = 'user_timezone';
 
   final SharedPreferences preferences;
 
@@ -21,5 +22,26 @@ class LocalStorageService {
 
   bool get hasUserUuid {
     return preferences.containsKey(_userUuidKey);
+  }
+
+  Future<void> saveUserTimezone(String timezone) async {
+    await preferences.setString(_userTimezoneKey, timezone);
+  }
+
+  String? getUserTimezone() {
+    return preferences.getString(_userTimezoneKey);
+  }
+
+  Future<void> removeUserTimezone() async {
+    await preferences.remove(_userTimezoneKey);
+  }
+
+  bool get hasUserTimezone {
+    return preferences.containsKey(_userTimezoneKey);
+  }
+
+  Future<void> clearUserData() async {
+    await preferences.remove(_userUuidKey);
+    await preferences.remove(_userTimezoneKey);
   }
 }

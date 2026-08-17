@@ -86,21 +86,41 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildHeader(context, isLoading: _isLoading),
             _isLoading
                 ? _buildShimmerCalendar()
-                : CustomCalendar(
-                    selectedDate: selectedDate,
-                    currentWeekStart: currentWeekStart,
-                    onDateSelected: (date) {
-                      setState(() => selectedDate = date);
-                    },
-                    onWeekChanged: (newWeekStart) {
-                      setState(() => currentWeekStart = newWeekStart);
-                    },
-                    onResetToToday: (today, weekStart) {
-                      setState(() {
-                        selectedDate = today;
-                        currentWeekStart = weekStart;
-                      });
-                    },
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeIn,
+                    switchOutCurve: Curves.easeOut,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                    child: CustomCalendar(
+                      key: ValueKey<DateTime>(currentWeekStart),
+                      selectedDate: selectedDate,
+                      currentWeekStart: currentWeekStart,
+                      onDateSelected: (date) {
+                        setState(() => selectedDate = date);
+                      },
+                      onWeekChanged: (newWeekStart) {
+                        setState(() {
+                          currentWeekStart = newWeekStart;
+                          final currentDayIndex = selectedDate.weekday % 7;
+
+                          selectedDate = newWeekStart.add(
+                            Duration(days: currentDayIndex),
+                          );
+                        });
+                      },
+                      onResetToToday: (today, weekStart) {
+                        setState(() {
+                          selectedDate = today;
+                          currentWeekStart = weekStart;
+                        });
+                      },
+                    ),
                   ),
             Expanded(
               child: SingleChildScrollView(

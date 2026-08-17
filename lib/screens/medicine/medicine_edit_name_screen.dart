@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
+import '../../providers/medicine_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -9,8 +12,7 @@ import '../../utils/custom_button_off.dart';
 import '../../utils/custom_input_add_medicine_form.dart';
 
 class MedicineEditNameScreen extends StatefulWidget {
-  final ValueChanged<String>? onNameChanged;
-  const MedicineEditNameScreen({super.key, this.onNameChanged});
+  const MedicineEditNameScreen({super.key});
 
   @override
   State<MedicineEditNameScreen> createState() => _MedicineEditNameScreenState();
@@ -19,7 +21,10 @@ class MedicineEditNameScreen extends StatefulWidget {
 class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
   late final TextEditingController _nameMedicineController;
 
+  MedicineModel? _medicine;
+
   String _initialMedicineName = '';
+
   bool _isNextEnabled = false;
   bool _isInitialized = false;
   bool _isLoading = true;
@@ -27,61 +32,149 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
   @override
   void initState() {
     super.initState();
-    _nameMedicineController = TextEditingController();
-    _nameMedicineController.addListener(_checkFormChanges);
-    _fetchData();
-  }
 
-  Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    _nameMedicineController = TextEditingController();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_isInitialized) {
-      final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments is Map<String, dynamic>) {
-        _initialMedicineName = (arguments['name'] as String?) ?? '';
-      } else if (arguments is String) {
-        _initialMedicineName = arguments;
-      }
 
+    if (_isInitialized) {
+      return;
+    }
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    if (arguments is MedicineModel) {
+      _medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      _medicine = _medicineFromMap(arguments);
+    }
+
+    if (_medicine != null) {
+      _initialMedicineName = _medicine!.name.trim();
+
+      /*
+      |--------------------------------------------------------------------------
+      | Set controller sebelum listener dipasang
+      |--------------------------------------------------------------------------
+      |
+      | Ini penting agar perubahan awal controller tidak memanggil
+      | setState() ketika widget sedang dalam proses build.
+      |
+      */
       _nameMedicineController.text = _initialMedicineName;
-      _isInitialized = true;
+
+      _nameMedicineController.addListener(_checkFormChanges);
+    }
+
+    _isInitialized = true;
+
+    _fetchData();
+  }
+
+  MedicineModel? _medicineFromMap(Map<String, dynamic> data) {
+    try {
+      return MedicineModel.fromJson(data);
+    } catch (_) {
+      return null;
     }
   }
 
+  Future<void> _fetchData() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   void _checkFormChanges() {
-    final String currentText = _nameMedicineController.text.trim();
-    final bool hasNameChanged =
-        currentText != _initialMedicineName && currentText.isNotEmpty;
+    if (!mounted) {
+      return;
+    }
+
+    final currentText = _nameMedicineController.text.trim();
+
+    final hasNameChanged =
+        currentText.isNotEmpty && currentText != _initialMedicineName;
 
     if (_isNextEnabled != hasNameChanged) {
       setState(() {
         _isNextEnabled = hasNameChanged;
       });
     }
+  }
 
-    if (widget.onNameChanged != null) {
-      widget.onNameChanged!(_nameMedicineController.text);
+  Future<void> _saveName() async {
+    if (_medicine == null) {
+      _showError('Data obat tidak ditemukan.');
+      return;
     }
+
+    final medicineId = _medicine!.id;
+
+    if (medicineId == null) {
+      _showError('ID obat tidak ditemukan.');
+      return;
+    }
+
+    final newName = _nameMedicineController.text.trim();
+
+    if (newName.isEmpty) {
+      _showError('Nama obat tidak boleh kosong.');
+      return;
+    }
+
+    if (newName == _initialMedicineName) {
+      return;
+    }
+
+    final updatedMedicine = _medicine!.copyWith(name: newName);
+
+    final provider = context.read<MedicineProvider>();
+
+    final result = await provider.updateMedicine(medicineId, updatedMedicine);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result != null) {
+      Navigator.pop(context, result);
+      return;
+    }
+
+    _showError(provider.errorMessage ?? 'Gagal memperbarui nama obat.');
+  }
+
+  void _showError(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   void dispose() {
     _nameMedicineController.removeListener(_checkFormChanges);
     _nameMedicineController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = context.watch<MedicineProvider>().isSaving;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -91,15 +184,17 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context, isLoading: _isLoading),
+            _buildHeader(context, isLoading: _isLoading, isSaving: isSaving),
             const SizedBox(height: 20),
             Expanded(
               child: _isLoading
                   ? _buildShimmerContent()
                   : _buildContent(
-                      context,
-                      _isNextEnabled,
-                      _nameMedicineController,
+                      context: context,
+                      isNextEnabled: _isNextEnabled,
+                      controller: _nameMedicineController,
+                      isSaving: isSaving,
+                      onSave: _saveName,
                     ),
             ),
             const SizedBox(height: 60),
@@ -110,7 +205,11 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
   }
 }
 
-Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+Widget _buildHeader(
+  BuildContext context, {
+  required bool isLoading,
+  required bool isSaving,
+}) {
   return Container(
     height: 115,
     width: double.infinity,
@@ -140,7 +239,11 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () => Navigator.pop(context),
+                onTap: isSaving
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                      },
                 child: Container(
                   width: 36,
                   height: 36,
@@ -215,34 +318,37 @@ Widget _buildShimmerContent() {
   );
 }
 
-Widget _buildContent(
-  BuildContext context,
-  bool isNextEnabled,
-  TextEditingController nameMedicineController,
-) {
+Widget _buildContent({
+  required BuildContext context,
+  required bool isNextEnabled,
+  required TextEditingController controller,
+  required bool isSaving,
+  required VoidCallback onSave,
+}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       children: [
-        CustomInputAddMedicineForm(controller: nameMedicineController),
+        CustomInputAddMedicineForm(controller: controller),
         const Spacer(),
-        _buildActionButton(context, isNextEnabled, nameMedicineController),
+        _buildActionButton(
+          context: context,
+          isNextEnabled: isNextEnabled,
+          onSave: onSave,
+        ),
       ],
     ),
   );
 }
 
-Widget _buildActionButton(
-  BuildContext context,
-  bool isNextEnabled,
-  TextEditingController controller,
-) {
-  return isNextEnabled
-      ? CustomButton(
-          onTap: () {
-            Navigator.pop(context, controller.text.trim());
-          },
-          label: 'Simpan Perubahan',
-        )
-      : const CustomButtonOff(label: 'Simpan Perubahan');
+Widget _buildActionButton({
+  required BuildContext context,
+  required bool isNextEnabled,
+  required VoidCallback onSave,
+}) {
+  if (!isNextEnabled) {
+    return const CustomButtonOff(label: 'Simpan Perubahan');
+  }
+
+  return CustomButton(onTap: onSave, label: 'Simpan Perubahan');
 }

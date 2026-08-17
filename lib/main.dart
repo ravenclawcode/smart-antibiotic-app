@@ -10,6 +10,8 @@ import 'package:smart_antibiotic/core/network/api_client.dart';
 import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
 import 'package:smart_antibiotic/providers/chatbot_provider.dart';
 import 'package:smart_antibiotic/providers/feedback_provider.dart';
+import 'package:smart_antibiotic/providers/medicine_catalog_provider.dart';
+import 'package:smart_antibiotic/providers/medicine_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
 import 'package:smart_antibiotic/providers/quiz_provider.dart';
 import 'package:smart_antibiotic/providers/settings_provider.dart';
@@ -18,6 +20,8 @@ import 'package:smart_antibiotic/services/antibiotic_service.dart';
 import 'package:smart_antibiotic/services/chatbot_service.dart';
 import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
+import 'package:smart_antibiotic/services/medicine_catalog_service.dart';
+import 'package:smart_antibiotic/services/medicine_service.dart';
 import 'package:smart_antibiotic/services/quiz_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
 
@@ -61,6 +65,13 @@ void main() async {
     localStorage: localStorage,
   );
 
+  final medicineService = MedicineService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
+
+  final medicineCatalogService = MedicineCatalogService(apiClient: apiClient);
+
   runApp(
     MultiProvider(
       providers: [
@@ -89,6 +100,16 @@ void main() async {
 
         ChangeNotifierProvider(
           create: (_) => QuizProvider(service: quizService),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => MedicineProvider(medicineService: medicineService),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => MedicineCatalogProvider(
+            medicineCatalogService: medicineCatalogService,
+          ),
         ),
       ],
       child: const MyApp(),

@@ -290,24 +290,21 @@ class _SettingsCommentsAndFeedbackState
   Widget _buildContent() {
     return Consumer<FeedbackProvider>(
       builder: (context, provider, child) {
-        return RefreshIndicator(
-          onRefresh: provider.refresh,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  CustomInputFeedbackForm(
-                    controller: feedbackController,
-                    userName: _userName,
-                    onSubmit: provider.isSubmitting ? () {} : _addFeedback,
-                  ),
-                  const SizedBox(height: 30),
-                  _buildFeedbackList(provider),
-                ],
-              ),
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                CustomInputFeedbackForm(
+                  controller: feedbackController,
+                  userName: _userName,
+                  onSubmit: provider.isSubmitting ? () {} : _addFeedback,
+                ),
+                const SizedBox(height: 30),
+                _buildFeedbackList(provider),
+              ],
             ),
           ),
         );

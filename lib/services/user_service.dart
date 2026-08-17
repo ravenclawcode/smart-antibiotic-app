@@ -26,6 +26,7 @@ class UserService {
     }
 
     await localStorage.saveUserUuid(onboarding.uuid);
+    await localStorage.saveUserTimezone(onboarding.timezone);
   }
 
   Future<bool> checkRegistration(String uuid) async {
@@ -138,7 +139,15 @@ class UserService {
     return localStorage.getUserUuid();
   }
 
+  String? getUserTimezone() {
+    return localStorage.getUserTimezone();
+  }
+
   Future<void> clearUserUuid() async {
     await localStorage.removeUserUuid();
+  }
+
+  Future<void> clearUserTimezone() async {
+    await localStorage.removeUserTimezone();
   }
 }

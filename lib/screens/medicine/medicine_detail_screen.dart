@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -17,19 +18,51 @@ class MedicineDetailScreen extends StatefulWidget {
 class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   bool _isLoading = true;
 
+  MedicineModel? _medicine;
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    MedicineModel? medicine;
+
+    if (arguments is MedicineModel) {
+      medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+
+    _medicine = medicine;
+
     _fetchData();
   }
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+
+    if (!mounted) {
+      return;
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _deleteMedicine() async {
@@ -40,9 +73,13 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   }
 
   String _formatDateString(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty) return '-';
+    if (dateStr == null || dateStr.isEmpty) {
+      return '-';
+    }
+
     try {
       final dateTime = DateTime.parse(dateStr);
+
       final months = [
         'Jan',
         'Feb',
@@ -57,40 +94,63 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         'Nov',
         'Des',
       ];
+
       return '${dateTime.day} ${months[dateTime.month - 1]}';
     } catch (_) {
       return dateStr;
     }
   }
 
+  Future<void> _editMedicineName() async {
+    if (_medicine == null) {
+      return;
+    }
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/medicine-edit-name',
+      arguments: _medicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result is MedicineModel) {
+      setState(() {
+        _medicine = result;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final medicineData =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-        {};
+    final medicine = _medicine;
 
-    final String rawName = (medicineData['name'] as String?)?.trim() ?? '';
+    final String rawName = medicine?.name.trim() ?? '';
+
     final String name = rawName.isNotEmpty ? rawName : '-';
 
-    final int? timesPerDay = medicineData['times_per_day'] as int?;
-    final String? rawFreqType = medicineData['frequency_type'] as String?;
+    final int timesPerDay = medicine?.timesPerDay ?? 0;
+
+    final String? rawFreqType = medicine?.frequencyType;
 
     String frequency = '-';
-    if (timesPerDay != null) {
+
+    if (timesPerDay > 0) {
       final String frequencyType = rawFreqType == 'daily'
           ? 'Sehari'
           : (rawFreqType ?? 'Sehari');
+
       frequency = '$timesPerDay kali, $frequencyType';
     }
 
-    final String startDateStr = _formatDateString(
-      medicineData['start_date'] as String?,
-    );
-    final String endDateStr = _formatDateString(
-      medicineData['end_date'] as String?,
-    );
+    final String startDateStr = _formatDateString(medicine?.startDate);
+
+    final String endDateStr = _formatDateString(medicine?.endDate);
 
     String duration = '-';
+
     if (startDateStr != '-' && endDateStr != '-') {
       duration = '$startDateStr - $endDateStr';
     } else if (startDateStr != '-') {
@@ -99,8 +159,11 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       duration = endDateStr;
     }
 
-    final String dosage = (medicineData['dosage'] as String?) ?? '-';
-    final String instruction = (medicineData['instruction'] as String?) ?? '-';
+    final String dosage = medicine?.dosage ?? '-';
+
+    final String instruction = medicine?.instruction ?? '-';
+
+    final medicineData = medicine?.toJson() ?? <String, dynamic>{};
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -117,6 +180,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               name,
               medicineData,
               isLoading: _isLoading,
+              onNameEdit: _editMedicineName,
             ),
             const SizedBox(height: 20),
             _isLoading
@@ -142,6 +206,7 @@ Widget _buildHeader(
   String name,
   Map<String, dynamic> medicineData, {
   required bool isLoading,
+  required VoidCallback onNameEdit,
 }) {
   return Container(
     height: 160,
@@ -266,11 +331,7 @@ Widget _buildHeader(
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/medicine-edit-name',
-                      arguments: medicineData,
-                    ),
+                    onTap: onNameEdit,
                     child: Image.asset(
                       icEditPen,
                       height: 18,

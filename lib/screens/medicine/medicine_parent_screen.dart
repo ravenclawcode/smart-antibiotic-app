@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smart_antibiotic/models/medicine_model.dart';
+import 'package:smart_antibiotic/providers/medicine_catalog_provider.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_choose_day_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_choose_format_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_choose_frequency_screen.dart';
@@ -18,6 +21,7 @@ import 'package:smart_antibiotic/utils/custom_button_off.dart';
 import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
+import '../../providers/medicine_provider.dart';
 import '../../utils/custom_change_hour_sheet.dart';
 
 enum StepType {
@@ -305,17 +309,153 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
     }
   }
 
+  String _capitalizeWords(String input) {
+    if (input.trim().isEmpty) return input;
+    return input
+        .trim()
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   Future<void> _submitData() async {
-    setState(() => _isLoading = true);
+    if (_isLoading) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
+      // ignore: use_build_context_synchronously
+      final medicineProvider = context.read<MedicineProvider>();
+
+      final now = DateTime.now();
+
+      final startDate =
+          '${now.year.toString().padLeft(4, '0')}-'
+          '${now.month.toString().padLeft(2, '0')}-'
+          '${now.day.toString().padLeft(2, '0')}';
+
+      final medicine = MedicineModel(
+        name: _capitalizeWords(_nameInputted),
+
+        dosage: _dosageInputted?.toString(),
+
+        dosageUnit: _selectedFormat.trim().isEmpty
+            ? null
+            : _selectedFormat.trim(),
+
+        instruction: _instructionInputted.trim().isEmpty
+            ? null
+            : _capitalizeWords(_instructionInputted),
+
+        startDate: startDate,
+        endDate: startDate,
+
+        isActive: true,
+
+        frequencyType: _mapFrequencyType(_selectedFrequency),
+
+        timesPerDay: _timesPerDay,
+
+        intervalValue: _requiresInterval ? int.tryParse(_intervalValue) : null,
+
+        days: List<int>.from(_selectedDaysOfWeek),
+
+        dates: _parseMonthDates(_selectedMonthDates),
+
+        times: _scheduleTimes.map(_formatTimeForDatabase).toList(),
+      );
+
+      final createdMedicine = await medicineProvider.createMedicine(medicine);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (createdMedicine == null) {
+        _showError(medicineProvider.errorMessage ?? 'Gagal menyimpan obat.');
+        return;
+      }
+
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
+      _showError('Gagal menyimpan obat.');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  bool get _requiresInterval {
+    return _selectedFrequency == 'Setiap X Hari' ||
+        _selectedFrequency == 'Setiap X Minggu' ||
+        _selectedFrequency == 'Setiap X Bulan';
+  }
+
+  String _formatTimeForDatabase(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+
+    return '$hour:$minute';
+  }
+
+  List<int> _parseMonthDates(String value) {
+    if (value.trim().isEmpty) {
+      return [];
+    }
+
+    return value
+        .split(',')
+        .map((item) => int.tryParse(item.trim()))
+        .whereType<int>()
+        .where((item) => item >= 1 && item <= 31)
+        .toList();
+  }
+
+  String _mapFrequencyType(String frequency) {
+    switch (frequency) {
+      case '1 kali sehari':
+      case '2 kali sehari':
+      case '3 kali sehari':
+      case 'Lebih dari 3 kali sehari':
+        return 'daily';
+
+      case 'Hari Tertentu':
+        return 'certain_days';
+
+      case 'Setiap X Hari':
+        return 'interval_days';
+
+      case 'Setiap X Minggu':
+        return 'interval_weeks';
+
+      case 'Setiap X Bulan':
+        return 'interval_months';
+
+      default:
+        return 'daily';
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -327,10 +467,33 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
   Widget _buildStepWidget(StepType step) {
     switch (step) {
       case StepType.name:
-        return MedicineInputNameScreen(
-          formKey: _formKeyName,
-          initialValue: _nameInputted,
-          onNameChanged: (val) => setState(() => _nameInputted = val),
+        return Consumer<MedicineCatalogProvider>(
+          builder: (context, catalogProvider, child) {
+            return MedicineInputNameScreen(
+              formKey: _formKeyName,
+              initialValue: _nameInputted,
+
+              onNameChanged: (val) {
+                setState(() {
+                  _nameInputted = val;
+                });
+
+                catalogProvider.searchCatalogs(val);
+              },
+
+              suggestions: catalogProvider.catalogs,
+
+              isLoadingSuggestions: catalogProvider.isLoading,
+
+              onCatalogSelected: (catalog) {
+                setState(() {
+                  _nameInputted = catalog.name;
+                });
+
+                catalogProvider.clearResults();
+              },
+            );
+          },
         );
 
       case StepType.format:

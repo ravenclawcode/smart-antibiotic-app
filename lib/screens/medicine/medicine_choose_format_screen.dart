@@ -50,8 +50,25 @@ class _MedicineChooseFormatScreenState
     widget.onNameChanged(formatName);
   }
 
+  String _capitalizeWords(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty) return trimmed;
+
+    return trimmed
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final formattedMedicineName = widget.medicineName.isNotEmpty
+        ? _capitalizeWords(widget.medicineName)
+        : 'Obat';
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +81,7 @@ class _MedicineChooseFormatScreenState
           ),
           const SizedBox(height: 6),
           Text(
-            widget.medicineName.isNotEmpty ? widget.medicineName : 'Obat',
+            formattedMedicineName,
             style: AppTextStyles.bodyMedium.copyWith(
               fontSize: 18,
               color: AppColors.textSecondary,
