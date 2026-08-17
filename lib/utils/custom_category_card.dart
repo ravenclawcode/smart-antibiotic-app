@@ -53,11 +53,13 @@ class CustomCategoryCard extends StatelessWidget {
                     style: AppTextStyles.bodyMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 15,
                       color: AppColors.textSecondary,
                     ),
                   ),

@@ -383,35 +383,39 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                 ),
                 const SizedBox(width: 10),
 
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.isLastQuiz ? 'Kuis Terakhir' : 'Level Selanjutnya',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.isLastQuiz ? 'Kuis Terakhir' : 'Level Selanjutnya',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
-                    ),
-
-                    Text(
-                      widget.isLastQuiz
-                          ? 'Level ${widget.currentLevel}'
-                          : 'Level ${widget.nextLevel}',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
+                  
+                      Text(
+                        widget.isLastQuiz
+                            ? 'Level ${widget.currentLevel}'
+                            : 'Level ${widget.nextLevel}',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-
-                    Text(
-                      widget.isLastQuiz
-                          ? (widget.currentDescription ?? '')
-                          : (widget.nextDescription ?? ''),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                  
+                      Text(
+                        widget.isLastQuiz
+                            ? (widget.currentDescription ?? '')
+                            : (widget.nextDescription ?? ''),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

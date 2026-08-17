@@ -53,6 +53,7 @@ class _MedicineInformationScheduleScreenState
           ),
           const SizedBox(height: 20),
           _buildOptionMenu(context),
+          const SizedBox(height: 20),
         ],
       ),
     );

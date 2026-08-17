@@ -36,8 +36,8 @@ class CustomVideoCard extends StatelessWidget {
             BoxShadow(
               offset: const Offset(3, 3),
               blurRadius: 10,
-              spreadRadius: 1,
-              color: const Color(0xFF707070).withValues(alpha: 0.10),
+              spreadRadius: 2,
+              color: const Color(0xFF707070).withValues(alpha: 0.15),
             ),
           ],
         ),
@@ -47,11 +47,11 @@ class CustomVideoCard extends StatelessWidget {
             _buildThumbnail(),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
               child: Text(
                 title?.isNotEmpty == true ? title! : 'Video edukasi',
                 style: AppTextStyles.bodyLarge,
-                maxLines: 2,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -80,6 +80,16 @@ class CustomVideoCard extends StatelessWidget {
               )
             else
               Container(color: AppColors.surfaceSecondary),
+
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.textPrimary.withValues(alpha: 0.15),
+                  ),
+                ),
+              ),
+            ),
 
             Positioned.fill(
               child: Center(
