@@ -289,74 +289,94 @@ class _SettingsAlarmOptimizationScreenState
               onTap: isGranted
                   ? null
                   : () => _requestOrOpenSettings(permission),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            menu['title'] as String,
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          InkWell(
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            overlayColor: WidgetStateProperty.all(
-                              Colors.transparent,
-                            ),
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              menu['route'] as String,
-                            ),
-                            child: Text(
-                              'Mengapa ini penting?',
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                fontSize: 18,
-                                fontStyle: FontStyle.italic,
-                                decoration: TextDecoration.underline,
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              menu['title'] as String,
+                              style: AppTextStyles.bodyLarge.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) =>
-                          ScaleTransition(scale: animation, child: child),
-                      child: isGranted
-                          ? (menu['icon'] as Widget)
-                          : Container(
-                              key: ValueKey('btn_${menu['status']}'),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
+                            const SizedBox(height: 4),
+                            InkWell(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                              overlayColor: WidgetStateProperty.all(
+                                Colors.transparent,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceAccent,
-                                borderRadius: BorderRadius.circular(8),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                menu['route'] as String,
                               ),
                               child: Text(
-                                menu['status'] as String,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                                'Mengapa ini penting?',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontSize: 18,
+                                  fontStyle: FontStyle.italic,
+                                  decoration: TextDecoration.underline,
                                 ),
                               ),
                             ),
-                    ),
-                  ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: animation,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: isGranted
+                            ? SizedBox(
+                                key: ValueKey('icon_wrap_${index}_true'),
+                                width: 40,
+                                height: 36,
+                                child: Center(child: menu['icon'] as Widget),
+                              )
+                            : Container(
+                                key: ValueKey('btn_${menu['status']}'),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceAccent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  menu['status'] as String,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

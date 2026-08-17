@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -10,7 +11,8 @@ import '../../utils/custom_input_intruction_form.dart';
 
 class MedicineEditInstructionScreen extends StatefulWidget {
   final ValueChanged<String>? onNameChanged;
-  const MedicineEditInstructionScreen({super.key, required this.onNameChanged});
+
+  const MedicineEditInstructionScreen({super.key, this.onNameChanged});
 
   @override
   State<MedicineEditInstructionScreen> createState() =>
@@ -21,7 +23,9 @@ class _MedicineEditInstructionScreenState
     extends State<MedicineEditInstructionScreen> {
   late TextEditingController instructionController;
 
-  String _initialInstructione = '';
+  MedicineModel? _medicine;
+
+  String _initialInstruction = '';
   bool _isNextEnabled = false;
   bool _isInitialized = false;
   bool _isLoading = true;
@@ -29,13 +33,41 @@ class _MedicineEditInstructionScreenState
   @override
   void initState() {
     super.initState();
+
     instructionController = TextEditingController();
     instructionController.addListener(_checkFormChanges);
+
     _fetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    if (arguments is MedicineModel) {
+      _medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      _medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+
+    _initialInstruction = _medicine?.instruction ?? '';
+
+    instructionController.text = _initialInstruction;
   }
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -43,26 +75,11 @@ class _MedicineEditInstructionScreenState
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments is Map<String, dynamic>) {
-        _initialInstructione = (arguments['name'] as String?) ?? '';
-      } else if (arguments is String) {
-        _initialInstructione = arguments;
-      }
-
-      instructionController.text = _initialInstructione;
-      _isInitialized = true;
-    }
-  }
-
   void _checkFormChanges() {
     final String currentText = instructionController.text.trim();
-    final bool hasInstructionChanged =
-        currentText != _initialInstructione && currentText.isNotEmpty;
+    final String initialText = _initialInstruction.trim();
+
+    final bool hasInstructionChanged = currentText != initialText;
 
     if (_isNextEnabled != hasInstructionChanged) {
       setState(() {
@@ -73,6 +90,23 @@ class _MedicineEditInstructionScreenState
     if (widget.onNameChanged != null) {
       widget.onNameChanged!(instructionController.text);
     }
+  }
+
+  void _saveChanges() {
+    final medicine = _medicine;
+    if (medicine == null) return;
+
+    final rawText = instructionController.text.trim();
+
+    final formattedInstruction = rawText.isNotEmpty
+        ? '${rawText[0].toUpperCase()}${rawText.substring(1)}'
+        : rawText;
+
+    final updatedMedicine = medicine.copyWith(
+      instruction: formattedInstruction,
+    );
+
+    Navigator.pop(context, updatedMedicine);
   }
 
   @override
@@ -101,6 +135,7 @@ class _MedicineEditInstructionScreenState
                       context,
                       _isNextEnabled,
                       instructionController,
+                      _saveChanges,
                     ),
             ),
             const SizedBox(height: 60),
@@ -279,6 +314,7 @@ Widget _buildContent(
   BuildContext context,
   bool isNextEnabled,
   TextEditingController instructionController,
+  VoidCallback onSave,
 ) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -291,7 +327,12 @@ Widget _buildContent(
         const SizedBox(height: 16),
         CustomInputIntructionForm(controller: instructionController),
         const Spacer(),
-        _buildActionButton(context, isNextEnabled, instructionController),
+        _buildActionButton(
+          context,
+          isNextEnabled,
+          instructionController,
+          onSave,
+        ),
       ],
     ),
   );
@@ -301,13 +342,9 @@ Widget _buildActionButton(
   BuildContext context,
   bool isNextEnabled,
   TextEditingController controller,
+  VoidCallback onSave,
 ) {
   return isNextEnabled
-      ? CustomButton(
-          onTap: () {
-            Navigator.pop(context, controller.text.trim());
-          },
-          label: 'Simpan Perubahan',
-        )
+      ? CustomButton(onTap: onSave, label: 'Simpan Perubahan')
       : const CustomButtonOff(label: 'Simpan Perubahan');
 }

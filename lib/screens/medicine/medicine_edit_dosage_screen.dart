@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
@@ -16,14 +17,39 @@ class MedicineEditDosageScreen extends StatefulWidget {
 class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
   bool _isLoading = true;
 
+  MedicineModel? _medicine;
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
     _fetchData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    if (arguments is MedicineModel) {
+      _medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      _medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+  }
+
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -44,7 +70,9 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
           children: [
             _buildHeader(context, isLoading: _isLoading),
             const SizedBox(height: 20),
-            _isLoading ? _buildShimmerContent() : _buildContent(context),
+            _isLoading
+                ? _buildShimmerContent()
+                : _buildContent(context, _medicine),
           ],
         ),
       ),
@@ -198,7 +226,7 @@ Widget _buildShimmerContent() {
   );
 }
 
-Widget _buildContent(BuildContext context) {
+Widget _buildContent(BuildContext context, MedicineModel? medicine) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
@@ -209,14 +237,14 @@ Widget _buildContent(BuildContext context) {
             border: Border.all(color: const Color(0xFFE7ECF0)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: _buildOptionMenu(context),
+          child: _buildOptionMenu(context, medicine),
         ),
       ],
     ),
   );
 }
 
-Widget _buildOptionMenu(BuildContext context) {
+Widget _buildOptionMenu(BuildContext context, MedicineModel? medicine) {
   final item = [
     {'title': 'Jumlah Dosis', 'route': '/medicine-edit-dose-amount'},
     {'title': 'Instruksi', 'route': '/medicine-edit-instruction'},
@@ -237,7 +265,17 @@ Widget _buildOptionMenu(BuildContext context) {
         highlightColor: Colors.transparent,
         splashColor: Colors.transparent,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
-        onTap: () => Navigator.pushNamed(context, menu['route'] as String),
+        onTap: () async {
+          final result = await Navigator.pushNamed(
+            context,
+            menu['route'] as String,
+            arguments: medicine,
+          );
+
+          if (result is MedicineModel && context.mounted) {
+            Navigator.pop(context, result);
+          }
+        },
         child: Padding(
           padding: EdgeInsets.fromLTRB(2, 6, 2, isLastItem ? 8 : 0),
           child: Column(

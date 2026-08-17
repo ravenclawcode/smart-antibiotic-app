@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:smart_antibiotic/providers/medicine_provider.dart';
 
 import '../../models/medicine_model.dart';
 import '../../utils/app_assets.dart';
@@ -101,6 +103,146 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     }
   }
 
+  String _formatDosage(MedicineModel? medicine) {
+    if (medicine == null) {
+      return '-';
+    }
+
+    final dosage = medicine.dosage?.trim() ?? '';
+
+    final dosageUnit = medicine.dosageUnit?.trim() ?? '';
+
+    if (dosage.isEmpty) {
+      return '-';
+    }
+
+    if (dosageUnit.isEmpty) {
+      return dosage;
+    }
+
+    return '$dosage $dosageUnit';
+  }
+
+  String _formatFrequency(MedicineModel? medicine) {
+    if (medicine == null) {
+      return '-';
+    }
+
+    final frequencyType = medicine.frequencyType;
+
+    final timesPerDay = medicine.timesPerDay;
+
+    final intervalValue = medicine.intervalValue;
+
+    switch (frequencyType) {
+      case 'daily':
+        if (timesPerDay <= 0) {
+          return '-';
+        }
+
+        if (timesPerDay > 3) {
+          return 'Lebih dari 3 kali sehari';
+        }
+
+        return '$timesPerDay kali sehari';
+
+      case 'certain_days':
+        return 'Hari tertentu';
+
+      case 'interval_days':
+        if (intervalValue == null || intervalValue <= 0) {
+          return 'Setiap beberapa hari';
+        }
+
+        return 'Setiap $intervalValue hari';
+
+      case 'interval_weeks':
+        if (intervalValue == null || intervalValue <= 0) {
+          return 'Setiap beberapa minggu';
+        }
+
+        return 'Setiap $intervalValue minggu';
+
+      case 'interval_months':
+        if (intervalValue == null || intervalValue <= 0) {
+          return 'Setiap beberapa bulan';
+        }
+
+        return 'Setiap $intervalValue bulan';
+
+      default:
+        return '-';
+    }
+  }
+
+  String _formatDuration(MedicineModel? medicine) {
+    if (medicine == null) {
+      return '-';
+    }
+
+    final startDate = _formatDateString(medicine.startDate);
+
+    final endDate = _formatDateString(medicine.endDate);
+
+    if (startDate != '-' && endDate != '-') {
+      return '$startDate - $endDate';
+    }
+
+    if (startDate != '-' && endDate == '-') {
+      return '$startDate -';
+    }
+
+    if (startDate == '-' && endDate != '-') {
+      return '- $endDate';
+    }
+
+    return '-';
+  }
+
+  Future<void> _saveEditedMedicine(MedicineModel editedMedicine) async {
+    if (editedMedicine.id == null) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final medicineProvider = context.read<MedicineProvider>();
+
+    final updatedMedicine = await medicineProvider.updateMedicine(
+      editedMedicine.id!,
+      editedMedicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (updatedMedicine == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    _medicine = updatedMedicine;
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   Future<void> _editMedicineName() async {
     if (_medicine == null) {
       return;
@@ -117,9 +259,47 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     }
 
     if (result is MedicineModel) {
-      setState(() {
-        _medicine = result;
-      });
+      await _saveEditedMedicine(result);
+    }
+  }
+
+  Future<void> _editMedicineDosage() async {
+    if (_medicine == null) {
+      return;
+    }
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/medicine-edit-dosage',
+      arguments: _medicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result is MedicineModel) {
+      await _saveEditedMedicine(result);
+    }
+  }
+
+  Future<void> _editMedicineInstruction() async {
+    if (_medicine == null) {
+      return;
+    }
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/medicine-edit-instruction',
+      arguments: _medicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result is MedicineModel) {
+      await _saveEditedMedicine(result);
     }
   }
 
@@ -131,35 +311,11 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
 
     final String name = rawName.isNotEmpty ? rawName : '-';
 
-    final int timesPerDay = medicine?.timesPerDay ?? 0;
+    final String frequency = _formatFrequency(medicine);
 
-    final String? rawFreqType = medicine?.frequencyType;
+    final String duration = _formatDuration(medicine);
 
-    String frequency = '-';
-
-    if (timesPerDay > 0) {
-      final String frequencyType = rawFreqType == 'daily'
-          ? 'Sehari'
-          : (rawFreqType ?? 'Sehari');
-
-      frequency = '$timesPerDay kali, $frequencyType';
-    }
-
-    final String startDateStr = _formatDateString(medicine?.startDate);
-
-    final String endDateStr = _formatDateString(medicine?.endDate);
-
-    String duration = '-';
-
-    if (startDateStr != '-' && endDateStr != '-') {
-      duration = '$startDateStr - $endDateStr';
-    } else if (startDateStr != '-') {
-      duration = startDateStr;
-    } else if (endDateStr != '-') {
-      duration = endDateStr;
-    }
-
-    final String dosage = medicine?.dosage ?? '-';
+    final String dosage = _formatDosage(medicine);
 
     final String instruction = medicine?.instruction ?? '-';
 
@@ -182,7 +338,9 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               isLoading: _isLoading,
               onNameEdit: _editMedicineName,
             ),
+
             const SizedBox(height: 20),
+
             _isLoading
                 ? _buildShimmerContent()
                 : _buildContent(
@@ -192,6 +350,9 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                     dosage: dosage,
                     instruction: instruction,
                     medicineData: medicineData,
+                    onDosageEdit: _editMedicineDosage,
+                    onInstructionEdit: _editMedicineInstruction,
+                    onScheduleEdit: () {},
                   ),
           ],
         ),
@@ -256,7 +417,9 @@ Widget _buildHeader(
                       ),
                     ),
                   ),
+
                 const Spacer(),
+
                 if (isLoading)
                   Shimmer.fromColors(
                     baseColor: AppColors.accent,
@@ -285,7 +448,9 @@ Widget _buildHeader(
                   ),
               ],
             ),
+
             const SizedBox(height: 12),
+
             if (isLoading)
               Row(
                 children: [
@@ -301,7 +466,9 @@ Widget _buildHeader(
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 20),
+
                   Shimmer.fromColors(
                     baseColor: AppColors.accent,
                     highlightColor: AppColors.primary,
@@ -318,6 +485,7 @@ Widget _buildHeader(
               )
             else
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     name,
@@ -325,7 +493,9 @@ Widget _buildHeader(
                       color: AppColors.textWhite,
                     ),
                   ),
+
                   const SizedBox(width: 20),
+
                   InkWell(
                     focusColor: Colors.transparent,
                     hoverColor: Colors.transparent,
@@ -376,7 +546,9 @@ Widget _buildShimmerContent() {
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
+
                       const Spacer(),
+
                       Container(
                         width: 30,
                         height: 18,
@@ -388,9 +560,13 @@ Widget _buildShimmerContent() {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 const Divider(color: Color(0xFFE7ECF0)),
+
                 const SizedBox(height: 10),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -405,7 +581,9 @@ Widget _buildShimmerContent() {
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 20),
+
                       Expanded(
                         flex: 6,
                         child: Container(
@@ -419,7 +597,9 @@ Widget _buildShimmerContent() {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -434,7 +614,9 @@ Widget _buildShimmerContent() {
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 20),
+
                       Expanded(
                         flex: 6,
                         child: Container(
@@ -452,7 +634,9 @@ Widget _buildShimmerContent() {
             ),
           ),
         ),
+
         const SizedBox(height: 18),
+
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           width: double.infinity,
@@ -477,7 +661,9 @@ Widget _buildShimmerContent() {
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
+
                       const Spacer(),
+
                       Container(
                         width: 30,
                         height: 18,
@@ -489,9 +675,13 @@ Widget _buildShimmerContent() {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 const Divider(color: Color(0xFFE7ECF0)),
+
                 const SizedBox(height: 10),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -506,7 +696,9 @@ Widget _buildShimmerContent() {
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 20),
+
                       Expanded(
                         flex: 6,
                         child: Container(
@@ -520,7 +712,9 @@ Widget _buildShimmerContent() {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 14),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -535,7 +729,9 @@ Widget _buildShimmerContent() {
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 20),
+
                       Expanded(
                         flex: 6,
                         child: Container(
@@ -565,6 +761,9 @@ Widget _buildContent({
   required String dosage,
   required String instruction,
   required Map<String, dynamic> medicineData,
+  required VoidCallback onScheduleEdit,
+  required VoidCallback onDosageEdit,
+  required VoidCallback onInstructionEdit,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -574,13 +773,16 @@ Widget _buildContent({
           context: context,
           frequency: frequency,
           duration: duration,
-          medicineData: medicineData,
+          onEdit: onScheduleEdit,
         ),
+
         const SizedBox(height: 18),
+
         _buildDosage(
           context: context,
           dosage: dosage,
           instruction: instruction,
+          onEdit: onDosageEdit,
         ),
       ],
     ),
@@ -591,7 +793,7 @@ Widget _buildSchedule({
   required BuildContext context,
   required String frequency,
   required String duration,
-  required Map<String, dynamic> medicineData,
+  required VoidCallback onEdit,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -612,17 +814,15 @@ Widget _buildSchedule({
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const Spacer(),
+
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/medicine-edit-schedule',
-                  arguments: medicineData,
-                ),
+                onTap: onEdit,
                 child: Text(
                   'Edit',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -633,11 +833,15 @@ Widget _buildSchedule({
             ],
           ),
         ),
+
         const Divider(color: Color(0xFFE7ECF0)),
+
         const SizedBox(height: 10),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 4,
@@ -646,6 +850,7 @@ Widget _buildSchedule({
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                 ),
               ),
+
               Expanded(
                 flex: 6,
                 child: Text(
@@ -659,10 +864,13 @@ Widget _buildSchedule({
             ],
           ),
         ),
+
         const SizedBox(height: 10),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 4,
@@ -671,6 +879,7 @@ Widget _buildSchedule({
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                 ),
               ),
+
               Expanded(
                 flex: 6,
                 child: Text(
@@ -693,6 +902,7 @@ Widget _buildDosage({
   required BuildContext context,
   required String dosage,
   required String instruction,
+  required VoidCallback onEdit,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -713,14 +923,15 @@ Widget _buildDosage({
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const Spacer(),
+
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () =>
-                    Navigator.pushNamed(context, '/medicine-edit-dosage'),
+                onTap: onEdit,
                 child: Text(
                   'Edit',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -731,11 +942,15 @@ Widget _buildDosage({
             ],
           ),
         ),
+
         const Divider(color: Color(0xFFE7ECF0)),
+
         const SizedBox(height: 10),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 4,
@@ -744,6 +959,7 @@ Widget _buildDosage({
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                 ),
               ),
+
               Expanded(
                 flex: 6,
                 child: Text(
@@ -757,10 +973,13 @@ Widget _buildDosage({
             ],
           ),
         ),
+
         const SizedBox(height: 10),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 flex: 4,
@@ -769,6 +988,7 @@ Widget _buildDosage({
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                 ),
               ),
+
               Expanded(
                 flex: 6,
                 child: Text(

@@ -357,7 +357,8 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
             : _capitalizeWords(_instructionInputted),
 
         startDate: startDate,
-        endDate: startDate,
+
+        endDate: null,
 
         isActive: true,
 

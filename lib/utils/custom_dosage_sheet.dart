@@ -21,12 +21,19 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
   final List<String> dosageUnits = ['Kapsul', 'Tablet', 'Kaplet'];
 
   late int selectedIndex;
+  late FixedExtentScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+
     selectedIndex = dosageUnits.indexOf(widget.initialUnit);
-    if (selectedIndex == -1) selectedIndex = 1;
+
+    if (selectedIndex == -1) {
+      selectedIndex = dosageUnits.indexOf('Tablet');
+    }
+
+    _scrollController = FixedExtentScrollController(initialItem: selectedIndex);
   }
 
   Widget _buildSelectionOverlay() {
@@ -51,6 +58,7 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 12),
+
           SizedBox(
             height: 150,
             child: CupertinoPicker(
@@ -59,18 +67,19 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
               squeeze: 1.0,
               magnification: 1.0,
               useMagnifier: false,
+              scrollController: _scrollController,
               selectionOverlay: _buildSelectionOverlay(),
-              scrollController: FixedExtentScrollController(
-                initialItem: selectedIndex,
-              ),
               onSelectedItemChanged: (index) {
                 setState(() {
                   selectedIndex = index;
                 });
+
                 widget.onSelect(dosageUnits[index]);
               },
-              children: List.generate(dosageUnits.length, (i) {
-                final isSelected = selectedIndex == i;
+
+              children: List.generate(dosageUnits.length, (index) {
+                final isSelected = selectedIndex == index;
+
                 return Center(
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 200),
@@ -83,15 +92,22 @@ class _CustomDosageSheetState extends State<CustomDosageSheet> {
                           ? AppColors.textPrimary
                           : const Color(0xFFCFD8E0),
                     ),
-                    child: Text(dosageUnits[i]),
+                    child: Text(dosageUnits[index]),
                   ),
                 );
               }),
             ),
           ),
+
           const SizedBox(height: 16),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }

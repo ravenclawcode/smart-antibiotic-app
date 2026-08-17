@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -10,7 +11,8 @@ import '../../utils/custom_input_dosage_form.dart';
 
 class MedicineEditDoseAmountScreen extends StatefulWidget {
   final ValueChanged<String>? onNameChanged;
-  const MedicineEditDoseAmountScreen({super.key, required this.onNameChanged});
+
+  const MedicineEditDoseAmountScreen({super.key, this.onNameChanged});
 
   @override
   State<MedicineEditDoseAmountScreen> createState() =>
@@ -21,42 +23,126 @@ class _MedicineEditDoseAmountScreenState
     extends State<MedicineEditDoseAmountScreen> {
   late TextEditingController dosageController;
 
+  MedicineModel? _medicine;
+
   String _initialDosage = '';
+  String _selectedUnit = 'Tablet';
+
   bool _isLoading = true;
   bool _isNextEnabled = false;
+  bool _isInitialized = false;
+  bool _isInitializingForm = true;
 
   @override
   void initState() {
     super.initState();
+
     dosageController = TextEditingController();
     dosageController.addListener(_checkFormChanges);
+
     _fetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    if (arguments is MedicineModel) {
+      _medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      _medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+
+    final dosage = _medicine?.dosage?.trim() ?? '';
+
+    final dosageUnit = _medicine?.dosageUnit?.trim() ?? '';
+
+    _initialDosage = dosage;
+
+    if (dosageUnit.isNotEmpty) {
+      _selectedUnit = dosageUnit;
+    } else {
+      _selectedUnit = 'Tablet';
+    }
+
+    dosageController.text = dosage;
+
+    _isInitializingForm = false;
+
+    _isNextEnabled = false;
   }
 
   Future<void> _fetchData() async {
     await Future.delayed(const Duration(milliseconds: 600));
+
     if (mounted) {
       setState(() {
-        _initialDosage = dosageController.text.trim();
         _isLoading = false;
       });
     }
   }
 
   void _checkFormChanges() {
-    final String currentText = dosageController.text.trim();
-    final bool hasInstructionChanged =
-        currentText != _initialDosage && currentText.isNotEmpty;
+    if (_isInitializingForm) {
+      return;
+    }
 
-    if (_isNextEnabled != hasInstructionChanged) {
+    final String currentText = dosageController.text.trim();
+
+    final String initialUnit = _medicine?.dosageUnit?.trim().isNotEmpty == true
+        ? _medicine!.dosageUnit!.trim()
+        : 'Tablet';
+
+    final bool hasDosageChanged = currentText != _initialDosage;
+
+    final bool hasUnitChanged = _selectedUnit != initialUnit;
+
+    final bool isValid = currentText.isNotEmpty;
+
+    final bool hasChanges = (hasDosageChanged || hasUnitChanged) && isValid;
+
+    if (_isNextEnabled != hasChanges) {
       setState(() {
-        _isNextEnabled = hasInstructionChanged;
+        _isNextEnabled = hasChanges;
       });
     }
 
     if (widget.onNameChanged != null) {
       widget.onNameChanged!(dosageController.text);
     }
+  }
+
+  void _onUnitChanged(String selectedUnit) {
+    setState(() {
+      _selectedUnit = selectedUnit;
+    });
+
+    _checkFormChanges();
+  }
+
+  void _saveChanges() {
+    final medicine = _medicine;
+
+    if (medicine == null) {
+      return;
+    }
+
+    final updatedMedicine = medicine.copyWith(
+      dosage: dosageController.text.trim(),
+      dosageUnit: _selectedUnit,
+    );
+
+    Navigator.pop(context, updatedMedicine);
   }
 
   @override
@@ -81,7 +167,14 @@ class _MedicineEditDoseAmountScreenState
             Expanded(
               child: _isLoading
                   ? _buildShimmerContent()
-                  : _buildContent(context, _isNextEnabled, dosageController),
+                  : _buildContent(
+                      context,
+                      _isNextEnabled,
+                      dosageController,
+                      _selectedUnit,
+                      _onUnitChanged,
+                      _saveChanges,
+                    ),
             ),
             const SizedBox(height: 60),
           ],
@@ -255,14 +348,21 @@ Widget _buildContent(
   BuildContext context,
   bool isNextEnabled,
   TextEditingController dosageController,
+  String selectedUnit,
+  ValueChanged<String> onUnitChanged,
+  VoidCallback saveChanges,
 ) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
       children: [
-        CustomInputDosageForm(controller: dosageController),
+        CustomInputDosageForm(
+          controller: dosageController,
+          initialUnit: selectedUnit,
+          onUnitChanged: onUnitChanged,
+        ),
         const Spacer(),
-        _buildActionButton(context, isNextEnabled, dosageController),
+        _buildActionButton(context, isNextEnabled, saveChanges),
       ],
     ),
   );
@@ -271,14 +371,9 @@ Widget _buildContent(
 Widget _buildActionButton(
   BuildContext context,
   bool isNextEnabled,
-  TextEditingController controller,
+  VoidCallback saveChanges,
 ) {
   return isNextEnabled
-      ? CustomButton(
-          onTap: () {
-            Navigator.pop(context, controller.text.trim());
-          },
-          label: 'Simpan Perubahan',
-        )
+      ? CustomButton(onTap: saveChanges, label: 'Simpan Perubahan')
       : const CustomButtonOff(label: 'Simpan Perubahan');
 }

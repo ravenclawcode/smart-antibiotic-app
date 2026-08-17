@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smart_antibiotic/models/medicine_model.dart';
 import 'package:smart_antibiotic/screens/chatbot/chatbot_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_antibiotik_detail_screen.dart';
 import 'package:smart_antibiotic/screens/education/education_antibiotik_screen.dart';
@@ -98,22 +97,6 @@ class Routes {
   static const String chatbot = '/chatbot';
 }
 
-Map<String, dynamic>? _medicineArgumentsToMap(Object? arguments) {
-  if (arguments is MedicineModel) {
-    return arguments.toJson();
-  }
-
-  if (arguments is Map<String, dynamic>) {
-    return arguments;
-  }
-
-  if (arguments is Map) {
-    return Map<String, dynamic>.from(arguments);
-  }
-
-  return null;
-}
-
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case Routes.main:
@@ -169,19 +152,13 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
       );
     case Routes.medicineEditDoseAmount:
-      final args = _medicineArgumentsToMap(settings.arguments);
       return MaterialPageRoute(
-        builder: (_) => MedicineEditDoseAmountScreen(
-          onNameChanged: args?['onNameChanged'] ?? (value) {},
-        ),
+        builder: (_) => const MedicineEditDoseAmountScreen(),
         settings: settings,
       );
     case Routes.medicineEditInstruction:
-      final args = _medicineArgumentsToMap(settings.arguments);
       return MaterialPageRoute(
-        builder: (_) => MedicineEditInstructionScreen(
-          onNameChanged: args?['onNameChanged'] ?? (value) {},
-        ),
+        builder: (_) => const MedicineEditInstructionScreen(),
         settings: settings,
       );
 

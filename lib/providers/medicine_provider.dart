@@ -41,7 +41,7 @@ class MedicineProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _errorMessage = e.message;
       return false;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Gagal mengambil data obat.';
       return false;
     } finally {
@@ -69,7 +69,7 @@ class MedicineProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _errorMessage = e.message;
       return null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Gagal menyimpan obat.';
       return null;
     } finally {
@@ -104,7 +104,7 @@ class MedicineProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _errorMessage = e.message;
       return null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Gagal memperbarui obat.';
       return null;
     } finally {
@@ -132,7 +132,7 @@ class MedicineProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _errorMessage = e.message;
       return false;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Gagal menghapus obat.';
       return false;
     } finally {
@@ -147,6 +147,7 @@ class MedicineProvider extends ChangeNotifier {
     }
 
     _errorMessage = null;
+
     notifyListeners();
   }
 }

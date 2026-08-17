@@ -1,12 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/custom_dosage_sheet.dart';
+
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
-class CustomInputDosageForm extends StatelessWidget {
+class CustomInputDosageForm extends StatefulWidget {
   final TextEditingController controller;
+  final String initialUnit;
+  final ValueChanged<String>? onUnitChanged;
 
-  const CustomInputDosageForm({super.key, required this.controller});
+  const CustomInputDosageForm({
+    super.key,
+    required this.controller,
+    this.initialUnit = 'Tablet',
+    this.onUnitChanged,
+  });
+
+  @override
+  State<CustomInputDosageForm> createState() => _CustomInputDosageFormState();
+}
+
+class _CustomInputDosageFormState extends State<CustomInputDosageForm> {
+  late String _selectedUnit;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _selectedUnit = widget.initialUnit.isNotEmpty
+        ? widget.initialUnit
+        : 'Tablet';
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomInputDosageForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.initialUnit != oldWidget.initialUnit &&
+        widget.initialUnit.isNotEmpty &&
+        widget.initialUnit != _selectedUnit) {
+      setState(() {
+        _selectedUnit = widget.initialUnit;
+      });
+    }
+  }
+
+  void _showDosageSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return CustomDosageSheet(
+          initialUnit: _selectedUnit,
+          onSelect: (selectedUnit) {
+            setState(() {
+              _selectedUnit = selectedUnit;
+            });
+
+            widget.onUnitChanged?.call(selectedUnit);
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +84,7 @@ class CustomInputDosageForm extends StatelessWidget {
                   vertical: 4,
                 ),
                 child: TextField(
-                  controller: controller,
+                  controller: widget.controller,
                   maxLines: 1,
                   keyboardType: TextInputType.number,
                   style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
@@ -54,17 +111,7 @@ class CustomInputDosageForm extends StatelessWidget {
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => CustomDosageSheet(
-                      initialUnit: 'Tablet',
-                      onSelect: (selectedUnit) {},
-                    ),
-                  );
-                },
+                onTap: _showDosageSheet,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -74,7 +121,7 @@ class CustomInputDosageForm extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Tablet',
+                        _selectedUnit,
                         style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                       ),
                       Icon(
