@@ -301,7 +301,7 @@ Widget _buildShimmerContent() {
             height: 70,
             decoration: BoxDecoration(
               color: AppColors.surfacePrimary,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(40),
             ),
           ),
         ),

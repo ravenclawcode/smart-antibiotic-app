@@ -36,7 +36,7 @@ class _SettingsAlarmOptimizationScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkPermissions();
+    _checkPermissions(isInitialLoad: true);
   }
 
   @override
@@ -48,11 +48,15 @@ class _SettingsAlarmOptimizationScreenState
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkPermissions();
+      _checkPermissions(isInitialLoad: false);
     }
   }
 
-  Future<void> _checkPermissions() async {
+  Future<void> _checkPermissions({bool isInitialLoad = false}) async {
+    if (isInitialLoad) {
+      await Future.delayed(const Duration(milliseconds: 600));
+    }
+
     final notification = await Permission.notification.status.isGranted;
     final overlay = await Permission.systemAlertWindow.status.isGranted;
     final battery =
@@ -80,7 +84,7 @@ class _SettingsAlarmOptimizationScreenState
     } else {
       await openAppSettings();
     }
-    _checkPermissions();
+    _checkPermissions(isInitialLoad: false);
   }
 
   @override
@@ -421,6 +425,7 @@ class _SettingsAlarmOptimizationScreenState
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       width: double.infinity,
+                      height: 100,
                       decoration: BoxDecoration(
                         color: AppColors.surfacePrimary,
                         borderRadius: BorderRadius.circular(13),

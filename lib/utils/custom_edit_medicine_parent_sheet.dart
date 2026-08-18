@@ -10,6 +10,8 @@ import 'package:smart_antibiotic/utils/custom_medicine_many_times_month_sheet.da
 import 'package:smart_antibiotic/utils/custom_medicine_set_interval_sheet.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_set_schedule_hour_sheet.dart';
 
+import '../models/medicine_model.dart';
+
 enum StepType {
   frequency,
   interval,
@@ -21,7 +23,15 @@ enum StepType {
 }
 
 class CustomEditMedicineParentSheet extends StatefulWidget {
-  const CustomEditMedicineParentSheet({super.key});
+  final MedicineModel medicine;
+
+  final Function(MedicineModel medicine)? onSave;
+
+  const CustomEditMedicineParentSheet({
+    super.key,
+    required this.medicine,
+    this.onSave,
+  });
 
   @override
   State<CustomEditMedicineParentSheet> createState() =>
@@ -47,6 +57,8 @@ class _CustomEditMedicineParentSheetState
   String _intervalValue = '1';
   List<int> _selectedDaysOfWeek = [];
   String _selectedMonthDates = '';
+
+  bool _isInitialized = false;
 
   int _timesPerDay = 1;
   List<TimeOfDay> _scheduleTimes = [const TimeOfDay(hour: 7, minute: 0)];
@@ -120,6 +132,105 @@ class _CustomEditMedicineParentSheetState
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final medicine = widget.medicine;
+
+    _selectedFrequency = _frequencyLabel(
+      medicine.frequencyType,
+      medicine.timesPerDay,
+    );
+
+    _intervalValue = (medicine.intervalValue ?? 1).toString();
+
+    _timesPerDay = medicine.timesPerDay > 0 ? medicine.timesPerDay : 1;
+
+    _selectedDaysOfWeek = List<int>.from(medicine.days);
+
+    _selectedMonthDates = medicine.dates.join(',');
+
+    final medicineTimes = List<String>.from(medicine.times);
+
+    if (medicineTimes.isNotEmpty) {
+      _scheduleTimes = medicineTimes.map((time) {
+        final parts = time.split(':');
+
+        return TimeOfDay(
+          hour: int.tryParse(parts.first) ?? 7,
+          minute: parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0,
+        );
+      }).toList();
+
+      if (_scheduleTimes.length != _timesPerDay) {
+        _normalizeScheduleTimes();
+      }
+    } else {
+      _generateDefaultSchedules();
+    }
+  }
+
+  void _normalizeScheduleTimes() {
+    final defaultHours = [8, 13, 16, 20, 22, 23];
+
+    final List<TimeOfDay> normalized = [];
+
+    for (int i = 0; i < _timesPerDay; i++) {
+      if (i < _scheduleTimes.length) {
+        normalized.add(_scheduleTimes[i]);
+      } else {
+        final hour = i < defaultHours.length
+            ? defaultHours[i]
+            : (8 + (i * 2)) % 24;
+
+        normalized.add(TimeOfDay(hour: hour, minute: 0));
+      }
+    }
+
+    _scheduleTimes = normalized;
+  }
+
+  String _frequencyLabel(String frequencyType, int timesPerDay) {
+    switch (frequencyType) {
+      case 'daily':
+        if (timesPerDay == 1) {
+          return '1 kali sehari';
+        }
+
+        if (timesPerDay == 2) {
+          return '2 kali sehari';
+        }
+
+        if (timesPerDay == 3) {
+          return '3 kali sehari';
+        }
+
+        return 'Lebih dari 3 kali sehari';
+
+      case 'certain_days':
+        return 'Hari Tertentu';
+
+      case 'interval_days':
+        return 'Setiap X Hari';
+
+      case 'interval_weeks':
+        return 'Setiap X Minggu';
+
+      case 'interval_months':
+        return 'Setiap X Bulan';
+
+      default:
+        return '1 kali sehari';
+    }
+  }
+
   void _updateScheduleTime(int index, TimeOfDay newTime) {
     setState(() {
       _scheduleTimes[index] = newTime;
@@ -127,7 +238,9 @@ class _CustomEditMedicineParentSheetState
   }
 
   void _onFrequencySelected(String frequency) {
-    if (_selectedFrequency == frequency) return;
+    if (_selectedFrequency == frequency) {
+      return;
+    }
 
     setState(() {
       _selectedFrequency = frequency;
@@ -149,6 +262,7 @@ class _CustomEditMedicineParentSheetState
       }
 
       _generateDefaultSchedules();
+
       _currentPageIndex = 0;
     });
 
@@ -233,10 +347,78 @@ class _CustomEditMedicineParentSheetState
 
   Future<void> _submitData() async {
     try {
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      final oldMedicine = widget.medicine;
+
+      final List<int> monthDates = _selectedMonthDates
+          .split(',')
+          .map((e) => int.tryParse(e.trim()))
+          .whereType<int>()
+          .toList();
+
+      final updatedMedicine = oldMedicine.copyWith(
+        frequencyType: _getFrequencyType(),
+        timesPerDay: _timesPerDay,
+        intervalValue: _getIntervalValue(),
+        days: List<int>.from(_selectedDaysOfWeek),
+        dates: monthDates,
+        times: _scheduleTimes.map((time) {
+          return '${time.hour.toString().padLeft(2, '0')}:'
+              '${time.minute.toString().padLeft(2, '0')}';
+        }).toList(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (widget.onSave != null) {
+        widget.onSave!(updatedMedicine);
+      }
+
+      Navigator.pop(context, updatedMedicine);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pop(context);
+    }
+  }
+
+  String _getFrequencyType() {
+    switch (_selectedFrequency) {
+      case '1 kali sehari':
+      case '2 kali sehari':
+      case '3 kali sehari':
+      case 'Lebih dari 3 kali sehari':
+        return 'daily';
+
+      case 'Hari Tertentu':
+        return 'certain_days';
+
+      case 'Setiap X Hari':
+        return 'interval_days';
+
+      case 'Setiap X Minggu':
+        return 'interval_weeks';
+
+      case 'Setiap X Bulan':
+        return 'interval_months';
+
+      default:
+        return widget.medicine.frequencyType;
+    }
+  }
+
+  int? _getIntervalValue() {
+    switch (_getFrequencyType()) {
+      case 'interval_days':
+      case 'interval_weeks':
+      case 'interval_months':
+        return int.tryParse(_intervalValue);
+
+      default:
+        return null;
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_change_hour_sheet.dart';
@@ -19,10 +20,67 @@ class _MedicineEditScheduleScreenState
     extends State<MedicineEditScheduleScreen> {
   bool _isLoading = true;
 
+  MedicineModel? _medicine;
+
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    MedicineModel? medicine;
+
+    if (arguments is MedicineModel) {
+      medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+
+    _medicine = medicine;
+  }
+
+  Future<void> _showLoading() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Map<String, dynamic> _buildMedicineData() {
+    if (_medicine == null) {
+      return {};
+    }
+
+    return _medicine!.toJson();
   }
 
   Future<void> _fetchData() async {
@@ -67,24 +125,70 @@ class _MedicineEditScheduleScreenState
         return CustomChangeHourSheet(
           slotIndex: index,
           initialTime: initialTime,
-          onSave: (newTime) {},
+          onSave: (newTime) {
+            if (_medicine == null) {
+              return;
+            }
+
+            final currentTimes = List<String>.from(_medicine!.times);
+
+            final formattedTime =
+                '${newTime.hour.toString().padLeft(2, '0')}:'
+                '${newTime.minute.toString().padLeft(2, '0')}';
+
+            if (index >= currentTimes.length) {
+              return;
+            }
+
+            currentTimes[index] = formattedTime;
+
+            setState(() {
+              _medicine = _medicine!.copyWith(times: currentTimes);
+            });
+          },
         );
       },
     );
   }
 
+  String _buildFrequencyText(String frequencyType, int timesPerDay) {
+    switch (frequencyType) {
+      case 'daily':
+        return '$timesPerDay kali, Sehari';
+
+      case 'certain_days':
+        return 'Hari Tertentu';
+
+      case 'interval_days':
+        final interval = _medicine?.intervalValue ?? 1;
+        return 'Setiap $interval hari';
+
+      case 'interval_weeks':
+        final interval = _medicine?.intervalValue ?? 1;
+        return 'Setiap $interval minggu';
+
+      case 'interval_months':
+        final interval = _medicine?.intervalValue ?? 1;
+        return 'Setiap $interval bulan';
+
+      default:
+        return '$timesPerDay kali, Sehari';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final medicineData =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-        {};
+    final medicineData = _buildMedicineData();
 
-    final int timesPerDay = (medicineData['times_per_day'] as int?) ?? 1;
+    final int timesPerDay =
+        (_medicine?.timesPerDay ?? medicineData['times_per_day'] ?? 1) as int;
+
     final String frequencyType =
-        (medicineData['frequency_type'] as String?) == 'daily'
-        ? 'Sehari'
-        : (medicineData['frequency_type'] as String? ?? 'Sehari');
-    final String frequency = '$timesPerDay kali, $frequencyType';
+        _medicine?.frequencyType ??
+        (medicineData['frequency_type'] as String?) ??
+        'daily';
+
+    final String frequency = _buildFrequencyText(frequencyType, timesPerDay);
 
     final String startDateStr = _formatDateString(
       medicineData['start_date'] as String?,
@@ -94,16 +198,17 @@ class _MedicineEditScheduleScreenState
     );
 
     String duration = '-';
+
     if (startDateStr != '-' && endDateStr != '-') {
       duration = '$startDateStr - $endDateStr';
     } else if (startDateStr != '-') {
-      duration = startDateStr;
+      duration = '$startDateStr -';
     } else if (endDateStr != '-') {
-      duration = endDateStr;
+      duration = '- $endDateStr';
     }
 
     final List<dynamic> timesList =
-        (medicineData['times'] as List<dynamic>?) ?? [];
+        _medicine?.times ?? (medicineData['times'] as List<dynamic>?) ?? [];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -114,7 +219,7 @@ class _MedicineEditScheduleScreenState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context, isLoading: _isLoading),
+            _buildHeader(context, isLoading: _isLoading, medicine: _medicine),
             const SizedBox(height: 20),
             Expanded(
               child: _isLoading
@@ -131,10 +236,12 @@ class _MedicineEditScheduleScreenState
                           hour: 7,
                           minute: 0,
                         );
+
                         if (index < timesList.length) {
                           final timeParts = timesList[index].toString().split(
                             ':',
                           );
+
                           if (timeParts.length == 2) {
                             initialTime = TimeOfDay(
                               hour: int.tryParse(timeParts[0]) ?? 7,
@@ -142,8 +249,16 @@ class _MedicineEditScheduleScreenState
                             );
                           }
                         }
+
                         _openChangeHourSheet(index, initialTime);
                       },
+                      medicine: _medicine,
+                      onMedicineChanged: (updatedMedicine) {
+                        setState(() {
+                          _medicine = updatedMedicine;
+                        });
+                      },
+                      onLoading: _showLoading,
                     ),
             ),
           ],
@@ -153,7 +268,11 @@ class _MedicineEditScheduleScreenState
   }
 }
 
-Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+Widget _buildHeader(
+  BuildContext context, {
+  required bool isLoading,
+  required MedicineModel? medicine,
+}) {
   return Container(
     height: 115,
     width: double.infinity,
@@ -183,7 +302,9 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pop(context, medicine);
+                },
                 child: Container(
                   width: 36,
                   height: 36,
@@ -366,6 +487,9 @@ Widget _buildContent({
   required int timesPerDay,
   required Map<String, dynamic> medicineData,
   required Function(int) onSlotTapped,
+  required MedicineModel? medicine,
+  required Function(MedicineModel) onMedicineChanged,
+  required Future<void> Function() onLoading,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -377,12 +501,17 @@ Widget _buildContent({
           times: times,
           timesPerDay: timesPerDay,
           onSlotTapped: onSlotTapped,
+          medicine: medicine,
+          onMedicineChanged: onMedicineChanged,
         ),
         const SizedBox(height: 18),
         _buildDuration(
           context: context,
           duration: duration,
           medicineData: medicineData,
+          medicine: medicine,
+          onMedicineChanged: onMedicineChanged,
+          onLoading: onLoading,
         ),
       ],
     ),
@@ -395,6 +524,8 @@ Widget _buildFrequency({
   required List<dynamic> times,
   required int timesPerDay,
   required Function(int) onSlotTapped,
+  required MedicineModel? medicine,
+  required Function(MedicineModel) onMedicineChanged,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -433,6 +564,10 @@ Widget _buildFrequency({
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
                 onTap: () {
+                  if (medicine == null) {
+                    return;
+                  }
+
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
@@ -440,7 +575,12 @@ Widget _buildFrequency({
                     builder: (context) {
                       return FractionallySizedBox(
                         heightFactor: 0.85,
-                        child: const CustomEditMedicineParentSheet(),
+                        child: CustomEditMedicineParentSheet(
+                          medicine: medicine,
+                          onSave: (updatedMedicine) {
+                            onMedicineChanged(updatedMedicine);
+                          },
+                        ),
                       );
                     },
                   );
@@ -455,11 +595,15 @@ Widget _buildFrequency({
             ],
           ),
         ),
+
         const Divider(color: Color(0xFFE7ECF0)),
+
         const SizedBox(height: 10),
+
         Column(
           children: List.generate(times.isNotEmpty ? times.length : 1, (index) {
             final timeText = times.isNotEmpty ? times[index].toString() : '-';
+
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
@@ -468,7 +612,9 @@ Widget _buildFrequency({
                     'Minum ke-${index + 1}',
                     style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                   ),
+
                   const Spacer(),
+
                   InkWell(
                     focusColor: Colors.transparent,
                     hoverColor: Colors.transparent,
@@ -501,6 +647,9 @@ Widget _buildDuration({
   required BuildContext context,
   required String duration,
   required Map<String, dynamic> medicineData,
+  required MedicineModel? medicine,
+  required Function(MedicineModel) onMedicineChanged,
+  required Future<void> Function() onLoading,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -521,17 +670,37 @@ Widget _buildDuration({
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const Spacer(),
+
               InkWell(
                 focusColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/medicine-edit-duration',
-                  arguments: medicineData,
-                ),
+
+                onTap: () async {
+                  if (medicine == null) {
+                    return;
+                  }
+
+                  final result = await Navigator.pushNamed(
+                    context,
+                    '/medicine-edit-duration',
+                    arguments: medicine,
+                  );
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  if (result is MedicineModel) {
+                    onMedicineChanged(result);
+
+                    await onLoading();
+                  }
+                },
+
                 child: Text(
                   duration,
                   style: AppTextStyles.bodyMedium.copyWith(

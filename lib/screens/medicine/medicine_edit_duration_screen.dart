@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/custom_duration_sheet.dart';
 
+import '../../models/medicine_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 
@@ -20,6 +21,7 @@ class _MedicineEditDurationScreenState
   DateTime? endDate;
   bool isInitialized = false;
   bool _isLoading = true;
+  MedicineModel? _medicine;
 
   @override
   void initState() {
@@ -36,26 +38,51 @@ class _MedicineEditDurationScreenState
     }
   }
 
+  void _saveDuration() {
+    if (_medicine == null) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final updatedMedicine = _medicine!.copyWith(
+      startDate: startDate?.toIso8601String(),
+      endDate: endDate?.toIso8601String(),
+    );
+
+    Navigator.pop(context, updatedMedicine);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!isInitialized) {
-      final medicineData =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-          {};
 
-      final startDateStr = medicineData['start_date'] as String?;
-      final endDateStr = medicineData['end_date'] as String?;
-
-      if (startDateStr != null && startDateStr.isNotEmpty) {
-        startDate = DateTime.tryParse(startDateStr);
-      }
-      if (endDateStr != null && endDateStr.isNotEmpty) {
-        endDate = DateTime.tryParse(endDateStr);
-      }
-
-      isInitialized = true;
+    if (isInitialized) {
+      return;
     }
+
+    isInitialized = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+
+    MedicineModel? medicine;
+
+    if (arguments is MedicineModel) {
+      medicine = arguments;
+    } else if (arguments is Map<String, dynamic>) {
+      medicine = MedicineModel.fromJson(arguments);
+    } else if (arguments is Map) {
+      medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+    }
+
+    _medicine = medicine;
+
+    startDate = medicine?.startDate != null
+        ? DateTime.tryParse(medicine!.startDate!)
+        : null;
+
+    endDate = medicine?.endDate != null
+        ? DateTime.tryParse(medicine!.endDate!)
+        : null;
   }
 
   String _formatDate(DateTime? date) {
@@ -88,7 +115,7 @@ class _MedicineEditDurationScreenState
       child: Scaffold(
         body: Column(
           children: [
-            _buildHeader(context, isLoading: _isLoading),
+            _buildHeader(context, isLoading: _isLoading, onSave: _saveDuration),
             const SizedBox(height: 20),
             Expanded(
               child: _isLoading
@@ -224,7 +251,11 @@ class _MedicineEditDurationScreenState
   }
 }
 
-Widget _buildHeader(BuildContext context, {required bool isLoading}) {
+Widget _buildHeader(
+  BuildContext context, {
+  required bool isLoading,
+  required VoidCallback onSave,
+}) {
   return Container(
     height: 115,
     width: double.infinity,
@@ -254,7 +285,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                onTap: () => Navigator.pop(context),
+                onTap: onSave,
                 child: Container(
                   width: 36,
                   height: 36,

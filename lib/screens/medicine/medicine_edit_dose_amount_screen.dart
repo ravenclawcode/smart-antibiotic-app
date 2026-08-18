@@ -259,87 +259,97 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 }
 
 Widget _buildShimmerContent() {
-  return Align(
-    alignment: Alignment.topCenter,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE7ECF0), width: 1),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 19,
-                  ),
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.surfaceSecondary,
-                    highlightColor: AppColors.surfaceCool,
-                    child: Row(
-                      children: [
-                        Container(
-                          height: 18,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE7ECF0), width: 1),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 19,
+                    ),
+                    child: Shimmer.fromColors(
+                      baseColor: AppColors.surfaceSecondary,
+                      highlightColor: AppColors.surfaceCool,
+                      child: Container(
+                        height: 18,
+                        width: 20,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfacePrimary,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const VerticalDivider(
-                width: 1,
-                thickness: 1,
-                color: Color(0xFFE7ECF0),
-              ),
-              Expanded(
-                flex: 6,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 19,
-                  ),
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.surfaceSecondary,
-                    highlightColor: AppColors.surfaceCool,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            borderRadius: BorderRadius.circular(4),
+                const VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: Color(0xFFE7ECF0),
+                ),
+                Expanded(
+                  flex: 6,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 19,
+                    ),
+                    child: Shimmer.fromColors(
+                      baseColor: AppColors.surfaceSecondary,
+                      highlightColor: AppColors.surfaceCool,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                        ),
-                        Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: AppColors.surfacePrimary,
-                            borderRadius: BorderRadius.circular(2),
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfacePrimary,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        const Spacer(),
+        Shimmer.fromColors(
+          baseColor: AppColors.surfaceSecondary,
+          highlightColor: AppColors.surfaceCool,
+          child: Container(
+            width: double.infinity,
+            height: 70, 
+            decoration: BoxDecoration(
+              color: AppColors.surfacePrimary,
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
+        ),
+      ],
     ),
   );
 }

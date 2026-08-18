@@ -67,6 +67,26 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     });
   }
 
+  Future<void> _editMedicineDuration() async {
+    if (_medicine == null) {
+      return;
+    }
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/medicine-edit-duration',
+      arguments: _medicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result is MedicineModel) {
+      await _saveEditedMedicine(result);
+    }
+  }
+
   void _deleteMedicine() async {
     showDialog(
       context: context,
@@ -263,6 +283,26 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     }
   }
 
+  Future<void> _editMedicineSchedule() async {
+    if (_medicine == null) {
+      return;
+    }
+
+    final result = await Navigator.pushNamed(
+      context,
+      '/medicine-edit-schedule',
+      arguments: _medicine,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result is MedicineModel) {
+      await _saveEditedMedicine(result);
+    }
+  }
+
   Future<void> _editMedicineDosage() async {
     if (_medicine == null) {
       return;
@@ -352,7 +392,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                     medicineData: medicineData,
                     onDosageEdit: _editMedicineDosage,
                     onInstructionEdit: _editMedicineInstruction,
-                    onScheduleEdit: () {},
+                    onScheduleEdit: _editMedicineSchedule,
+                    onDurationEdit: _editMedicineDuration,
                   ),
           ],
         ),
@@ -764,6 +805,7 @@ Widget _buildContent({
   required VoidCallback onScheduleEdit,
   required VoidCallback onDosageEdit,
   required VoidCallback onInstructionEdit,
+  required VoidCallback onDurationEdit,
 }) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -774,6 +816,7 @@ Widget _buildContent({
           frequency: frequency,
           duration: duration,
           onEdit: onScheduleEdit,
+          onDurationEdit: onDurationEdit,
         ),
 
         const SizedBox(height: 18),
@@ -794,6 +837,7 @@ Widget _buildSchedule({
   required String frequency,
   required String duration,
   required VoidCallback onEdit,
+  required VoidCallback onDurationEdit,
 }) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 16),
