@@ -3,7 +3,9 @@ import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
 class CustomDialogDeleteMedicine extends StatefulWidget {
-  const CustomDialogDeleteMedicine({super.key});
+  final String medicineName;
+
+  const CustomDialogDeleteMedicine({super.key, required this.medicineName});
 
   @override
   State<CustomDialogDeleteMedicine> createState() =>
@@ -23,14 +25,24 @@ class _CustomDialogDeleteMedicineState
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
           child: Container(
-            padding: EdgeInsets.only(top: 26, bottom: 30, left: 26, right: 26),
+            padding: const EdgeInsets.only(
+              top: 26,
+              bottom: 30,
+              left: 26,
+              right: 26,
+            ),
             decoration: BoxDecoration(color: AppColors.surfacePrimary),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hapus Amoxicillin', style: AppTextStyles.titleMedium),
-                SizedBox(height: 14),
+                Text(
+                  'Hapus ${widget.medicineName}',
+                  style: AppTextStyles.titleMedium,
+                ),
+
+                const SizedBox(height: 14),
+
                 Text(
                   'Menghapus obat ini akan menghentikan semua pengingat di masa mendatang',
                   style: AppTextStyles.bodyMedium.copyWith(
@@ -38,7 +50,9 @@ class _CustomDialogDeleteMedicineState
                     color: AppColors.textSecondary,
                   ),
                 ),
-                SizedBox(height: 14),
+
+                const SizedBox(height: 14),
+
                 Row(
                   children: [
                     Text(
@@ -46,7 +60,9 @@ class _CustomDialogDeleteMedicineState
                       style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                       textAlign: TextAlign.center,
                     ),
-                    Spacer(),
+
+                    const Spacer(),
+
                     InkWell(
                       focusColor: Colors.transparent,
                       hoverColor: Colors.transparent,
@@ -93,7 +109,9 @@ class _CustomDialogDeleteMedicineState
                     ),
                   ],
                 ),
-                SizedBox(height: 40),
+
+                const SizedBox(height: 40),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -109,11 +127,12 @@ class _CustomDialogDeleteMedicineState
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 18),
+
                     InkWell(
                       onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
+                        Navigator.of(context).pop(isReminderOn);
                       },
                       child: Text(
                         'HAPUS',

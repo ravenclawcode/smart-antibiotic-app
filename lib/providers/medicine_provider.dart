@@ -141,6 +141,34 @@ class MedicineProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> deleteMedicinePermanent(int id) async {
+    if (_isSaving) {
+      return false;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      await medicineService.deleteMedicinePermanent(id);
+
+      _medicines.removeWhere((item) => item.id == id);
+
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Gagal menghapus obat secara permanen.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   void clearError() {
     if (_errorMessage == null) {
       return;

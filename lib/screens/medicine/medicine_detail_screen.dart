@@ -87,11 +87,62 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     }
   }
 
-  void _deleteMedicine() async {
-    showDialog(
+  Future<void> _deleteMedicine() async {
+    if (_medicine == null || _medicine!.id == null) {
+      return;
+    }
+
+    final medicine = _medicine!;
+
+    final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => const CustomDialogDeleteMedicine(),
+      builder: (dialogContext) {
+        return CustomDialogDeleteMedicine(medicineName: medicine.name);
+      },
     );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result == null) {
+      return;
+    }
+
+    final medicineProvider = context.read<MedicineProvider>();
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    bool success;
+
+    if (result) {
+      success = await medicineProvider.deleteMedicine(medicine.id!);
+    } else {
+      success = await medicineProvider.deleteMedicinePermanent(medicine.id!);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!success) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      final errorMessage =
+          medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+
+      return;
+    }
+
+    Navigator.of(context).pop();
   }
 
   String _formatDateString(String? dateStr) {
@@ -167,28 +218,28 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         return '$timesPerDay kali sehari';
 
       case 'certain_days':
-        return 'Hari tertentu';
+        return 'Hari Tertentu';
 
       case 'interval_days':
         if (intervalValue == null || intervalValue <= 0) {
           return 'Setiap beberapa hari';
         }
 
-        return 'Setiap $intervalValue hari';
+        return 'Setiap $intervalValue Hari';
 
       case 'interval_weeks':
         if (intervalValue == null || intervalValue <= 0) {
           return 'Setiap beberapa minggu';
         }
 
-        return 'Setiap $intervalValue minggu';
+        return 'Setiap $intervalValue Minggu';
 
       case 'interval_months':
         if (intervalValue == null || intervalValue <= 0) {
           return 'Setiap beberapa bulan';
         }
 
-        return 'Setiap $intervalValue bulan';
+        return 'Setiap $intervalValue Bulan';
 
       default:
         return '-';

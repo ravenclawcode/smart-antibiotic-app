@@ -97,7 +97,9 @@ class CustomDialogMedicine extends StatelessWidget {
                                       showDialog(
                                         context: context,
                                         builder: (dialogContext) =>
-                                            const CustomDialogDeleteMedicine(),
+                                            const CustomDialogDeleteMedicine(
+                                              medicineName: '',
+                                            ),
                                       );
                                     } else {
                                       Navigator.pop(context);

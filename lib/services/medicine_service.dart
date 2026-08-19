@@ -149,4 +149,27 @@ class MedicineService {
       );
     }
   }
+
+  Future<void> deleteMedicinePermanent(int id) async {
+    final uuid = await _getUserUuid();
+
+    final response = await apiClient.delete(
+      '${ApiConstants.medicines}/$id/permanent',
+      headers: {'X-User-UUID': uuid},
+    );
+
+    if (response is! Map) {
+      throw const ApiException(
+        message: 'Response hapus permanen obat tidak valid.',
+      );
+    }
+
+    if (response['success'] != true) {
+      throw ApiException(
+        message:
+            response['message']?.toString() ??
+            'Gagal menghapus obat secara permanen.',
+      );
+    }
+  }
 }
