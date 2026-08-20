@@ -1,8 +1,8 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
-  // static const String baseUrl = 'http://10.125.192.109:8000/api';
+  // static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'http://10.125.192.109:8000/api';
 
   // Public
   static const String onboarding = '/onboarding';
@@ -30,4 +30,17 @@ class ApiConstants {
   // Medicine
   static const String medicines = '/medicines';
   static const String medicineCatalogs = '/medicine-catalogs';
+
+  // Medicine History
+  static const String medicineHistories = '/medicine-histories';
+  static const String medicineHistoryFilterMedicines =
+      '/medicine-histories/filter-medicines';
+  static const String medicineHistoryExportPdf =
+      '/medicine-histories/export-pdf';
+  static const String medicineHistoryTaken = '/medicine-histories/taken';
+  static const String medicineHistorySkipped = '/medicine-histories/skipped';
+  static const String medicineHistoryReschedule =
+      '/medicine-histories/reschedule';
+  static const String medicineHistoryMissed = '/medicine-histories/missed';
+  static const String medicineHistoryCancel = '/medicine-histories/cancel';
 }

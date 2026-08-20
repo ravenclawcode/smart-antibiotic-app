@@ -7,11 +7,13 @@ import 'package:smart_antibiotic/utils/custom_input_medicine_form.dart';
 class CustomDialogHistory extends StatefulWidget {
   final String? initialMedicine;
   final String? initialFormat;
+  final List<Map<String, dynamic>> medicines;
 
   const CustomDialogHistory({
     super.key,
     this.initialMedicine,
     this.initialFormat,
+    required this.medicines,
   });
 
   @override
@@ -19,25 +21,25 @@ class CustomDialogHistory extends StatefulWidget {
 }
 
 class _CustomDialogHistoryState extends State<CustomDialogHistory> {
-  late TextEditingController _medicineController;
-  late TextEditingController _frequencyController;
+  String? _selectedMedicineId;
+  String? _selectedMedicine;
+  String? _selectedFormat;
 
   @override
   void initState() {
     super.initState();
-    _medicineController = TextEditingController(
-      text: widget.initialMedicine ?? '',
-    );
-    _frequencyController = TextEditingController(
-      text: widget.initialFormat ?? '',
-    );
-  }
 
-  @override
-  void dispose() {
-    _medicineController.dispose();
-    _frequencyController.dispose();
-    super.dispose();
+    _selectedMedicine = widget.initialMedicine;
+    _selectedFormat = widget.initialFormat;
+
+    if (_selectedMedicine != null) {
+      final medicine = widget.medicines.firstWhere(
+        (item) => item['name']?.toString() == _selectedMedicine,
+        orElse: () => <String, dynamic>{},
+      );
+
+      _selectedMedicineId = medicine['medicine_id']?.toString();
+    }
   }
 
   @override
@@ -57,11 +59,29 @@ class _CustomDialogHistoryState extends State<CustomDialogHistory> {
               children: [
                 Text('Obat', style: AppTextStyles.bodyLarge),
                 const SizedBox(height: 10),
-                CustomInputMedicineForm(controller: _medicineController),
+                CustomInputMedicineForm(
+                  medicines: widget.medicines,
+                  selectedMedicine: _selectedMedicine,
+                  onChanged: (medicine) {
+                    setState(() {
+                      _selectedMedicineId = medicine?['medicine_id']
+                          ?.toString();
+
+                      _selectedMedicine = medicine?['name']?.toString();
+                    });
+                  },
+                ),
                 const SizedBox(height: 24),
                 Text('Format Laporan', style: AppTextStyles.bodyLarge),
                 const SizedBox(height: 10),
-                CustomInputFrequencyForm(controller: _frequencyController),
+                CustomInputFrequencyForm(
+                  selectedValue: _selectedFormat,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFormat = value;
+                    });
+                  },
+                ),
                 const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -81,9 +101,17 @@ class _CustomDialogHistoryState extends State<CustomDialogHistory> {
                     const SizedBox(width: 18),
                     InkWell(
                       onTap: () {
+                        if (_selectedMedicine == null ||
+                            _selectedMedicine!.isEmpty ||
+                            _selectedFormat == null ||
+                            _selectedFormat!.isEmpty) {
+                          return;
+                        }
+
                         Navigator.of(context).pop({
-                          'medicine': _medicineController.text,
-                          'format': _frequencyController.text,
+                          'medicineId': _selectedMedicineId ?? '',
+                          'medicine': _selectedMedicine!,
+                          'format': _selectedFormat!,
                         });
                       },
                       child: Text(

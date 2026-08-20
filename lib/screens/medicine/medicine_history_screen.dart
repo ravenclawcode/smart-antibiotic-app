@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../providers/medicine_history_provider.dart';
 import '../../utils/app_assets.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
@@ -28,6 +28,10 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
   String _dateRangeText = '';
 
   List<Map<String, dynamic>> _historyItems = [];
+
+  List<Map<String, dynamic>> _medicineOptions = [];
+
+  String? _selectedMedicineId;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -55,170 +59,183 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
           ),
         );
 
-    _fetchData();
-  }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+      _fetchData();
+    });
   }
 
   Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    final provider = context.read<MedicineHistoryProvider>();
+
+    await Future.wait([
+      provider.fetchHistory(format: 'daily'),
+      provider.fetchMedicineOptions(),
+    ]);
+
+    if (!mounted) {
+      return;
     }
-  }
 
-  void _filterMedicine() async {
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => CustomDialogHistory(
-        initialMedicine: _selectedMedicine,
-        initialFormat: _selectedFormat,
-      ),
-    );
-
-    if (result != null &&
-        result['medicine']!.isNotEmpty &&
-        result['format']!.isNotEmpty) {
-      setState(() {
-        _isFiltered = true;
-        _selectedMedicine = result['medicine']!;
-        _selectedFormat = result['format']!;
-
-        if (_selectedFormat == 'Harian') {
-          _dateRangeText = '28 Juni 2026';
-        } else if (_selectedFormat == 'Mingguan') {
-          _dateRangeText = '28 Juni - 5 Juli 2026';
-        } else if (_selectedFormat == 'Bulanan') {
-          _dateRangeText = 'Juni - Juli 2026';
-        } else {
-          _dateRangeText = '28 Juni - 5 Juli 2026';
-        }
-
-        _historyItems = [
-          {
-            'date': 'Min, 28 Jun',
-            'time': '09.00',
-            'name': _selectedMedicine,
-            'dosage': '1 Tablet',
-            'isTaken': true,
-            'isSkipped': false,
-            'isMissed': false,
-            'imgStatus': Image.asset(imgTaken, width: 12),
-            'statusText': 'Diminum',
-          },
-          {
-            'date': 'Sen, 29 Jun',
-            'time': '16.00',
-            'name': _selectedMedicine,
-            'dosage': '1 Tablet',
-            'isTaken': true,
-            'isSkipped': false,
-            'isMissed': false,
-            'imgStatus': Image.asset(imgTaken, width: 12),
-            'statusText': 'Diminum',
-          },
-          {
-            'date': 'Sel, 30 Jun',
-            'time': '20.00',
-            'name': _selectedMedicine,
-            'dosage': '1 Tablet',
-            'isTaken': false,
-            'isSkipped': true,
-            'isMissed': false,
-            'imgStatus': Image.asset(imgSkipped, width: 12),
-            'statusText': 'Dilewati',
-          },
-          {
-            'date': 'Rab, 1 Juli',
-            'time': '09.00',
-            'name': _selectedMedicine,
-            'dosage': '1 Tablet',
-            'isTaken': false,
-            'isSkipped': false,
-            'isMissed': true,
-            'imgStatus': Image.asset(imgMissed, width: 12),
-            'statusText': 'Terlewatkan',
-          },
-        ];
-      });
-
-      _animationController.forward(from: 0.0);
-    }
+    setState(() {
+      _historyItems = provider.historyItems;
+      _medicineOptions = provider.medicineOptions;
+      _isLoading = false;
+    });
   }
 
   Future<void> _sharePdfReport() async {
-    if (_isSharing) return;
+    if (_isSharing) {
+      return;
+    }
 
     setState(() {
       _isSharing = true;
     });
 
     try {
-      final pdf = pw.Document();
+      String apiFormat;
 
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
-            return pw.Padding(
-              padding: const pw.EdgeInsets.all(24),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Laporan Riwayat Obat',
-                    style: pw.TextStyle(
-                      fontSize: 22,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Obat: $_selectedMedicine'),
-                  pw.Text('Format: Status $_selectedFormat ($_dateRangeText)'),
-                  pw.Divider(height: 24),
-                  pw.TableHelper.fromTextArray(
-                    headers: [
-                      'Tanggal',
-                      'Waktu',
-                      'Nama Obat',
-                      'Dosis',
-                      'Status',
-                    ],
-                    data: _historyItems.map((item) {
-                      return [
-                        item['date'],
-                        item['time'],
-                        item['name'],
-                        item['dosage'],
-                        item['statusText'],
-                      ];
-                    }).toList(),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+      switch (_selectedFormat) {
+        case 'Harian':
+          apiFormat = 'daily';
+          break;
+
+        case 'Mingguan':
+          apiFormat = 'weekly';
+          break;
+
+        case 'Bulanan':
+          apiFormat = 'monthly';
+          break;
+
+        default:
+          apiFormat = 'daily';
+      }
+
+      final provider = context.read<MedicineHistoryProvider>();
+
+      final Uint8List pdfBytes = await provider.exportPdf(
+        medicineId: _selectedMedicineId,
+        format: apiFormat,
       );
 
-      await Printing.sharePdf(
-        bytes: await pdf.save(),
-        filename:
-            'Smart_Antibiotik_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      );
+      await Printing.sharePdf(bytes: pdfBytes, filename: 'Riwayat_Obat.pdf');
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengekspor laporan PDF')));
     } finally {
       if (mounted) {
         setState(() {
           _isSharing = false;
         });
       }
+    }
+  }
+
+  Future<void> _filterMedicine() async {
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => CustomDialogHistory(
+        initialMedicine: _selectedMedicine,
+        initialFormat: _selectedFormat,
+        medicines: _medicineOptions,
+      ),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final medicineId = result['medicineId'];
+    final medicineName = result['medicine'];
+    final format = result['format'];
+
+    if (medicineName == null ||
+        medicineName.isEmpty ||
+        format == null ||
+        format.isEmpty) {
+      return;
+    }
+
+    String apiFormat;
+
+    switch (format) {
+      case 'Harian':
+        apiFormat = 'daily';
+        break;
+
+      case 'Mingguan':
+        apiFormat = 'weekly';
+        break;
+
+      case 'Bulanan':
+        apiFormat = 'monthly';
+        break;
+
+      default:
+        apiFormat = 'daily';
+    }
+
+    setState(() {
+      _isLoading = true;
+      _isFiltered = true;
+      _selectedMedicine = medicineName;
+      _selectedMedicineId = medicineId;
+      _selectedFormat = format;
+    });
+
+    try {
+      // ignore: use_build_context_synchronously
+      final provider = context.read<MedicineHistoryProvider>();
+
+      await provider.fetchHistory(medicineId: medicineId, format: apiFormat);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _historyItems = provider.historyItems;
+
+        final period = provider.period;
+
+        if (period != null) {
+          final start = period['start_date']?.toString() ?? '';
+          final end = period['end_date']?.toString() ?? '';
+
+          if (start.isNotEmpty && end.isNotEmpty) {
+            _dateRangeText = '$start - $end';
+          } else {
+            _dateRangeText = '';
+          }
+        }
+
+        _isLoading = false;
+      });
+
+      _animationController.forward(from: 0);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengambil riwayat obat')));
     }
   }
 
@@ -502,15 +519,15 @@ Widget _buildListHistory(
               Text(data['date'], style: AppTextStyles.bodyLarge),
               const SizedBox(height: 12),
               CustomHistoryCard(
-                time: data['time'],
-                image: Image.asset(imgTablet, width: 30),
-                name: data['name'],
-                dosage: data['dosage'],
-                isTaken: data['isTaken'],
-                isSkipped: data['isSkipped'],
-                isMissed: data['isMissed'],
-                imgStatus: data['imgStatus'],
-                statusText: data['statusText'],
+                time: data['time']?.toString() ?? '-',
+                image: _medicineImage(data['medicine_image']?.toString()),
+                name: data['name']?.toString() ?? '-',
+                dosage: data['dosage']?.toString() ?? '-',
+                isTaken: data['status'] == 'taken',
+                isSkipped: data['status'] == 'skipped',
+                isMissed: data['status'] == 'missed',
+                imgStatus: _statusImage(data['status']?.toString()),
+                statusText: _statusText(data['status']?.toString()),
               ),
               const SizedBox(height: 20),
             ],
@@ -519,4 +536,54 @@ Widget _buildListHistory(
       );
     },
   );
+}
+
+Widget _medicineImage(String? imageType) {
+  switch (imageType?.toLowerCase()) {
+    case 'kapsul':
+    case 'capsule':
+      return Image.asset(imgTablet, width: 30);
+
+    case 'tablet':
+    default:
+      return Image.asset(imgTablet, width: 30);
+  }
+}
+
+Widget _statusImage(String? status) {
+  switch (status) {
+    case 'taken':
+      return Image.asset(imgTaken, width: 12);
+
+    case 'skipped':
+      return Image.asset(imgSkipped, width: 12);
+
+    case 'missed':
+      return Image.asset(imgMissed, width: 12);
+
+    case 'rescheduled':
+      return Image.asset(imgSkipped, width: 12);
+
+    default:
+      return const SizedBox.shrink();
+  }
+}
+
+String _statusText(String? status) {
+  switch (status) {
+    case 'taken':
+      return 'Diminum';
+
+    case 'skipped':
+      return 'Dilewati';
+
+    case 'missed':
+      return 'Terlewatkan';
+
+    case 'rescheduled':
+      return 'Dijadwalkan Ulang';
+
+    default:
+      return '-';
+  }
 }

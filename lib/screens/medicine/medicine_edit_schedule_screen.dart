@@ -181,7 +181,9 @@ class _MedicineEditScheduleScreenState
     final medicineData = _buildMedicineData();
 
     final int timesPerDay =
-        (_medicine?.timesPerDay ?? medicineData['times_per_day'] ?? 1) as int;
+        _medicine?.timesPerDay ??
+        int.tryParse(medicineData['times_per_day']?.toString() ?? '') ??
+        1;
 
     final String frequencyType =
         _medicine?.frequencyType ??
@@ -207,8 +209,9 @@ class _MedicineEditScheduleScreenState
       duration = '- $endDateStr';
     }
 
-    final List<dynamic> timesList =
-        _medicine?.times ?? (medicineData['times'] as List<dynamic>?) ?? [];
+    final List<String> timesList = _medicine?.times.isNotEmpty == true
+        ? _medicine!.times
+        : _medicine?.scheduleTimes.map((e) => e.time).toList() ?? [];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -602,7 +605,20 @@ Widget _buildFrequency({
 
         Column(
           children: List.generate(times.isNotEmpty ? times.length : 1, (index) {
-            final timeText = times.isNotEmpty ? times[index].toString() : '-';
+            String timeText = '-';
+
+            if (times.isNotEmpty) {
+              final time = times[index];
+
+              if (time is String) {
+                timeText = time;
+              } else if (time is Map) {
+                timeText =
+                    time['scheduled_time']?.toString() ??
+                    time['time']?.toString() ??
+                    '-';
+              }
+            }
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),

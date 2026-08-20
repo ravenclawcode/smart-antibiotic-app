@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
@@ -9,6 +10,9 @@ import 'package:smart_antibiotic/utils/custom_dialog_medicine.dart';
 import 'package:smart_antibiotic/utils/custom_education_card.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_card.dart';
 import 'package:smart_antibiotic/utils/custom_quiz_card.dart';
+
+import '../../models/home_medicine_item.dart';
+import '../../providers/home_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,59 +24,98 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DateTime selectedDate = DateTime.now();
   late DateTime currentWeekStart;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     final now = DateTime.now();
+
+    selectedDate = now;
+
     currentWeekStart = now.subtract(Duration(days: now.weekday % 7));
-    _fetchData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeProvider>().load(selectedDate);
+    });
   }
 
-  Future<void> _fetchData() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _showMedicineDialog({
-    required String time,
-    required Widget image,
-    required String name,
-    required String dosage,
-    required String notes,
-    required bool isTaken,
-    required bool isSkipped,
-    required bool isMissed,
-    required Widget imgStatus,
-    String? statusText,
-    String? notesText,
-  }) async {
+  Future<void> _showMedicineDialog(
+    BuildContext context,
+    HomeMedicineItem item,
+    DateTime selectedDate,
+  ) async {
     await showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => CustomDialogMedicine(
-        time: time,
-        image: image,
-        name: name,
-        dosage: dosage,
-        notes: notes,
-        isTaken: isTaken,
-        isSkipped: isSkipped,
-        isMissed: isMissed,
-        imgStatus: imgStatus,
-        statusText: statusText,
-        notesText: notesText,
-      ),
+      builder: (dialogContext) {
+        return CustomDialogMedicine(
+          time: item.time,
+          image: Image.asset(imgTablet, width: 44),
+          name: item.name,
+          dosage: item.dosage,
+          notes: item.instruction ?? '',
+          isTaken: item.isTaken,
+          takenAt: item.takenAt,
+          isSkipped: item.isSkipped,
+          skippedAt: item.skippedAt,
+          isMissed: item.isMissed,
+          imgStatus: _buildStatusImage(item),
+          statusText: _buildStatusText(item, selectedDate),
+          notesText: item.notes,
+          isRescheduled: item.isRescheduled,
+          rescheduledTime: item.rescheduledTime,
+
+          onTaken: (String actionTime) async {
+            Navigator.pop(dialogContext);
+
+            await context.read<HomeProvider>().taken(
+              item: item,
+              date: selectedDate,
+              actionTime: actionTime,
+            );
+          },
+
+          onSkipped: (String actionTime, String notes) async {
+            Navigator.pop(dialogContext);
+
+            await context.read<HomeProvider>().skipped(
+              item: item,
+              date: selectedDate,
+              actionTime: actionTime,
+              notes: notes,
+            );
+          },
+
+          onReschedule: (String time) async {
+            if (dialogContext.mounted) {
+              Navigator.pop(dialogContext);
+            }
+
+            await context.read<HomeProvider>().reschedule(
+              item: item,
+              date: selectedDate,
+              newTime: time,
+            );
+          },
+
+          onCancel: () async {
+            Navigator.pop(dialogContext);
+
+            await context.read<HomeProvider>().cancel(
+              item: item,
+              date: selectedDate,
+            );
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<HomeProvider>().isLoading;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -83,8 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.surfaceCool,
         body: Column(
           children: [
-            _buildHeader(context, isLoading: _isLoading),
-            _isLoading
+            _buildHeader(context, isLoading: isLoading),
+            isLoading
                 ? _buildShimmerCalendar()
                 : AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
@@ -102,31 +145,40 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedDate: selectedDate,
                       currentWeekStart: currentWeekStart,
                       onDateSelected: (date) {
-                        setState(() => selectedDate = date);
+                        setState(() {
+                          selectedDate = date;
+                        });
+
+                        context.read<HomeProvider>().load(date);
                       },
                       onWeekChanged: (newWeekStart) {
                         setState(() {
                           currentWeekStart = newWeekStart;
+
                           final currentDayIndex = selectedDate.weekday % 7;
 
                           selectedDate = newWeekStart.add(
                             Duration(days: currentDayIndex),
                           );
                         });
+
+                        context.read<HomeProvider>().load(selectedDate);
                       },
                       onResetToToday: (today, weekStart) {
                         setState(() {
                           selectedDate = today;
                           currentWeekStart = weekStart;
                         });
+
+                        context.read<HomeProvider>().load(today);
                       },
                     ),
                   ),
             Expanded(
               child: SingleChildScrollView(
-                child: _isLoading
+                child: isLoading
                     ? _buildShimmerContent()
-                    : _buildContent(context),
+                    : _buildContent(context, _showMedicineDialog),
               ),
             ),
           ],
@@ -285,15 +337,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent(
+    BuildContext context,
+    Future<void> Function(BuildContext, HomeMedicineItem, DateTime)
+    showMedicineDialog,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          _buildMedicineList(context, _showMedicineDialog, selectedDate),
-          const SizedBox(height: 26),
+          _buildMedicineList(context, showMedicineDialog, selectedDate),
+          const SizedBox(height: 16),
           _buildEducationList(context),
           const SizedBox(height: 26),
           _buildQuisList(context),
@@ -382,63 +438,51 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 
 Widget _buildMedicineList(
   BuildContext context,
-  Function showMedicineDialog,
+  Future<void> Function(BuildContext, HomeMedicineItem, DateTime)
+  showMedicineDialog,
   DateTime selectedDate,
 ) {
-  final dateFormatted =
-      "${selectedDate.day} ${_getMonthName(selectedDate.month)}";
+  final provider = context.watch<HomeProvider>();
+
+  if (provider.medicines.isEmpty) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Text(
+        'Tidak ada jadwal obat.',
+        textAlign: TextAlign.center,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
 
   return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      CustomMedicineCard(
-        time: '09.00',
-        image: Image.asset(imgTablet, width: 30),
-        name: 'Amoxicillin',
-        dosage: 'Minum 1 Tablet',
-        notes: '',
-        isTaken: false,
-        isSkipped: false,
-        isMissed: false,
-        imgStatus: const SizedBox(),
-        onTap: () => showMedicineDialog(
-          time: '09.00',
-          image: Image.asset(imgTablet, width: 44),
-          name: 'Amoxicillin',
-          dosage: 'Minum 1 Tablet',
-          notes: '',
-          isTaken: false,
-          isSkipped: false,
-          isMissed: false,
-          imgStatus: const SizedBox(),
+    children: provider.medicines.map((item) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: CustomMedicineCard(
+          time: item.time,
+          image: Image.asset(imgTablet, width: 30),
+          name: item.name,
+          dosage: item.dosage,
+          notes: item.instruction ?? '',
+          isTaken: item.isTaken,
+          takenAt: item.takenAt,
+          isSkipped: item.isSkipped,
+          isMissed: item.isMissed,
+          isRescheduled: item.isRescheduled,
+          imgStatus: _buildStatusImage(item),
+          statusText: _buildStatusText(item, selectedDate),
+          notesText: item.notes,
+          rescheduledTime: item.rescheduledTime,
+          onTap: () {
+            showMedicineDialog(context, item, selectedDate);
+          },
         ),
-      ),
-      const SizedBox(height: 12),
-      CustomMedicineCard(
-        time: '16.00',
-        image: Image.asset(imgTablet, width: 30),
-        name: 'Amoxicillin',
-        dosage: 'Minum 1 Tablet',
-        notes: '',
-        isTaken: true,
-        isSkipped: false,
-        isMissed: false,
-        imgStatus: Image.asset(imgTaken, width: 12),
-        statusText: 'Diminum pukul 16.00, $dateFormatted',
-        onTap: () => showMedicineDialog(
-          time: '16.00',
-          image: Image.asset(imgTablet, width: 44),
-          name: 'Amoxicillin',
-          dosage: 'Minum 1 Tablet',
-          notes: '',
-          isTaken: true,
-          isSkipped: false,
-          isMissed: false,
-          imgStatus: Image.asset(imgTaken, width: 14),
-          statusText: 'Diminum pukul 16.00, $dateFormatted',
-        ),
-      ),
-    ],
+      );
+    }).toList(),
   );
 }
 
@@ -617,8 +661,111 @@ Widget _buildQuisList(BuildContext context) {
   );
 }
 
-String _getMonthName(int month) {
+Widget _buildStatusImage(HomeMedicineItem item) {
+  if (item.isTaken) {
+    return Image.asset(imgTaken, width: 14);
+  }
+
+  if (item.isSkipped) {
+    return Image.asset(imgSkipped, width: 14);
+  }
+
+  if (item.isMissed) {
+    return Image.asset(imgMissed, width: 14);
+  }
+
+  if (item.isRescheduled) {
+    return Image.asset(icClock, width: 14, color: AppColors.primary);
+  }
+
+  return const SizedBox();
+}
+
+String? _buildStatusText(HomeMedicineItem item, DateTime selectedDate) {
+  if (item.isTaken) {
+    if (item.takenAt != null && item.takenAt!.isNotEmpty) {
+      return 'Diminum ${_formatStatusDateTime(item.takenAt!)}';
+    }
+
+    return 'Sudah diminum';
+  }
+
+  if (item.isSkipped) {
+    if (item.skippedAt != null && item.skippedAt!.isNotEmpty) {
+      return 'Dilewati ${_formatStatusDateTime(item.skippedAt!)}';
+    }
+
+    return 'Dilewati';
+  }
+
+  if (item.isMissed) {
+    return 'Terlewat';
+  }
+
+  if (item.isRescheduled) {
+    if (item.rescheduledTime != null && item.rescheduledTime!.isNotEmpty) {
+      return 'Dijadwalkan ulang '
+          '${_formatRescheduledStatusDateTime(item.rescheduledTime!)}';
+    }
+
+    return 'Dijadwalkan ulang';
+  }
+
+  return null;
+}
+
+String _formatStatusDateTime(String value) {
+  try {
+    final date = DateTime.parse(value).toLocal();
+
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+
+    return 'pukul $hour.$minute ${_formatDateLabel(date)}';
+  } catch (_) {
+    return '';
+  }
+}
+
+String _formatRescheduledStatusDateTime(String value) {
+  try {
+    DateTime date;
+
+    if (value.contains('T') || value.contains(' ')) {
+      date = DateTime.parse(value).toLocal();
+    } else {
+      final parts = value.split(':');
+
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+
+      final now = DateTime.now();
+
+      date = DateTime(now.year, now.month, now.day, hour, minute);
+    }
+
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+
+    return 'pukul $hour.$minute ${_formatDateLabel(date)}';
+  } catch (_) {
+    return '';
+  }
+}
+
+String _formatDateLabel(DateTime date) {
+  final now = DateTime.now();
+
+  if (date.year == now.year && date.month == now.month && date.day == now.day) {
+    return 'hari ini, ${date.day} ${_monthShort(date.month)}';
+  }
+
+  return '${date.day} ${_monthShort(date.month)}';
+}
+
+String _monthShort(int month) {
   const months = [
+    '',
     'Jan',
     'Feb',
     'Mar',
@@ -632,5 +779,6 @@ String _getMonthName(int month) {
     'Nov',
     'Des',
   ];
-  return months[month - 1];
+
+  return months[month];
 }

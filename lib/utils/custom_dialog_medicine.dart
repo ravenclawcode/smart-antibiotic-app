@@ -12,16 +12,29 @@ class CustomDialogMedicine extends StatelessWidget {
   final String name;
   final String dosage;
   final String notes;
+
   final bool isTaken;
   final bool isSkipped;
   final bool isMissed;
   final Widget imgStatus;
+
   final String? statusText;
   final String? notesText;
   final String? missedDateText;
+
   final VoidCallback? onLeftAction;
   final VoidCallback? onCenterAction;
   final VoidCallback? onRightAction;
+
+  final Future<void> Function(String actionTime)? onTaken;
+  final Future<void> Function(String actionTime, String notes)? onSkipped;
+  final Future<void> Function(String time)? onReschedule;
+  final Future<void> Function()? onCancel;
+
+  final bool isRescheduled;
+  final String? rescheduledTime;
+  final String? skippedAt;
+  final String? takenAt;
 
   const CustomDialogMedicine({
     super.key,
@@ -34,30 +47,186 @@ class CustomDialogMedicine extends StatelessWidget {
     required this.isSkipped,
     required this.isMissed,
     required this.imgStatus,
+    required this.isRescheduled,
     this.statusText,
     this.notesText,
     this.missedDateText,
     this.onLeftAction,
     this.onCenterAction,
     this.onRightAction,
+    this.onTaken,
+    this.onSkipped,
+    this.onReschedule,
+    this.onCancel,
+    this.rescheduledTime,
+    this.skippedAt,
+    this.takenAt,
   });
 
   String get _scheduleText {
-    if (isTaken || isSkipped) {
+    if (isTaken || isSkipped || isRescheduled) {
       return 'Dijadwalkan pukul $time, besok';
-    } else if (isMissed) {
-      final dateStr = missedDateText ?? '30 Jul';
-      return 'Dijadwalkan pukul $time, $dateStr';
-    } else {
-      return 'Dijadwalkan pukul $time, hari ini';
     }
+
+    if (isMissed) {
+      final dateStr = missedDateText ?? '20 Agu';
+      return 'Dijadwalkan pukul $time, $dateStr';
+    }
+
+    return 'Dijadwalkan pukul $time, hari ini';
+  }
+
+  String _formatTime(String value) {
+    if (value.length >= 5) {
+      return value.substring(0, 5);
+    }
+
+    return value;
+  }
+
+  String _formatDateTime(String value) {
+    try {
+      final dateTime = DateTime.parse(value);
+
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
+
+      final hour = dateTime.hour.toString().padLeft(2, '0');
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+
+      final today = DateTime.now();
+
+      final isToday =
+          dateTime.year == today.year &&
+          dateTime.month == today.month &&
+          dateTime.day == today.day;
+
+      if (isToday) {
+        return '$hour.$minute hari ini, '
+            '${dateTime.day} ${months[dateTime.month - 1]}';
+      }
+
+      return '$hour.$minute, '
+          '${dateTime.day} ${months[dateTime.month - 1]}';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String _todayDateText() {
+    final now = DateTime.now();
+
+    return '${now.day} ${_monthShort(now.month)}';
+  }
+
+  String? get _displayStatusText {
+    if (isTaken) {
+      if (takenAt != null && takenAt!.isNotEmpty) {
+        final formatted = _formatDateTime(takenAt!);
+
+        if (formatted.isNotEmpty) {
+          return 'Diminum pukul $formatted';
+        }
+      }
+
+      return 'Diminum pukul $time hari ini, ${_todayDateText()}';
+    }
+
+    if (isSkipped) {
+      if (skippedAt != null && skippedAt!.isNotEmpty) {
+        final formatted = _formatDateTime(skippedAt!);
+
+        if (formatted.isNotEmpty) {
+          return 'Dilewati pukul $formatted';
+        }
+      }
+
+      return 'Dilewati pukul $time hari ini, ${_todayDateText()}';
+    }
+
+    if (isMissed) {
+      return 'Terlewat';
+    }
+
+    if (isRescheduled) {
+      if (rescheduledTime != null && rescheduledTime!.isNotEmpty) {
+        return 'Dijadwalkan ulang pukul '
+            '${_formatTime(rescheduledTime!)} hari ini, ${_todayDateText()}';
+      }
+
+      return 'Dijadwalkan ulang';
+    }
+
+    if (statusText != null && statusText!.trim().isNotEmpty) {
+      return statusText;
+    }
+
+    return null;
+  }
+
+  String _monthShort(int month) {
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
+    if (month < 1 || month > 12) {
+      return '';
+    }
+
+    return months[month];
+  }
+
+  Color _statusTextColor() {
+    if (isTaken) {
+      return AppColors.success;
+    }
+
+    if (isMissed) {
+      return AppColors.error;
+    }
+
+    if (isRescheduled) {
+      return AppColors.primary;
+    }
+
+    if (isSkipped) {
+      return AppColors.textSecondary;
+    }
+
+    return AppColors.textSecondary;
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool leftIsCancel = isSkipped;
+
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 26),
+        padding: const EdgeInsets.symmetric(horizontal: 26),
         child: Material(
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
@@ -70,10 +239,10 @@ class CustomDialogMedicine extends StatelessWidget {
                   height: 44,
                   width: double.infinity,
                   color: AppColors.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     children: [
-                      Spacer(),
+                      const Spacer(),
                       InkWell(
                         focusColor: Colors.transparent,
                         hoverColor: Colors.transparent,
@@ -93,6 +262,7 @@ class CustomDialogMedicine extends StatelessWidget {
                                   ],
                                   onItemTap: (index) {
                                     Navigator.pop(bottomSheetContext);
+
                                     if (index == 1) {
                                       showDialog(
                                         context: context,
@@ -114,7 +284,7 @@ class CustomDialogMedicine extends StatelessWidget {
                           color: AppColors.surfacePrimary,
                         ),
                       ),
-                      SizedBox(width: 24),
+                      const SizedBox(width: 24),
                       InkWell(
                         focusColor: Colors.transparent,
                         hoverColor: Colors.transparent,
@@ -128,12 +298,13 @@ class CustomDialogMedicine extends StatelessWidget {
                             builder: (bottomSheetContext) =>
                                 CustomMedicineSheet(
                                   title: 'Edit Amoxicillin',
-                                  list: [
+                                  list: const [
                                     'Hanya dosis ini',
                                     'Semua dosis berikutnya',
                                   ],
                                   onItemTap: (index) {
                                     Navigator.pop(bottomSheetContext);
+
                                     if (index == 1) {
                                       Navigator.pushNamed(
                                         context,
@@ -158,34 +329,39 @@ class CustomDialogMedicine extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
                       Stack(
                         alignment: Alignment.topRight,
                         children: [
-                          Padding(padding: EdgeInsets.all(8), child: image),
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: image,
+                          ),
                           imgStatus,
                         ],
                       ),
-                      SizedBox(height: 8),
+
+                      const SizedBox(height: 8),
+
                       Text(name, style: AppTextStyles.titleMedium),
-                      if (statusText != null) ...[
-                        SizedBox(height: 4),
+
+                      if (_displayStatusText != null) ...[
+                        const SizedBox(height: 4),
                         Text(
-                          statusText!,
+                          _displayStatusText!,
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: isTaken
-                                ? AppColors.success
-                                : isMissed
-                                ? AppColors.error
-                                : AppColors.textSecondary,
+                            color: _statusTextColor(),
                           ),
                         ),
                       ],
-                      SizedBox(height: 20),
+
+                      const SizedBox(height: 20),
+
                       Row(
                         children: [
                           Image.asset(
@@ -193,7 +369,7 @@ class CustomDialogMedicine extends StatelessWidget {
                             height: 18,
                             color: AppColors.textSecondary,
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               _scheduleText,
@@ -204,7 +380,9 @@ class CustomDialogMedicine extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
+
+                      const SizedBox(height: 10),
+
                       Row(
                         children: [
                           Image.asset(
@@ -212,7 +390,7 @@ class CustomDialogMedicine extends StatelessWidget {
                             height: 18,
                             color: AppColors.textSecondary,
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               dosage,
@@ -223,8 +401,10 @@ class CustomDialogMedicine extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (notesText != null) ...[
-                        SizedBox(height: 10),
+
+                      if (notesText != null &&
+                          notesText!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             Image.asset(
@@ -232,7 +412,7 @@ class CustomDialogMedicine extends StatelessWidget {
                               height: 18,
                               color: AppColors.textSecondary,
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 notesText!,
@@ -247,30 +427,33 @@ class CustomDialogMedicine extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 Container(
                   height: 94,
                   width: double.infinity,
                   color: AppColors.surfaceSecondary,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
                         Expanded(
                           child: _buildActionButton(
-                            icon: isSkipped
+                            icon: leftIsCancel
                                 ? Icons.refresh_rounded
                                 : Icons.close_rounded,
-                            label: isSkipped ? 'BATALKAN' : 'LEWATI',
-                            colorBg: isSkipped
+                            label: leftIsCancel ? 'BATALKAN' : 'LEWATI',
+                            colorBg: leftIsCancel
                                 ? Colors.transparent
                                 : AppColors.surfaceAccent,
                             colorIc: AppColors.primary,
-                            colorBorder: isSkipped
+                            colorBorder: leftIsCancel
                                 ? AppColors.primary
                                 : Colors.transparent,
-                            onTap: isSkipped
-                                ? () {
-                                    Navigator.pop(context);
+                            onTap: leftIsCancel
+                                ? () async {
+                                    if (onCancel != null) {
+                                      await onCancel!();
+                                    }
                                   }
                                 : () {
                                     showModalBottomSheet(
@@ -280,22 +463,34 @@ class CustomDialogMedicine extends StatelessWidget {
                                       builder: (bottomSheetContext) => CustomMedicineSheet(
                                         title:
                                             'Apa alasan Anda tidak mengonsumsi dosis ini?',
-                                        list: [
+                                        list: const [
                                           'Lupa / Sibuk / Tertidur',
                                           'Obat sudah habis',
                                           'Efek samping atau keluhan kesehatan',
                                           'Merasa tidak perlu mengonsumsi dosis ini',
                                           'Lainnya',
                                         ],
-                                        onItemTap: (index) {
+                                        onItemTap: (index) async {
+                                          final notes = [
+                                            'Lupa / Sibuk / Tertidur',
+                                            'Obat sudah habis',
+                                            'Efek samping atau keluhan kesehatan',
+                                            'Merasa tidak perlu mengonsumsi dosis ini',
+                                            'Lainnya',
+                                          ][index];
+
                                           Navigator.pop(bottomSheetContext);
-                                          Navigator.pop(bottomSheetContext);
+
+                                          if (onSkipped != null) {
+                                            await onSkipped!('now', notes);
+                                          }
                                         },
                                       ),
                                     );
                                   },
                           ),
                         ),
+
                         Expanded(
                           child: _buildActionButton(
                             icon: isTaken
@@ -312,8 +507,10 @@ class CustomDialogMedicine extends StatelessWidget {
                                 ? AppColors.primary
                                 : Colors.transparent,
                             onTap: isTaken
-                                ? () {
-                                    Navigator.pop(context);
+                                ? () async {
+                                    if (onCancel != null) {
+                                      await onCancel!();
+                                    }
                                   }
                                 : () {
                                     showModalBottomSheet(
@@ -325,39 +522,68 @@ class CustomDialogMedicine extends StatelessWidget {
                                             title:
                                                 'Kapan Anda meminum obat ini?',
                                             list: [
-                                              'Sesuai jadwal (08.00)',
-                                              'Sekarang (10.25)',
+                                              'Sesuai jadwal ($time)',
+                                              'Sekarang',
                                             ],
-                                            onItemTap: (index) {
+                                            onItemTap: (index) async {
                                               Navigator.pop(bottomSheetContext);
-                                              Navigator.pop(bottomSheetContext);
+
+                                              if (onTaken != null) {
+                                                final actionTime = index == 0
+                                                    ? 'scheduled'
+                                                    : 'now';
+
+                                                await onTaken!(actionTime);
+                                              }
                                             },
                                           ),
                                     );
                                   },
                           ),
                         ),
+
                         Expanded(
                           child: _buildActionButton(
-                            imageAsset: icClock,
-                            label: 'JADWAL ULANG',
-                            colorBg: AppColors.surfaceAccent,
+                            imageAsset: isRescheduled ? null : icClock,
+                            icon: isRescheduled ? Icons.refresh_rounded : null,
+                            label: isRescheduled ? 'BATALKAN' : 'JADWAL ULANG',
+                            colorBg: isRescheduled
+                                ? Colors.transparent
+                                : AppColors.surfaceAccent,
                             colorIc: AppColors.primary,
-                            colorBorder: Colors.transparent,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => CustomRescheduleSheet(
-                                  initialTime: const TimeOfDay(
-                                    hour: 10,
-                                    minute: 25,
-                                  ),
-                                  onSave: (newTime) {},
-                                ),
-                              );
-                            },
+                            colorBorder: isRescheduled
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            onTap: isRescheduled
+                                ? () async {
+                                    if (onCancel != null) {
+                                      await onCancel!();
+                                    }
+                                  }
+                                : () async {
+                                    final newTime =
+                                        await showModalBottomSheet<TimeOfDay>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (bottomSheetContext) {
+                                            return CustomRescheduleSheet(
+                                              initialTime: _parseTime(time),
+                                            );
+                                          },
+                                        );
+
+                                    if (newTime == null) {
+                                      return;
+                                    }
+
+                                    if (onReschedule != null) {
+                                      await onReschedule!(
+                                        '${newTime.hour.toString().padLeft(2, '0')}:'
+                                        '${newTime.minute.toString().padLeft(2, '0')}',
+                                      );
+                                    }
+                                  },
                           ),
                         ),
                       ],
@@ -396,12 +622,12 @@ class CustomDialogMedicine extends StatelessWidget {
             ),
             child: imageAsset != null
                 ? Padding(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     child: Image.asset(imageAsset, color: colorIc),
                   )
                 : Icon(icon, color: colorIc, size: 26),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             label,
             textAlign: TextAlign.center,
@@ -411,4 +637,17 @@ class CustomDialogMedicine extends StatelessWidget {
       ),
     );
   }
+}
+
+TimeOfDay _parseTime(String value) {
+  final parts = value.split(':');
+
+  if (parts.length < 2) {
+    return const TimeOfDay(hour: 0, minute: 0);
+  }
+
+  return TimeOfDay(
+    hour: int.tryParse(parts[0]) ?? 0,
+    minute: int.tryParse(parts[1]) ?? 0,
+  );
 }

@@ -6,13 +6,8 @@ import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 
 class CustomRescheduleSheet extends StatefulWidget {
   final TimeOfDay initialTime;
-  final Function(TimeOfDay newTime) onSave;
 
-  const CustomRescheduleSheet({
-    super.key,
-    required this.initialTime,
-    required this.onSave,
-  });
+  const CustomRescheduleSheet({super.key, required this.initialTime});
 
   @override
   State<CustomRescheduleSheet> createState() => _CustomRescheduleSheetState();
@@ -185,10 +180,10 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                   highlightColor: Colors.transparent,
                   splashColor: Colors.transparent,
                   onTap: () {
-                    widget.onSave(
+                    Navigator.pop(
+                      context,
                       TimeOfDay(hour: selectedHour, minute: selectedMinute),
                     );
-                    Navigator.pop(context);
                   },
                   child: Text(
                     'SIMPAN',

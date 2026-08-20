@@ -1,3 +1,5 @@
+import 'package:smart_antibiotic/models/medicine_schedule_time_model.dart';
+
 class MedicineModel {
   final int? id;
   final String name;
@@ -11,12 +13,12 @@ class MedicineModel {
   final String frequencyType;
   final int timesPerDay;
   final int? intervalValue;
-
   final List<int> days;
-
   final List<int> dates;
 
   final List<String> times;
+
+  final List<MedicineScheduleTimeModel> scheduleTimes;
 
   const MedicineModel({
     this.id,
@@ -32,7 +34,8 @@ class MedicineModel {
     this.intervalValue,
     this.days = const [],
     this.dates = const [],
-    required this.times,
+    this.times = const [],
+    this.scheduleTimes = const [],
   });
 
   MedicineModel copyWith({
@@ -50,6 +53,7 @@ class MedicineModel {
     List<int>? days,
     List<int>? dates,
     List<String>? times,
+    List<MedicineScheduleTimeModel>? scheduleTimes,
   }) {
     return MedicineModel(
       id: id ?? this.id,
@@ -66,6 +70,7 @@ class MedicineModel {
       days: days ?? this.days,
       dates: dates ?? this.dates,
       times: times ?? this.times,
+      scheduleTimes: scheduleTimes ?? this.scheduleTimes,
     );
   }
 
@@ -83,6 +88,12 @@ class MedicineModel {
         schedule['selections'] ?? schedule['days'] ?? json['days'];
 
     final rawDates = schedule['dates'] ?? json['dates'];
+
+    final rawTimes =
+        schedule['times'] ??
+        schedule['schedule_times'] ??
+        json['times'] ??
+        json['schedule_times'];
 
     return MedicineModel(
       id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
@@ -123,8 +134,66 @@ class MedicineModel {
 
       dates: _parseIntList(rawDates),
 
-      times: _parseStringList(schedule['times'] ?? json['times']),
+      times: _parseTimes(rawTimes),
+
+      scheduleTimes: _parseScheduleTimes(rawTimes),
     );
+  }
+
+  static List<String> _parseTimes(dynamic value) {
+    if (value is List) {
+      return value
+          .map((item) {
+            String time = '';
+
+            if (item is Map) {
+              time =
+                  item['reminder_time']?.toString() ??
+                  item['scheduled_time']?.toString() ??
+                  item['time']?.toString() ??
+                  '';
+            } else {
+              time = item.toString();
+            }
+
+            return _formatTime(time);
+          })
+          .where((time) => time.isNotEmpty)
+          .toList();
+    }
+
+    if (value is String && value.trim().isNotEmpty) {
+      return value
+          .split(',')
+          .map((time) => _formatTime(time.trim()))
+          .where((time) => time.isNotEmpty)
+          .toList();
+    }
+
+    return [];
+  }
+
+  static String _formatTime(String value) {
+    if (value.length >= 5) {
+      return value.substring(0, 5);
+    }
+
+    return value;
+  }
+
+  static List<MedicineScheduleTimeModel> _parseScheduleTimes(dynamic value) {
+    if (value is List) {
+      return value
+          .whereType<Map>()
+          .map(
+            (item) => MedicineScheduleTimeModel.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList();
+    }
+
+    return [];
   }
 
   Map<String, dynamic> toRequestJson() {
@@ -137,6 +206,7 @@ class MedicineModel {
       'end_date': endDate,
 
       'frequency_type': frequencyType,
+
       'times_per_day': frequencyType == 'daily' ? timesPerDay : null,
 
       'interval_value':
@@ -167,12 +237,16 @@ class MedicineModel {
       'start_date': startDate,
       'end_date': endDate,
       'is_active': isActive,
+
       'frequency_type': frequencyType,
       'times_per_day': timesPerDay,
       'interval_value': intervalValue,
+
       'days': days,
       'dates': dates,
       'times': times,
+
+      'schedule_times': scheduleTimes.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -190,18 +264,6 @@ class MedicineModel {
           .map((e) => int.tryParse(e.trim()))
           .whereType<int>()
           .toList();
-    }
-
-    return [];
-  }
-
-  static List<String> _parseStringList(dynamic value) {
-    if (value is List) {
-      return value.map((e) => e.toString()).toList();
-    }
-
-    if (value is String && value.trim().isNotEmpty) {
-      return value.split(',').map((e) => e.trim()).toList();
     }
 
     return [];

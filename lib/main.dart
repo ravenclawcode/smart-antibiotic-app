@@ -10,7 +10,9 @@ import 'package:smart_antibiotic/core/network/api_client.dart';
 import 'package:smart_antibiotic/providers/antibiotic_provider.dart';
 import 'package:smart_antibiotic/providers/chatbot_provider.dart';
 import 'package:smart_antibiotic/providers/feedback_provider.dart';
+import 'package:smart_antibiotic/providers/home_provider.dart';
 import 'package:smart_antibiotic/providers/medicine_catalog_provider.dart';
+import 'package:smart_antibiotic/providers/medicine_history_provider.dart';
 import 'package:smart_antibiotic/providers/medicine_provider.dart';
 import 'package:smart_antibiotic/providers/onboarding_provider.dart';
 import 'package:smart_antibiotic/providers/quiz_provider.dart';
@@ -21,6 +23,7 @@ import 'package:smart_antibiotic/services/chatbot_service.dart';
 import 'package:smart_antibiotic/services/feedback_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/medicine_catalog_service.dart';
+import 'package:smart_antibiotic/services/medicine_history_service.dart';
 import 'package:smart_antibiotic/services/medicine_service.dart';
 import 'package:smart_antibiotic/services/quiz_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
@@ -44,7 +47,10 @@ void main() async {
 
   final localStorage = LocalStorageService(preferences);
 
-  final apiClient = ApiClient(client: http.Client());
+  final apiClient = ApiClient(
+    client: http.Client(),
+    localStorage: localStorage,
+  );
 
   final userService = UserService(
     apiClient: apiClient,
@@ -71,6 +77,11 @@ void main() async {
   );
 
   final medicineCatalogService = MedicineCatalogService(apiClient: apiClient);
+
+  final medicineHistoryService = MedicineHistoryService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
 
   runApp(
     MultiProvider(
@@ -109,6 +120,18 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => MedicineCatalogProvider(
             medicineCatalogService: medicineCatalogService,
+          ),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) =>
+              MedicineHistoryProvider(service: medicineHistoryService),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => HomeProvider(
+            medicineService: medicineService,
+            historyService: medicineHistoryService,
           ),
         ),
       ],
