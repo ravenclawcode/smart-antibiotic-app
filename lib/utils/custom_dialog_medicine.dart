@@ -385,10 +385,13 @@ class CustomDialogMedicine extends StatelessWidget {
 
                       Row(
                         children: [
-                          Image.asset(
-                            icDosage,
-                            height: 18,
-                            color: AppColors.textSecondary,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 1),
+                            child: Image.asset(
+                              icDosage,
+                              height: 18,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -407,10 +410,15 @@ class CustomDialogMedicine extends StatelessWidget {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            Image.asset(
-                              icNotes,
-                              height: 18,
-                              color: AppColors.textSecondary,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 1,
+                              ),
+                              child: Image.asset(
+                                icNotes,
+                                height: 18,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(

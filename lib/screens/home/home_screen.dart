@@ -471,6 +471,7 @@ Widget _buildMedicineList(
           isTaken: item.isTaken,
           takenAt: item.takenAt,
           isSkipped: item.isSkipped,
+          skippedAt: item.skippedAt,
           isMissed: item.isMissed,
           isRescheduled: item.isRescheduled,
           imgStatus: _buildStatusImage(item),
