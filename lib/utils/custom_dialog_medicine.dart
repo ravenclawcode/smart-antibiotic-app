@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
-import 'package:smart_antibiotic/utils/custom_dialog_delete_medicine.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_sheet.dart';
 import 'package:smart_antibiotic/utils/custom_reschedule_sheet.dart';
 
@@ -12,6 +11,10 @@ class CustomDialogMedicine extends StatelessWidget {
   final String name;
   final String dosage;
   final String notes;
+
+  final int medicineId;
+  final int scheduleTimeId;
+  final String scheduledDate;
 
   final bool isTaken;
   final bool isSkipped;
@@ -36,6 +39,20 @@ class CustomDialogMedicine extends StatelessWidget {
   final String? skippedAt;
   final String? takenAt;
 
+  final Future<void> Function(
+    int medicineId,
+    int scheduleTimeId,
+    String scheduledDate,
+  )?
+  onDeleteSingleDose;
+
+  final Future<void> Function(
+    int medicineId,
+    int scheduleTimeId,
+    String scheduledDate,
+  )?
+  onDeleteFutureDoses;
+
   const CustomDialogMedicine({
     super.key,
     required this.time,
@@ -43,11 +60,16 @@ class CustomDialogMedicine extends StatelessWidget {
     required this.name,
     required this.dosage,
     required this.notes,
+    required this.medicineId,
+    required this.scheduleTimeId,
+    required this.scheduledDate,
     required this.isTaken,
     required this.isSkipped,
     required this.isMissed,
     required this.imgStatus,
     required this.isRescheduled,
+    this.onDeleteSingleDose,
+    this.onDeleteFutureDoses,
     this.statusText,
     this.notesText,
     this.missedDateText,
@@ -260,19 +282,31 @@ class CustomDialogMedicine extends StatelessWidget {
                                     'Hanya dosis ini',
                                     'Semua dosis berikutnya',
                                   ],
-                                  onItemTap: (index) {
+                                  onItemTap: (index) async {
                                     Navigator.pop(bottomSheetContext);
 
+                                    if (index == 0) {
+                                      if (onDeleteSingleDose != null) {
+                                        await onDeleteSingleDose!(
+                                          medicineId,
+                                          scheduleTimeId,
+                                          scheduledDate,
+                                        );
+                                      }
+
+                                      return;
+                                    }
+
                                     if (index == 1) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (dialogContext) =>
-                                            const CustomDialogDeleteMedicine(
-                                              medicineName: '',
-                                            ),
-                                      );
-                                    } else {
-                                      Navigator.pop(context);
+                                      if (onDeleteFutureDoses != null) {
+                                        await onDeleteFutureDoses!(
+                                          medicineId,
+                                          scheduleTimeId,
+                                          scheduledDate,
+                                        );
+                                      }
+
+                                      return;
                                     }
                                   },
                                 ),

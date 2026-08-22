@@ -1,16 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
-import '../models/medicine_model.dart';
 import '../models/home_medicine_item.dart';
-import '../services/medicine_service.dart';
+import '../services/home_service.dart';
 import '../services/medicine_history_service.dart';
 
 class HomeProvider extends ChangeNotifier {
-  final MedicineService medicineService;
+  final HomeService homeService;
   final MedicineHistoryService historyService;
 
-  HomeProvider({required this.medicineService, required this.historyService});
+  HomeProvider({required this.homeService, required this.historyService});
 
   bool isLoading = false;
   bool isActionLoading = false;
@@ -19,130 +17,121 @@ class HomeProvider extends ChangeNotifier {
 
   String? errorMessage;
 
+  // =========================================================
+  // LOAD HOME
+  // =========================================================
+
   Future<void> load(DateTime date) async {
     isLoading = true;
     errorMessage = null;
+
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        _fetchHomeData(date),
-        Future.delayed(const Duration(milliseconds: 600)),
-      ]);
+      final dateString = _formatDate(date);
 
-      final data = results[0] as Map<String, dynamic>;
+      final response = await homeService.getHome(date: dateString);
 
-      final medicineList = data['medicineList'] as List<MedicineModel>;
+      debugPrint('HOME RESPONSE: $response');
 
-      final historyItems = data['historyItems'] as List<Map<String, dynamic>>;
+      dynamic schedules;
 
-      medicines = _buildHomeItems(medicineList, historyItems, date);
+      if (response['today_schedules'] is List) {
+        schedules = response['today_schedules'];
+      } else if (response['schedules'] is List) {
+        schedules = response['schedules'];
+      } else if (response['medicines'] is List) {
+        schedules = response['medicines'];
+      }
+
+      medicines = _parseHomeSchedules(schedules, dateString);
+
+      debugPrint('HOME MEDICINES: ${medicines.length}');
     } catch (e) {
       errorMessage = e.toString();
       medicines = [];
-    }
 
-    isLoading = false;
-    notifyListeners();
+      debugPrint('HOME ERROR: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  Future<Map<String, dynamic>> _fetchHomeData(DateTime date) async {
-    final medicineList = await medicineService.getMedicines();
+  // =========================================================
+  // PARSE HOME SCHEDULES
+  // =========================================================
 
-    final dateString = _formatDate(date);
-
-    final historyResponse = await historyService.getHistory(
-      format: 'daily',
-      date: dateString,
-    );
-
-    final historyItems = _extractHistory(historyResponse);
-
-    return {'medicineList': medicineList, 'historyItems': historyItems};
-  }
-
-  List<Map<String, dynamic>> _extractHistory(Map<String, dynamic> response) {
-    final data = response['data'];
-
-    if (data is! Map) {
-      return [];
-    }
-
-    final days = data['data'];
-
-    if (days is! List) {
-      return [];
-    }
-
-    final result = <Map<String, dynamic>>[];
-
-    for (final day in days) {
-      if (day is! Map) {
-        continue;
-      }
-
-      final items = day['items'];
-
-      if (items is! List) {
-        continue;
-      }
-
-      for (final item in items) {
-        if (item is Map) {
-          result.add(Map<String, dynamic>.from(item));
-        }
-      }
-    }
-
-    return result;
-  }
-
-  List<HomeMedicineItem> _buildHomeItems(
-    List<MedicineModel> medicineList,
-    List<Map<String, dynamic>> histories,
-    DateTime selectedDate,
+  List<HomeMedicineItem> _parseHomeSchedules(
+    dynamic value,
+    String scheduledDate,
   ) {
+    if (value is! List) {
+      debugPrint('HOME PARSER: schedules bukan List: $value');
+
+      return [];
+    }
+
     final result = <HomeMedicineItem>[];
 
-    for (final medicine in medicineList) {
-      if (!_isMedicineActiveOnDate(medicine, selectedDate)) {
+    for (final item in value) {
+      if (item is! Map) {
         continue;
       }
 
-      for (final scheduleTime in medicine.scheduleTimes) {
-        final history = histories.cast<Map<String, dynamic>?>().firstWhere(
-          (item) =>
-              item?['medicine_id']?.toString() == medicine.id?.toString() &&
-              item?['time']?.toString() == _formatTime(scheduleTime.time),
-          orElse: () => null,
-        );
+      final data = Map<String, dynamic>.from(item);
 
-        String status = 'pending';
+      debugPrint('HOME ITEM: $data');
 
-        if (history != null) {
-          status = history['status']?.toString() ?? 'pending';
-        } else if (_isPastToday(selectedDate, scheduleTime.time)) {
-          status = 'missed';
-        }
+      final medicine = data['medicine'];
 
-        result.add(
-          HomeMedicineItem(
-            medicineId: medicine.id ?? 0,
-            scheduleTimeId: scheduleTime.id,
-            name: medicine.name,
-            dosage: _buildDosage(medicine),
-            time: _formatTime(scheduleTime.time),
-            instruction: medicine.instruction,
-            status: status,
-            takenAt: history?['taken_at']?.toString(),
-            skippedAt: history?['skipped_at']?.toString(),
-            notes: history?['notes']?.toString(),
-            rescheduledTime: _formatRescheduledTime(
-              history?['rescheduled_time'],
-            ),
-          ),
-        );
+      if (medicine is! Map) {
+        debugPrint('HOME ITEM: medicine tidak ditemukan');
+
+        continue;
       }
+
+      final medicineData = Map<String, dynamic>.from(medicine);
+
+      final medicineId =
+          int.tryParse(medicineData['id']?.toString() ?? '') ?? 0;
+
+      final scheduleTimeId =
+          int.tryParse(data['schedule_time_id']?.toString() ?? '') ?? 0;
+
+      if (medicineId == 0) {
+        debugPrint('HOME ITEM: medicineId = 0');
+      }
+
+      final name = medicineData['name']?.toString() ?? '';
+
+      final dosage = medicineData['dosage']?.toString() ?? '';
+
+      final dosageUnit = medicineData['dosage_unit']?.toString() ?? '';
+
+      final instruction = medicineData['instruction']?.toString();
+
+      final time =
+          data['reminder_time']?.toString() ?? data['time']?.toString() ?? '';
+
+      final status = data['status']?.toString() ?? 'pending';
+
+      result.add(
+        HomeMedicineItem(
+          medicineId: medicineId,
+          scheduleTimeId: scheduleTimeId,
+          scheduledDate: scheduledDate,
+          name: name,
+          dosage: _buildDosage(dosage, dosageUnit),
+          time: _formatTime(time),
+          instruction: instruction,
+          status: status,
+          takenAt: data['taken_at']?.toString(),
+          skippedAt: data['skipped_at']?.toString(),
+          notes: data['notes']?.toString(),
+          rescheduledTime: _formatRescheduledTime(data['rescheduled_time']),
+        ),
+      );
     }
 
     result.sort((a, b) => a.time.compareTo(b.time));
@@ -150,83 +139,46 @@ class HomeProvider extends ChangeNotifier {
     return result;
   }
 
-  bool _isMedicineActiveOnDate(MedicineModel medicine, DateTime date) {
-    if (medicine.startDate != null) {
-      final start = DateTime.tryParse(medicine.startDate!);
+  // =========================================================
+  // DOSAGE
+  // =========================================================
 
-      if (start != null &&
-          date.isBefore(DateTime(start.year, start.month, start.day))) {
-        return false;
-      }
-    }
+  String _buildDosage(String dosage, String dosageUnit) {
+    dosage = dosage.trim();
+    dosageUnit = dosageUnit.trim();
 
-    if (medicine.endDate != null) {
-      final end = DateTime.tryParse(medicine.endDate!);
-
-      if (end != null && date.isAfter(DateTime(end.year, end.month, end.day))) {
-        return false;
-      }
-    }
-
-    switch (medicine.frequencyType) {
-      case 'certain_days':
-        return medicine.days.contains(date.weekday % 7);
-
-      case 'interval_weeks':
-        if (medicine.days.isEmpty) {
-          return false;
-        }
-
-        return medicine.days.contains(date.weekday % 7);
-
-      default:
-        return true;
-    }
-  }
-
-  bool _isPastToday(DateTime date, String time) {
-    final now = DateTime.now();
-
-    if (date.year != now.year ||
-        date.month != now.month ||
-        date.day != now.day) {
-      return false;
-    }
-
-    final parts = time.split(':');
-
-    if (parts.length < 2) {
-      return false;
-    }
-
-    final hour = int.tryParse(parts[0]) ?? 0;
-
-    final minute = int.tryParse(parts[1]) ?? 0;
-
-    final scheduled = DateTime(now.year, now.month, now.day, hour, minute);
-
-    return scheduled.isBefore(now);
-  }
-
-  String _buildDosage(MedicineModel medicine) {
-    final dosage = medicine.dosage ?? '';
-
-    final unit = medicine.dosageUnit ?? '';
-
-    if (dosage.isEmpty && unit.isEmpty) {
+    if (dosage.isEmpty && dosageUnit.isEmpty) {
       return '';
     }
 
-    return 'Minum $dosage $unit'.trim();
-  }
-
-  String _formatTime(String time) {
-    if (time.length >= 5) {
-      return time.substring(0, 5);
+    if (dosageUnit.isEmpty) {
+      return 'Minum $dosage';
     }
 
-    return time;
+    if (dosage.isEmpty) {
+      return 'Minum $dosageUnit';
+    }
+
+    return 'Minum $dosage $dosageUnit';
   }
+
+  // =========================================================
+  // FORMAT TIME
+  // =========================================================
+
+  String _formatTime(String value) {
+    final text = value.trim();
+
+    if (text.length >= 5) {
+      return text.substring(0, 5);
+    }
+
+    return text;
+  }
+
+  // =========================================================
+  // FORMAT DATE
+  // =========================================================
 
   String _formatDate(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
@@ -235,6 +187,10 @@ class HomeProvider extends ChangeNotifier {
 
     return '${date.year}-$month-$day';
   }
+
+  // =========================================================
+  // TAKEN
+  // =========================================================
 
   Future<void> taken({
     required HomeMedicineItem item,
@@ -251,6 +207,10 @@ class HomeProvider extends ChangeNotifier {
       await load(date);
     });
   }
+
+  // =========================================================
+  // SKIPPED
+  // =========================================================
 
   Future<void> skipped({
     required HomeMedicineItem item,
@@ -270,13 +230,19 @@ class HomeProvider extends ChangeNotifier {
     });
   }
 
+  // =========================================================
+  // RESCHEDULE
+  // =========================================================
+
   Future<void> reschedule({
     required HomeMedicineItem item,
     required DateTime date,
     required String newTime,
   }) async {
     await _runAction(() async {
-      final rescheduledDateTime = '${_formatDate(date)} $newTime:00';
+      final cleanTime = newTime.length >= 5 ? newTime.substring(0, 5) : newTime;
+
+      final rescheduledDateTime = '${_formatDate(date)} $cleanTime:00';
 
       await historyService.reschedule(
         scheduleTimeId: item.scheduleTimeId,
@@ -287,6 +253,10 @@ class HomeProvider extends ChangeNotifier {
       await load(date);
     });
   }
+
+  // =========================================================
+  // MISSED
+  // =========================================================
 
   Future<void> missed({
     required HomeMedicineItem item,
@@ -302,6 +272,10 @@ class HomeProvider extends ChangeNotifier {
     });
   }
 
+  // =========================================================
+  // CANCEL
+  // =========================================================
+
   Future<void> cancel({
     required HomeMedicineItem item,
     required DateTime date,
@@ -316,9 +290,14 @@ class HomeProvider extends ChangeNotifier {
     });
   }
 
+  // =========================================================
+  // ACTION LOADING
+  // =========================================================
+
   Future<void> _runAction(Future<void> Function() action) async {
     isActionLoading = true;
     errorMessage = null;
+
     notifyListeners();
 
     try {
@@ -332,6 +311,10 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
+  // =========================================================
+  // RESCHEDULED TIME
+  // =========================================================
+
   String? _formatRescheduledTime(dynamic value) {
     if (value == null) {
       return null;
@@ -343,16 +326,24 @@ class HomeProvider extends ChangeNotifier {
       return null;
     }
 
+    // Laravel datetime:
+    // 2026-08-22 14:30:00
+    // 2026-08-22T14:30:00
     if (text.contains('T') || text.contains(' ')) {
       final separator = text.contains('T') ? 'T' : ' ';
 
-      final timePart = text.split(separator).last;
+      final parts = text.split(separator);
 
-      if (timePart.length >= 5) {
-        return timePart.substring(0, 5);
+      if (parts.length >= 2) {
+        final timePart = parts.last;
+
+        if (timePart.length >= 5) {
+          return timePart.substring(0, 5);
+        }
       }
     }
 
+    // HH:mm:ss / HH:mm
     if (text.length >= 5 && RegExp(r'^\d{2}:\d{2}').hasMatch(text)) {
       return text.substring(0, 5);
     }

@@ -178,4 +178,38 @@ class MedicineProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<bool> deleteDose({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String scheduledDate,
+  }) async {
+    if (_isSaving) {
+      return false;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      await medicineService.deleteDose(
+        medicineId: medicineId,
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+      );
+
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Gagal menghapus dosis.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
 }

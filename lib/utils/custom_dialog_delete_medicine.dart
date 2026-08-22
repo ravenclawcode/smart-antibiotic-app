@@ -16,6 +16,8 @@ class _CustomDialogDeleteMedicineState
     extends State<CustomDialogDeleteMedicine> {
   bool isReminderOn = true;
 
+  String selectedOption = 'only';
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -132,7 +134,10 @@ class _CustomDialogDeleteMedicineState
 
                     InkWell(
                       onTap: () {
-                        Navigator.of(context).pop(isReminderOn);
+                        Navigator.of(context).pop({
+                          'option': selectedOption,
+                          'keepHistory': isReminderOn,
+                        });
                       },
                       child: Text(
                         'HAPUS',

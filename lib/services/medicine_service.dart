@@ -172,4 +172,62 @@ class MedicineService {
       );
     }
   }
+
+  Future<void> deleteDose({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String scheduledDate,
+  }) async {
+    final uuid = await _getUserUuid();
+
+    final response = await apiClient.delete(
+      '${ApiConstants.medicines}/medicines/$medicineId/single-dose',
+      queryParameters: {
+        'schedule_time_id': scheduleTimeId.toString(),
+        'scheduled_date': scheduledDate,
+      },
+      headers: {'X-User-UUID': uuid},
+    );
+
+    if (response is! Map) {
+      throw const ApiException(message: 'Response hapus dosis tidak valid.');
+    }
+
+    if (response['success'] != true) {
+      throw ApiException(
+        message: response['message']?.toString() ?? 'Gagal menghapus dosis.',
+      );
+    }
+  }
+
+  Future<void> deleteFutureDoses({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String scheduledDate,
+  }) async {
+    final uuid = await _getUserUuid();
+
+    final response = await apiClient.delete(
+      '${ApiConstants.medicines}/$medicineId/future-doses',
+      queryParameters: {
+        'schedule_time_id': scheduleTimeId.toString(),
+        'scheduled_date': scheduledDate,
+      },
+      headers: {'X-User-UUID': uuid},
+    );
+
+    if (response is! Map) {
+      throw const ApiException(
+        message: 'Response penghentian dosis tidak valid.',
+      );
+    }
+
+    if (response['success'] != true) {
+      throw ApiException(
+        message:
+            response['message']?.toString() ??
+            'Gagal menghentikan dosis berikutnya.',
+      );
+    }
+  }
 }

@@ -21,6 +21,7 @@ import 'package:smart_antibiotic/providers/settings_provider.dart';
 import 'package:smart_antibiotic/services/antibiotic_service.dart';
 import 'package:smart_antibiotic/services/chatbot_service.dart';
 import 'package:smart_antibiotic/services/feedback_service.dart';
+import 'package:smart_antibiotic/services/home_service.dart';
 import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/medicine_catalog_service.dart';
 import 'package:smart_antibiotic/services/medicine_history_service.dart';
@@ -83,6 +84,11 @@ void main() async {
     localStorage: localStorage,
   );
 
+  final homeService = HomeService(
+    apiClient: apiClient,
+    localStorage: localStorage,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -130,7 +136,7 @@ void main() async {
 
         ChangeNotifierProvider(
           create: (_) => HomeProvider(
-            medicineService: medicineService,
+            homeService: homeService,
             historyService: medicineHistoryService,
           ),
         ),

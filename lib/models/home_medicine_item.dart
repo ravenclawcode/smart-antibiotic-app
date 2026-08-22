@@ -1,6 +1,7 @@
 class HomeMedicineItem {
   final int medicineId;
   final int scheduleTimeId;
+  final String scheduledDate;
   final String name;
   final String dosage;
   final String time;
@@ -14,6 +15,7 @@ class HomeMedicineItem {
   const HomeMedicineItem({
     required this.medicineId,
     required this.scheduleTimeId,
+    required this.scheduledDate,
     required this.name,
     required this.dosage,
     required this.time,

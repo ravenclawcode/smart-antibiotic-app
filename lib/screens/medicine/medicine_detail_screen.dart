@@ -94,20 +94,18 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
 
     final medicine = _medicine!;
 
-    final result = await showDialog<bool>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) {
         return CustomDialogDeleteMedicine(medicineName: medicine.name);
       },
     );
 
-    if (!mounted) {
+    if (!mounted || result == null) {
       return;
     }
 
-    if (result == null) {
-      return;
-    }
+    final keepHistory = result['keepHistory'] == true;
 
     final medicineProvider = context.read<MedicineProvider>();
 
@@ -115,11 +113,13 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       _isLoading = true;
     });
 
-    bool success;
+    final bool success;
 
-    if (result) {
+    if (keepHistory) {
+      // Hapus obat, tetapi riwayat tetap disimpan
       success = await medicineProvider.deleteMedicine(medicine.id!);
     } else {
+      // Hapus obat beserta seluruh riwayat
       success = await medicineProvider.deleteMedicinePermanent(medicine.id!);
     }
 

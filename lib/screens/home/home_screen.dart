@@ -13,6 +13,8 @@ import 'package:smart_antibiotic/utils/custom_quiz_card.dart';
 
 import '../../models/home_medicine_item.dart';
 import '../../providers/home_provider.dart';
+import '../../providers/medicine_provider.dart';
+import '../../utils/custom_dialog_delete_medicine.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,17 +57,35 @@ class _HomeScreenState extends State<HomeScreen> {
           name: item.name,
           dosage: item.dosage,
           notes: item.instruction ?? '',
+
+          // =========================
+          // IDENTITAS DOSIS
+          // =========================
+          medicineId: item.medicineId,
+          scheduleTimeId: item.scheduleTimeId,
+          scheduledDate: item.scheduledDate,
+
+          // =========================
+          // STATUS
+          // =========================
           isTaken: item.isTaken,
           takenAt: item.takenAt,
+
           isSkipped: item.isSkipped,
           skippedAt: item.skippedAt,
+
           isMissed: item.isMissed,
+
           imgStatus: _buildStatusImage(item),
           statusText: _buildStatusText(item, selectedDate),
           notesText: item.notes,
+
           isRescheduled: item.isRescheduled,
           rescheduledTime: item.rescheduledTime,
 
+          // =========================
+          // MINUM
+          // =========================
           onTaken: (String actionTime) async {
             Navigator.pop(dialogContext);
 
@@ -76,6 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
 
+          // =========================
+          // LEWATI
+          // =========================
           onSkipped: (String actionTime, String notes) async {
             Navigator.pop(dialogContext);
 
@@ -87,6 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
 
+          // =========================
+          // JADWAL ULANG
+          // =========================
           onReschedule: (String time) async {
             if (dialogContext.mounted) {
               Navigator.pop(dialogContext);
@@ -99,6 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
 
+          // =========================
+          // BATALKAN
+          // =========================
           onCancel: () async {
             Navigator.pop(dialogContext);
 
@@ -107,6 +136,85 @@ class _HomeScreenState extends State<HomeScreen> {
               date: selectedDate,
             );
           },
+
+          // =========================
+          // HAPUS DOSIS INI
+          // =========================
+          onDeleteSingleDose:
+              (int medicineId, int scheduleTimeId, String scheduledDate) async {
+                final medicineProvider = context.read<MedicineProvider>();
+
+                final success = await medicineProvider.deleteDose(
+                  medicineId: medicineId,
+                  scheduleTimeId: scheduleTimeId,
+                  scheduledDate: scheduledDate,
+                );
+
+                if (!context.mounted) return;
+
+                if (success) {
+                  Navigator.pop(dialogContext);
+
+                  await context.read<HomeProvider>().load(selectedDate);
+                } else {
+                  final message =
+                      medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
+
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
+                }
+              },
+
+          // =========================
+          // HAPUS OBAT
+          // =========================
+          onDeleteFutureDoses:
+              (int medicineId, int scheduleTimeId, String scheduledDate) async {
+                final result = await showDialog<Map<String, Object>>(
+                  context: context,
+                  builder: (deleteDialogContext) {
+                    return CustomDialogDeleteMedicine(medicineName: item.name);
+                  },
+                );
+
+                if (!context.mounted || result == null) {
+                  return;
+                }
+
+                final medicineProvider = context.read<MedicineProvider>();
+
+                final keepHistory = result['keepHistory'] as bool? ?? true;
+
+                bool success;
+
+                if (keepHistory) {
+                  // Hapus obat, tetapi riwayat penggunaan tetap disimpan.
+                  success = await medicineProvider.deleteMedicine(medicineId);
+                } else {
+                  // Hapus obat dan seluruh riwayat penggunaan.
+                  success = await medicineProvider.deleteMedicinePermanent(
+                    medicineId,
+                  );
+                }
+
+                if (!context.mounted) {
+                  return;
+                }
+
+                if (success) {
+                  Navigator.pop(dialogContext);
+
+                  await context.read<HomeProvider>().load(selectedDate);
+                } else {
+                  final message =
+                      medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
+
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
+                }
+              },
         );
       },
     );
@@ -468,16 +576,25 @@ Widget _buildMedicineList(
           name: item.name,
           dosage: item.dosage,
           notes: item.instruction ?? '',
+
           isTaken: item.isTaken,
           takenAt: item.takenAt,
+
           isSkipped: item.isSkipped,
           skippedAt: item.skippedAt,
+
           isMissed: item.isMissed,
+
           isRescheduled: item.isRescheduled,
+
           imgStatus: _buildStatusImage(item),
+
           statusText: _buildStatusText(item, selectedDate),
+
           notesText: item.notes,
+
           rescheduledTime: item.rescheduledTime,
+
           onTap: () {
             showMedicineDialog(context, item, selectedDate);
           },
