@@ -375,12 +375,17 @@ class CustomDialogMedicine extends StatelessWidget {
                                         'medicineId': medicineId,
                                         'scheduleTimeId': scheduleTimeId,
                                         'scheduledDate': scheduledDate,
+                                        'instruction': notesText ?? notes,
                                         'editType': 'single',
                                       },
                                     );
 
-                                    if (context.mounted && result != null) {
-                                      Navigator.pop(context, result);
+                                    if (!context.mounted) {
+                                      return;
+                                    }
+
+                                    if (result == true) {
+                                      Navigator.of(context).pop(true);
                                     }
                                   },
                                 ),

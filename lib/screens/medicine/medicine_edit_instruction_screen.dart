@@ -61,6 +61,8 @@ class _MedicineEditInstructionScreenState
     if (arguments is MedicineModel) {
       _medicine = arguments;
       _medicineId = arguments.id;
+
+      _initialInstruction = _medicine?.instruction?.trim() ?? '';
     } else if (arguments is Map) {
       final map = Map<String, dynamic>.from(arguments);
 
@@ -79,9 +81,15 @@ class _MedicineEditInstructionScreenState
       _scheduleTimeId = int.tryParse(map['scheduleTimeId']?.toString() ?? '');
 
       _scheduledDate = map['scheduledDate']?.toString();
-    }
 
-    _initialInstruction = _medicine?.instruction?.trim() ?? '';
+      final argumentInstruction = map['instruction'];
+
+      if (argumentInstruction != null) {
+        _initialInstruction = argumentInstruction.toString().trim();
+      } else {
+        _initialInstruction = _medicine?.instruction?.trim() ?? '';
+      }
+    }
 
     instructionController.text = _initialInstruction;
   }

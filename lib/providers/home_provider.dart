@@ -25,10 +25,7 @@ class HomeProvider extends ChangeNotifier {
 
     try {
       final dateString = _formatDate(date);
-
       final response = await homeService.getHome(date: dateString);
-
-      debugPrint('HOME RESPONSE: $response');
 
       dynamic schedules;
 
@@ -41,13 +38,9 @@ class HomeProvider extends ChangeNotifier {
       }
 
       medicines = _parseHomeSchedules(schedules, dateString);
-
-      debugPrint('HOME MEDICINES: ${medicines.length}');
     } catch (e) {
       errorMessage = e.toString();
       medicines = [];
-
-      debugPrint('HOME ERROR: $e');
     } finally {
       await Future.delayed(const Duration(milliseconds: 600));
 
@@ -62,8 +55,6 @@ class HomeProvider extends ChangeNotifier {
     String scheduledDate,
   ) {
     if (value is! List) {
-      debugPrint('HOME PARSER: schedules bukan List: $value');
-
       return [];
     }
 
@@ -75,14 +66,9 @@ class HomeProvider extends ChangeNotifier {
       }
 
       final data = Map<String, dynamic>.from(item);
-
-      debugPrint('HOME ITEM: $data');
-
       final medicine = data['medicine'];
 
       if (medicine is! Map) {
-        debugPrint('HOME ITEM: medicine tidak ditemukan');
-
         continue;
       }
 
@@ -93,10 +79,6 @@ class HomeProvider extends ChangeNotifier {
 
       final scheduleTimeId =
           int.tryParse(data['schedule_time_id']?.toString() ?? '') ?? 0;
-
-      if (medicineId == 0) {
-        debugPrint('HOME ITEM: medicineId = 0');
-      }
 
       final name = medicineData['name']?.toString() ?? '';
 

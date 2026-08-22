@@ -24,6 +24,8 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
   int? _scheduleTimeId;
   String? _scheduledDate;
 
+  String? _instruction;
+
   @override
   void initState() {
     super.initState();
@@ -44,12 +46,14 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
 
     if (arguments is MedicineModel) {
       _medicine = arguments;
-
       _medicineId = arguments.id;
+
+      _instruction = arguments.instruction?.trim() ?? '';
     } else if (arguments is Map) {
       final data = Map<String, dynamic>.from(arguments);
 
       final medicineData = data['medicine'];
+      final argumentInstruction = data['instruction'];
 
       if (medicineData is MedicineModel) {
         _medicine = medicineData;
@@ -64,6 +68,12 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
       _scheduleTimeId = int.tryParse(data['scheduleTimeId']?.toString() ?? '');
 
       _scheduledDate = data['scheduledDate']?.toString();
+
+      if (argumentInstruction != null) {
+        _instruction = argumentInstruction.toString().trim();
+      } else {
+        _instruction = _medicine?.instruction?.trim() ?? '';
+      }
     }
   }
 
@@ -89,7 +99,9 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
         body: Column(
           children: [
             _buildHeader(context, isLoading: _isLoading),
+
             const SizedBox(height: 20),
+
             _isLoading
                 ? _buildShimmerContent()
                 : _buildContent(
@@ -98,6 +110,7 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
                     _medicineId,
                     _scheduleTimeId,
                     _scheduledDate,
+                    _instruction,
                   ),
           ],
         ),
@@ -151,7 +164,9 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                   ),
                 ),
               ),
+
             const SizedBox(width: 14),
+
             if (isLoading)
               Shimmer.fromColors(
                 baseColor: AppColors.accent,
@@ -172,6 +187,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                   color: AppColors.textWhite,
                 ),
               ),
+
             const Spacer(),
           ],
         ),
@@ -195,9 +211,11 @@ Widget _buildShimmerContent() {
         child: Column(
           children: [
             const SizedBox(height: 6),
+
             Row(
               children: [
                 const SizedBox(width: 10),
+
                 Container(
                   width: 120,
                   height: 20,
@@ -206,7 +224,9 @@ Widget _buildShimmerContent() {
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
+
                 const Spacer(),
+
                 Container(
                   width: 14,
                   height: 14,
@@ -218,12 +238,17 @@ Widget _buildShimmerContent() {
                 ),
               ],
             ),
+
             const SizedBox(height: 4),
+
             const Divider(color: Color(0xFFE7ECF0)),
+
             const SizedBox(height: 4),
+
             Row(
               children: [
                 const SizedBox(width: 10),
+
                 Container(
                   width: 100,
                   height: 20,
@@ -232,7 +257,9 @@ Widget _buildShimmerContent() {
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
+
                 const Spacer(),
+
                 Container(
                   width: 14,
                   height: 14,
@@ -244,6 +271,7 @@ Widget _buildShimmerContent() {
                 ),
               ],
             ),
+
             const SizedBox(height: 6),
           ],
         ),
@@ -258,6 +286,7 @@ Widget _buildContent(
   int? medicineId,
   int? scheduleTimeId,
   String? scheduledDate,
+  String? instruction,
 ) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -275,6 +304,7 @@ Widget _buildContent(
             medicineId,
             scheduleTimeId,
             scheduledDate,
+            instruction,
           ),
         ),
       ],
@@ -288,6 +318,7 @@ Widget _buildOptionMenu(
   int? medicineId,
   int? scheduleTimeId,
   String? scheduledDate,
+  String? instruction,
 ) {
   final item = [
     {'title': 'Jumlah Dosis', 'route': '/medicine-edit-dose-amount'},
@@ -301,6 +332,7 @@ Widget _buildOptionMenu(
     padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
       final menu = item[index];
+
       final bool isLastItem = index == item.length - 1;
 
       return InkWell(
@@ -309,6 +341,7 @@ Widget _buildOptionMenu(
         highlightColor: Colors.transparent,
         splashColor: Colors.transparent,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
+
         onTap: () async {
           final result = await Navigator.pushNamed(
             context,
@@ -318,13 +351,15 @@ Widget _buildOptionMenu(
               'medicineId': medicineId,
               'scheduleTimeId': scheduleTimeId,
               'scheduledDate': scheduledDate,
+              'instruction': instruction,
             },
           );
 
           if (result != null && context.mounted) {
-            Navigator.pop(context, result);
+            Navigator.of(context).pop(result);
           }
         },
+
         child: Padding(
           padding: EdgeInsets.fromLTRB(2, 6, 2, isLastItem ? 8 : 0),
           child: Column(
@@ -332,21 +367,26 @@ Widget _buildOptionMenu(
               Row(
                 children: [
                   const SizedBox(width: 10),
+
                   Expanded(
                     child: Text(
                       menu['title'] as String,
                       style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                     ),
                   ),
+
                   const SizedBox(width: 20),
+
                   const Padding(
                     padding: EdgeInsets.only(right: 10),
                     child: Icon(Icons.arrow_forward_ios_rounded, size: 14),
                   ),
                 ],
               ),
+
               if (!isLastItem) ...[
                 const SizedBox(height: 4),
+
                 const Divider(color: Color(0xFFE7ECF0)),
               ],
             ],
