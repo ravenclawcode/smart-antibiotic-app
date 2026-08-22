@@ -50,6 +50,30 @@ class MedicineProvider extends ChangeNotifier {
     }
   }
 
+  Future<MedicineModel?> getMedicine(int id) async {
+    if (_isLoading) {
+      return null;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      return await medicineService.getMedicine(id);
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return null;
+    } catch (_) {
+      _errorMessage = 'Gagal mengambil detail obat.';
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<MedicineModel?> createMedicine(MedicineModel medicine) async {
     if (_isSaving) {
       return null;
@@ -206,6 +230,46 @@ class MedicineProvider extends ChangeNotifier {
       return false;
     } catch (_) {
       _errorMessage = 'Gagal menghapus dosis.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> updateDose({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String scheduledDate,
+    required String dosage,
+    required String dosageUnit,
+    required String instruction,
+  }) async {
+    if (_isSaving) {
+      return false;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      await medicineService.updateDose(
+        medicineId: medicineId,
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+        dosage: dosage,
+        dosageUnit: dosageUnit,
+        instruction: instruction,
+      );
+
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Gagal memperbarui dosis.';
       return false;
     } finally {
       _isSaving = false;

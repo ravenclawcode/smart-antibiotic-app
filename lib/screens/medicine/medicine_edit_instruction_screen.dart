@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../models/medicine_model.dart';
+import '../../providers/medicine_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -24,6 +26,10 @@ class _MedicineEditInstructionScreenState
   late TextEditingController instructionController;
 
   MedicineModel? _medicine;
+
+  int? _medicineId;
+  int? _scheduleTimeId;
+  String? _scheduledDate;
 
   String _initialInstruction = '';
   bool _isNextEnabled = false;
@@ -54,13 +60,28 @@ class _MedicineEditInstructionScreenState
 
     if (arguments is MedicineModel) {
       _medicine = arguments;
-    } else if (arguments is Map<String, dynamic>) {
-      _medicine = MedicineModel.fromJson(arguments);
+      _medicineId = arguments.id;
     } else if (arguments is Map) {
-      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+      final map = Map<String, dynamic>.from(arguments);
+
+      final medicineData = map['medicine'];
+
+      if (medicineData is MedicineModel) {
+        _medicine = medicineData;
+      } else if (medicineData is Map) {
+        _medicine = MedicineModel.fromJson(
+          Map<String, dynamic>.from(medicineData),
+        );
+      }
+
+      _medicineId = int.tryParse(map['medicineId']?.toString() ?? '');
+
+      _scheduleTimeId = int.tryParse(map['scheduleTimeId']?.toString() ?? '');
+
+      _scheduledDate = map['scheduledDate']?.toString();
     }
 
-    _initialInstruction = _medicine?.instruction ?? '';
+    _initialInstruction = _medicine?.instruction?.trim() ?? '';
 
     instructionController.text = _initialInstruction;
   }
@@ -92,9 +113,14 @@ class _MedicineEditInstructionScreenState
     }
   }
 
-  void _saveChanges() {
+  Future<void> _saveChanges() async {
     final medicine = _medicine;
-    if (medicine == null) return;
+
+    if (medicine == null || medicine.id == null) {
+      return;
+    }
+
+    final provider = context.read<MedicineProvider>();
 
     final rawText = instructionController.text.trim();
 
@@ -102,11 +128,65 @@ class _MedicineEditInstructionScreenState
         ? '${rawText[0].toUpperCase()}${rawText.substring(1)}'
         : rawText;
 
+    final bool isSingleDose =
+        _medicineId != null &&
+        _scheduleTimeId != null &&
+        _scheduledDate != null &&
+        _scheduledDate!.trim().isNotEmpty;
+
+    if (isSingleDose) {
+      final success = await provider.updateDose(
+        medicineId: _medicineId!,
+        scheduleTimeId: _scheduleTimeId!,
+        scheduledDate: _scheduledDate!,
+        dosage: medicine.dosage ?? '',
+        dosageUnit: medicine.dosageUnit ?? 'Tablet',
+        instruction: formattedInstruction,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider.errorMessage ?? 'Gagal memperbarui instruksi.',
+            ),
+          ),
+        );
+
+        return;
+      }
+
+      Navigator.pop(context, true);
+      return;
+    }
+
     final updatedMedicine = medicine.copyWith(
       instruction: formattedInstruction,
     );
 
-    Navigator.pop(context, updatedMedicine);
+    final result = await provider.updateMedicine(medicine.id!, updatedMedicine);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'Gagal memperbarui instruksi.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    Navigator.pop(context, result);
   }
 
   @override

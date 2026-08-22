@@ -47,27 +47,31 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeMedicineItem item,
     DateTime selectedDate,
   ) async {
-    await showDialog(
+    final medicineProvider = context.read<MedicineProvider>();
+
+    final medicine = await medicineProvider.getMedicine(item.medicineId);
+
+    if (!context.mounted || medicine == null) {
+      return;
+    }
+
+    final result = await showDialog(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
         return CustomDialogMedicine(
+          medicine: medicine,
+
           time: item.time,
           image: Image.asset(imgTablet, width: 44),
           name: item.name,
           dosage: item.dosage,
           notes: item.instruction ?? '',
 
-          // =========================
-          // IDENTITAS DOSIS
-          // =========================
           medicineId: item.medicineId,
           scheduleTimeId: item.scheduleTimeId,
           scheduledDate: item.scheduledDate,
 
-          // =========================
-          // STATUS
-          // =========================
           isTaken: item.isTaken,
           takenAt: item.takenAt,
 
@@ -82,10 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           isRescheduled: item.isRescheduled,
           rescheduledTime: item.rescheduledTime,
-
-          // =========================
-          // MINUM
-          // =========================
           onTaken: (String actionTime) async {
             Navigator.pop(dialogContext);
 
@@ -95,10 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
               actionTime: actionTime,
             );
           },
-
-          // =========================
-          // LEWATI
-          // =========================
           onSkipped: (String actionTime, String notes) async {
             Navigator.pop(dialogContext);
 
@@ -109,10 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
               notes: notes,
             );
           },
-
-          // =========================
-          // JADWAL ULANG
-          // =========================
           onReschedule: (String time) async {
             if (dialogContext.mounted) {
               Navigator.pop(dialogContext);
@@ -124,10 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
               newTime: time,
             );
           },
-
-          // =========================
-          // BATALKAN
-          // =========================
           onCancel: () async {
             Navigator.pop(dialogContext);
 
@@ -136,26 +124,32 @@ class _HomeScreenState extends State<HomeScreen> {
               date: selectedDate,
             );
           },
-
-          // =========================
-          // HAPUS DOSIS INI
-          // =========================
+          onEditFutureDoses: () async {
+            await context.read<HomeProvider>().load(selectedDate);
+          },
           onDeleteSingleDose:
               (int medicineId, int scheduleTimeId, String scheduledDate) async {
                 final medicineProvider = context.read<MedicineProvider>();
+                final homeProvider = context.read<HomeProvider>();
 
-                final success = await medicineProvider.deleteDose(
-                  medicineId: medicineId,
-                  scheduleTimeId: scheduleTimeId,
-                  scheduledDate: scheduledDate,
+                final success = await homeProvider.runWithLoading<bool>(
+                  () async {
+                    return await medicineProvider.deleteDose(
+                      medicineId: medicineId,
+                      scheduleTimeId: scheduleTimeId,
+                      scheduledDate: scheduledDate,
+                    );
+                  },
                 );
 
-                if (!context.mounted) return;
+                if (!context.mounted) {
+                  return;
+                }
 
                 if (success) {
                   Navigator.pop(dialogContext);
 
-                  await context.read<HomeProvider>().load(selectedDate);
+                  await homeProvider.load(selectedDate);
                 } else {
                   final message =
                       medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
@@ -165,16 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ).showSnackBar(SnackBar(content: Text(message)));
                 }
               },
-
-          // =========================
-          // HAPUS OBAT
-          // =========================
           onDeleteFutureDoses:
               (int medicineId, int scheduleTimeId, String scheduledDate) async {
                 final result = await showDialog<Map<String, Object>>(
                   context: context,
                   builder: (deleteDialogContext) {
-                    return CustomDialogDeleteMedicine(medicineName: item.name);
+                    return CustomDialogDeleteMedicine(medicine: medicine);
                   },
                 );
 
@@ -183,20 +173,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 final medicineProvider = context.read<MedicineProvider>();
+                final homeProvider = context.read<HomeProvider>();
 
                 final keepHistory = result['keepHistory'] as bool? ?? true;
 
-                bool success;
+                final success = await homeProvider.runWithLoading<bool>(
+                  () async {
+                    if (keepHistory) {
+                      return await medicineProvider.deleteMedicine(medicineId);
+                    }
 
-                if (keepHistory) {
-                  // Hapus obat, tetapi riwayat penggunaan tetap disimpan.
-                  success = await medicineProvider.deleteMedicine(medicineId);
-                } else {
-                  // Hapus obat dan seluruh riwayat penggunaan.
-                  success = await medicineProvider.deleteMedicinePermanent(
-                    medicineId,
-                  );
-                }
+                    return await medicineProvider.deleteMedicinePermanent(
+                      medicineId,
+                    );
+                  },
+                );
 
                 if (!context.mounted) {
                   return;
@@ -205,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (success) {
                   Navigator.pop(dialogContext);
 
-                  await context.read<HomeProvider>().load(selectedDate);
+                  await homeProvider.load(selectedDate);
                 } else {
                   final message =
                       medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
@@ -218,6 +209,14 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (result != null) {
+      await context.read<HomeProvider>().load(selectedDate);
+    }
   }
 
   @override

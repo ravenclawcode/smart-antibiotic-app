@@ -97,13 +97,15 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) {
-        return CustomDialogDeleteMedicine(medicineName: medicine.name);
+        return CustomDialogDeleteMedicine(medicine: medicine);
       },
     );
 
     if (!mounted || result == null) {
       return;
     }
+
+    final deleteScope = result['deleteScope']?.toString() ?? 'all';
 
     final keepHistory = result['keepHistory'] == true;
 
@@ -113,14 +115,40 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       _isLoading = true;
     });
 
-    final bool success;
+    bool success = false;
 
-    if (keepHistory) {
-      // Hapus obat, tetapi riwayat tetap disimpan
-      success = await medicineProvider.deleteMedicine(medicine.id!);
+    if (deleteScope == 'single') {
+      final scheduleTimeId = int.tryParse(
+        result['scheduleTimeId']?.toString() ?? '',
+      );
+
+      final scheduledDate = result['scheduledDate']?.toString();
+
+      if (scheduleTimeId == null ||
+          scheduledDate == null ||
+          scheduledDate.isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data dosis tidak lengkap.')),
+        );
+
+        return;
+      }
+
+      success = await medicineProvider.deleteDose(
+        medicineId: medicine.id!,
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+      );
     } else {
-      // Hapus obat beserta seluruh riwayat
-      success = await medicineProvider.deleteMedicinePermanent(medicine.id!);
+      if (keepHistory) {
+        success = await medicineProvider.deleteMedicine(medicine.id!);
+      } else {
+        success = await medicineProvider.deleteMedicinePermanent(medicine.id!);
+      }
     }
 
     if (!mounted) {
@@ -133,7 +161,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       });
 
       final errorMessage =
-          medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
+          medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
 
       ScaffoldMessenger.of(
         context,
@@ -142,7 +170,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       return;
     }
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
   }
 
   String _formatDateString(String? dateStr) {
@@ -285,33 +313,57 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
 
     final medicineProvider = context.read<MedicineProvider>();
 
-    final updatedMedicine = await medicineProvider.updateMedicine(
-      editedMedicine.id!,
-      editedMedicine,
-    );
+    try {
+      final updatedMedicine = await medicineProvider.updateMedicine(
+        editedMedicine.id!,
+        editedMedicine,
+      );
 
-    if (!mounted) {
-      return;
-    }
+      if (!mounted) {
+        return;
+      }
 
-    if (updatedMedicine == null) {
+      if (updatedMedicine == null) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        final message =
+            medicineProvider.errorMessage ?? 'Gagal memperbarui obat.';
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+
+        return;
+      }
+
+      setState(() {
+        _medicine = updatedMedicine;
+      });
+
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _isLoading = false;
       });
-      return;
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui obat: $e')));
     }
-
-    _medicine = updatedMedicine;
-
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   Future<void> _editMedicineName() async {

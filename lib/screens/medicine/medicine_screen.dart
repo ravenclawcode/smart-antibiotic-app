@@ -245,8 +245,17 @@ Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
         child: CustomMedicineListCard(
           title: item.name,
           image: medicineImage,
-          onTap: () =>
-              Navigator.pushNamed(context, '/medicine-detail', arguments: item),
+          onTap: () async {
+            await Navigator.pushNamed(
+              context,
+              '/medicine-detail',
+              arguments: item,
+            );
+
+            if (!context.mounted) return;
+
+            await context.read<MedicineProvider>().loadMedicines();
+          },
         ),
       );
     },

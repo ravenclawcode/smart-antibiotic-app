@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 
-class CustomDialogDeleteMedicine extends StatefulWidget {
-  final String medicineName;
+import '../models/medicine_model.dart';
 
-  const CustomDialogDeleteMedicine({super.key, required this.medicineName});
+class CustomDialogDeleteMedicine extends StatefulWidget {
+  final MedicineModel medicine;
+
+  const CustomDialogDeleteMedicine({super.key, required this.medicine});
 
   @override
   State<CustomDialogDeleteMedicine> createState() =>
@@ -15,8 +17,6 @@ class CustomDialogDeleteMedicine extends StatefulWidget {
 class _CustomDialogDeleteMedicineState
     extends State<CustomDialogDeleteMedicine> {
   bool isReminderOn = true;
-
-  String selectedOption = 'only';
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +39,14 @@ class _CustomDialogDeleteMedicineState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hapus ${widget.medicineName}',
+                  'Hapus ${widget.medicine.name}',
                   style: AppTextStyles.titleMedium,
                 ),
 
                 const SizedBox(height: 14),
 
                 Text(
-                  'Menghapus obat ini akan menghentikan semua pengingat di masa mendatang',
+                  'Menghapus obat ini akan menghentikan semua pengingat di masa mendatang.',
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontSize: 18,
                     color: AppColors.textSecondary,
@@ -60,7 +60,6 @@ class _CustomDialogDeleteMedicineState
                     Text(
                       'Pertahankan riwayat',
                       style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
-                      textAlign: TextAlign.center,
                     ),
 
                     const Spacer(),
@@ -134,10 +133,9 @@ class _CustomDialogDeleteMedicineState
 
                     InkWell(
                       onTap: () {
-                        Navigator.of(context).pop({
-                          'option': selectedOption,
-                          'keepHistory': isReminderOn,
-                        });
+                        Navigator.of(
+                          context,
+                        ).pop({'keepHistory': isReminderOn});
                       },
                       child: Text(
                         'HAPUS',

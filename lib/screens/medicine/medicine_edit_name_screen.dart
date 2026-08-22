@@ -55,15 +55,6 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
     if (_medicine != null) {
       _initialMedicineName = _medicine!.name.trim();
 
-      /*
-      |--------------------------------------------------------------------------
-      | Set controller sebelum listener dipasang
-      |--------------------------------------------------------------------------
-      |
-      | Ini penting agar perubahan awal controller tidak memanggil
-      | setState() ketika widget sedang dalam proses build.
-      |
-      */
       _nameMedicineController.text = _initialMedicineName;
 
       _nameMedicineController.addListener(_checkFormChanges);

@@ -17,10 +17,6 @@ class HomeProvider extends ChangeNotifier {
 
   String? errorMessage;
 
-  // =========================================================
-  // LOAD HOME
-  // =========================================================
-
   Future<void> load(DateTime date) async {
     isLoading = true;
     errorMessage = null;
@@ -53,14 +49,13 @@ class HomeProvider extends ChangeNotifier {
 
       debugPrint('HOME ERROR: $e');
     } finally {
+      await Future.delayed(const Duration(milliseconds: 600));
+
       isLoading = false;
+
       notifyListeners();
     }
   }
-
-  // =========================================================
-  // PARSE HOME SCHEDULES
-  // =========================================================
 
   List<HomeMedicineItem> _parseHomeSchedules(
     dynamic value,
@@ -139,10 +134,6 @@ class HomeProvider extends ChangeNotifier {
     return result;
   }
 
-  // =========================================================
-  // DOSAGE
-  // =========================================================
-
   String _buildDosage(String dosage, String dosageUnit) {
     dosage = dosage.trim();
     dosageUnit = dosageUnit.trim();
@@ -162,10 +153,6 @@ class HomeProvider extends ChangeNotifier {
     return 'Minum $dosage $dosageUnit';
   }
 
-  // =========================================================
-  // FORMAT TIME
-  // =========================================================
-
   String _formatTime(String value) {
     final text = value.trim();
 
@@ -176,10 +163,6 @@ class HomeProvider extends ChangeNotifier {
     return text;
   }
 
-  // =========================================================
-  // FORMAT DATE
-  // =========================================================
-
   String _formatDate(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
 
@@ -187,10 +170,6 @@ class HomeProvider extends ChangeNotifier {
 
     return '${date.year}-$month-$day';
   }
-
-  // =========================================================
-  // TAKEN
-  // =========================================================
 
   Future<void> taken({
     required HomeMedicineItem item,
@@ -207,10 +186,6 @@ class HomeProvider extends ChangeNotifier {
       await load(date);
     });
   }
-
-  // =========================================================
-  // SKIPPED
-  // =========================================================
 
   Future<void> skipped({
     required HomeMedicineItem item,
@@ -229,10 +204,6 @@ class HomeProvider extends ChangeNotifier {
       await load(date);
     });
   }
-
-  // =========================================================
-  // RESCHEDULE
-  // =========================================================
 
   Future<void> reschedule({
     required HomeMedicineItem item,
@@ -254,10 +225,6 @@ class HomeProvider extends ChangeNotifier {
     });
   }
 
-  // =========================================================
-  // MISSED
-  // =========================================================
-
   Future<void> missed({
     required HomeMedicineItem item,
     required DateTime date,
@@ -271,10 +238,6 @@ class HomeProvider extends ChangeNotifier {
       await load(date);
     });
   }
-
-  // =========================================================
-  // CANCEL
-  // =========================================================
 
   Future<void> cancel({
     required HomeMedicineItem item,
@@ -290,12 +253,9 @@ class HomeProvider extends ChangeNotifier {
     });
   }
 
-  // =========================================================
-  // ACTION LOADING
-  // =========================================================
-
   Future<void> _runAction(Future<void> Function() action) async {
     isActionLoading = true;
+    isLoading = true;
     errorMessage = null;
 
     notifyListeners();
@@ -304,16 +264,39 @@ class HomeProvider extends ChangeNotifier {
       await action();
     } catch (e) {
       errorMessage = e.toString();
+
+      isLoading = false;
+
+      notifyListeners();
+
       rethrow;
     } finally {
       isActionLoading = false;
+
+      if (isLoading) {
+        isLoading = false;
+      }
+
       notifyListeners();
     }
   }
 
-  // =========================================================
-  // RESCHEDULED TIME
-  // =========================================================
+  Future<T> runWithLoading<T>(Future<T> Function() action) async {
+    isLoading = true;
+    errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      return await action();
+    } catch (e) {
+      errorMessage = e.toString();
+      rethrow;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 
   String? _formatRescheduledTime(dynamic value) {
     if (value == null) {
@@ -326,9 +309,6 @@ class HomeProvider extends ChangeNotifier {
       return null;
     }
 
-    // Laravel datetime:
-    // 2026-08-22 14:30:00
-    // 2026-08-22T14:30:00
     if (text.contains('T') || text.contains(' ')) {
       final separator = text.contains('T') ? 'T' : ' ';
 
@@ -343,7 +323,6 @@ class HomeProvider extends ChangeNotifier {
       }
     }
 
-    // HH:mm:ss / HH:mm
     if (text.length >= 5 && RegExp(r'^\d{2}:\d{2}').hasMatch(text)) {
       return text.substring(0, 5);
     }

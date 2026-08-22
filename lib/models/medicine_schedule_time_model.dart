@@ -7,7 +7,6 @@ class MedicineScheduleTimeModel {
   factory MedicineScheduleTimeModel.fromJson(Map<String, dynamic> json) {
     return MedicineScheduleTimeModel(
       id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
-
       time:
           json['reminder_time']?.toString() ??
           json['scheduled_time']?.toString() ??

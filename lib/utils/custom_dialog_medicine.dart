@@ -5,6 +5,8 @@ import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_sheet.dart';
 import 'package:smart_antibiotic/utils/custom_reschedule_sheet.dart';
 
+import '../models/medicine_model.dart';
+
 class CustomDialogMedicine extends StatelessWidget {
   final String time;
   final Widget image;
@@ -33,11 +35,14 @@ class CustomDialogMedicine extends StatelessWidget {
   final Future<void> Function(String actionTime, String notes)? onSkipped;
   final Future<void> Function(String time)? onReschedule;
   final Future<void> Function()? onCancel;
+  final Future<void> Function()? onEditFutureDoses;
 
   final bool isRescheduled;
   final String? rescheduledTime;
   final String? skippedAt;
   final String? takenAt;
+
+  final MedicineModel medicine;
 
   final Future<void> Function(
     int medicineId,
@@ -68,6 +73,8 @@ class CustomDialogMedicine extends StatelessWidget {
     required this.isMissed,
     required this.imgStatus,
     required this.isRescheduled,
+    required this.medicine,
+    this.onEditFutureDoses,
     this.onDeleteSingleDose,
     this.onDeleteFutureDoses,
     this.statusText,
@@ -284,7 +291,6 @@ class CustomDialogMedicine extends StatelessWidget {
                                   ],
                                   onItemTap: (index) async {
                                     Navigator.pop(bottomSheetContext);
-
                                     if (index == 0) {
                                       if (onDeleteSingleDose != null) {
                                         await onDeleteSingleDose!(
@@ -296,17 +302,12 @@ class CustomDialogMedicine extends StatelessWidget {
 
                                       return;
                                     }
-
-                                    if (index == 1) {
-                                      if (onDeleteFutureDoses != null) {
-                                        await onDeleteFutureDoses!(
-                                          medicineId,
-                                          scheduleTimeId,
-                                          scheduledDate,
-                                        );
-                                      }
-
-                                      return;
+                                    if (onDeleteFutureDoses != null) {
+                                      await onDeleteFutureDoses!(
+                                        medicineId,
+                                        scheduleTimeId,
+                                        scheduledDate,
+                                      );
                                     }
                                   },
                                 ),
@@ -318,6 +319,7 @@ class CustomDialogMedicine extends StatelessWidget {
                           color: AppColors.surfacePrimary,
                         ),
                       ),
+
                       const SizedBox(width: 24),
                       InkWell(
                         focusColor: Colors.transparent,
@@ -336,19 +338,49 @@ class CustomDialogMedicine extends StatelessWidget {
                                     'Hanya dosis ini',
                                     'Semua dosis berikutnya',
                                   ],
-                                  onItemTap: (index) {
+                                  onItemTap: (index) async {
+                                    if (index == 1) {
+                                      final navigator = Navigator.of(context);
+
+                                      Navigator.pop(bottomSheetContext);
+
+                                      navigator.pop();
+
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) async {
+                                            if (!navigator.mounted) {
+                                              return;
+                                            }
+
+                                            await navigator.pushNamed(
+                                              '/medicine-detail',
+                                              arguments: medicine,
+                                            );
+                                            if (navigator.mounted &&
+                                                onEditFutureDoses != null) {
+                                              await onEditFutureDoses!();
+                                            }
+                                          });
+
+                                      return;
+                                    }
+
                                     Navigator.pop(bottomSheetContext);
 
-                                    if (index == 1) {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/medicine-detail',
-                                      );
-                                    } else {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/medicine-edit-dosage',
-                                      );
+                                    final result = await Navigator.pushNamed(
+                                      context,
+                                      '/medicine-edit-dosage',
+                                      arguments: {
+                                        'medicine': medicine,
+                                        'medicineId': medicineId,
+                                        'scheduleTimeId': scheduleTimeId,
+                                        'scheduledDate': scheduledDate,
+                                        'editType': 'single',
+                                      },
+                                    );
+
+                                    if (context.mounted && result != null) {
+                                      Navigator.pop(context, result);
                                     }
                                   },
                                 ),

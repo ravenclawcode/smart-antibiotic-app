@@ -20,6 +20,10 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
   MedicineModel? _medicine;
   bool _isInitialized = false;
 
+  int? _medicineId;
+  int? _scheduleTimeId;
+  String? _scheduledDate;
+
   @override
   void initState() {
     super.initState();
@@ -40,10 +44,26 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
 
     if (arguments is MedicineModel) {
       _medicine = arguments;
-    } else if (arguments is Map<String, dynamic>) {
-      _medicine = MedicineModel.fromJson(arguments);
+
+      _medicineId = arguments.id;
     } else if (arguments is Map) {
-      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+      final data = Map<String, dynamic>.from(arguments);
+
+      final medicineData = data['medicine'];
+
+      if (medicineData is MedicineModel) {
+        _medicine = medicineData;
+      } else if (medicineData is Map) {
+        _medicine = MedicineModel.fromJson(
+          Map<String, dynamic>.from(medicineData),
+        );
+      }
+
+      _medicineId = int.tryParse(data['medicineId']?.toString() ?? '');
+
+      _scheduleTimeId = int.tryParse(data['scheduleTimeId']?.toString() ?? '');
+
+      _scheduledDate = data['scheduledDate']?.toString();
     }
   }
 
@@ -72,7 +92,13 @@ class _MedicineEditDosageScreenState extends State<MedicineEditDosageScreen> {
             const SizedBox(height: 20),
             _isLoading
                 ? _buildShimmerContent()
-                : _buildContent(context, _medicine),
+                : _buildContent(
+                    context,
+                    _medicine,
+                    _medicineId,
+                    _scheduleTimeId,
+                    _scheduledDate,
+                  ),
           ],
         ),
       ),
@@ -226,7 +252,13 @@ Widget _buildShimmerContent() {
   );
 }
 
-Widget _buildContent(BuildContext context, MedicineModel? medicine) {
+Widget _buildContent(
+  BuildContext context,
+  MedicineModel? medicine,
+  int? medicineId,
+  int? scheduleTimeId,
+  String? scheduledDate,
+) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
@@ -237,14 +269,26 @@ Widget _buildContent(BuildContext context, MedicineModel? medicine) {
             border: Border.all(color: const Color(0xFFE7ECF0)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: _buildOptionMenu(context, medicine),
+          child: _buildOptionMenu(
+            context,
+            medicine,
+            medicineId,
+            scheduleTimeId,
+            scheduledDate,
+          ),
         ),
       ],
     ),
   );
 }
 
-Widget _buildOptionMenu(BuildContext context, MedicineModel? medicine) {
+Widget _buildOptionMenu(
+  BuildContext context,
+  MedicineModel? medicine,
+  int? medicineId,
+  int? scheduleTimeId,
+  String? scheduledDate,
+) {
   final item = [
     {'title': 'Jumlah Dosis', 'route': '/medicine-edit-dose-amount'},
     {'title': 'Instruksi', 'route': '/medicine-edit-instruction'},
@@ -269,10 +313,15 @@ Widget _buildOptionMenu(BuildContext context, MedicineModel? medicine) {
           final result = await Navigator.pushNamed(
             context,
             menu['route'] as String,
-            arguments: medicine,
+            arguments: {
+              'medicine': medicine,
+              'medicineId': medicineId,
+              'scheduleTimeId': scheduleTimeId,
+              'scheduledDate': scheduledDate,
+            },
           );
 
-          if (result is MedicineModel && context.mounted) {
+          if (result != null && context.mounted) {
             Navigator.pop(context, result);
           }
         },
@@ -284,16 +333,9 @@ Widget _buildOptionMenu(BuildContext context, MedicineModel? medicine) {
                 children: [
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          menu['title'] as String,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      menu['title'] as String,
+                      style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(width: 20),

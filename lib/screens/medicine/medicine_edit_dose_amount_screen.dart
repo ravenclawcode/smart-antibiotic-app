@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../models/medicine_model.dart';
+import '../../providers/medicine_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -24,6 +26,11 @@ class _MedicineEditDoseAmountScreenState
   late TextEditingController dosageController;
 
   MedicineModel? _medicine;
+
+  int? _medicineId;
+  int? _scheduleTimeId;
+  String? _scheduledDate;
+  bool _isSingleDose = false;
 
   String _initialDosage = '';
   String _selectedUnit = 'Tablet';
@@ -57,28 +64,41 @@ class _MedicineEditDoseAmountScreenState
 
     if (arguments is MedicineModel) {
       _medicine = arguments;
-    } else if (arguments is Map<String, dynamic>) {
-      _medicine = MedicineModel.fromJson(arguments);
+      _medicineId = arguments.id;
     } else if (arguments is Map) {
-      _medicine = MedicineModel.fromJson(Map<String, dynamic>.from(arguments));
+      final map = Map<String, dynamic>.from(arguments);
+
+      if (map['medicine'] is MedicineModel) {
+        _medicine = map['medicine'] as MedicineModel;
+      } else if (map['medicine'] is Map) {
+        _medicine = MedicineModel.fromJson(
+          Map<String, dynamic>.from(map['medicine']),
+        );
+      }
+
+      _medicineId = int.tryParse(map['medicineId']?.toString() ?? '');
+
+      _scheduleTimeId = int.tryParse(map['scheduleTimeId']?.toString() ?? '');
+
+      _scheduledDate = map['scheduledDate']?.toString();
     }
 
     final dosage = _medicine?.dosage?.trim() ?? '';
-
     final dosageUnit = _medicine?.dosageUnit?.trim() ?? '';
 
     _initialDosage = dosage;
 
-    if (dosageUnit.isNotEmpty) {
-      _selectedUnit = dosageUnit;
-    } else {
-      _selectedUnit = 'Tablet';
-    }
+    _selectedUnit = dosageUnit.isNotEmpty ? dosageUnit : 'Tablet';
 
     dosageController.text = dosage;
 
-    _isInitializingForm = false;
+    _isSingleDose =
+        _medicineId != null &&
+        _scheduleTimeId != null &&
+        _scheduledDate != null &&
+        _scheduledDate!.trim().isNotEmpty;
 
+    _isInitializingForm = false;
     _isNextEnabled = false;
   }
 
@@ -130,10 +150,57 @@ class _MedicineEditDoseAmountScreenState
     _checkFormChanges();
   }
 
-  void _saveChanges() {
+  Future<void> _saveChanges() async {
     final medicine = _medicine;
 
-    if (medicine == null) {
+    if (medicine == null || medicine.id == null) {
+      return;
+    }
+
+    final provider = context.read<MedicineProvider>();
+
+    if (_isSingleDose) {
+      final medicineId = _medicineId;
+      final scheduleTimeId = _scheduleTimeId;
+      final scheduledDate = _scheduledDate;
+
+      if (medicineId == null ||
+          scheduleTimeId == null ||
+          scheduledDate == null ||
+          scheduledDate.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data dosis yang dipilih tidak lengkap.'),
+          ),
+        );
+
+        return;
+      }
+
+      final success = await provider.updateDose(
+        medicineId: medicineId,
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+        dosage: dosageController.text.trim(),
+        dosageUnit: _selectedUnit,
+        instruction: medicine.instruction ?? '',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? 'Gagal memperbarui dosis.'),
+          ),
+        );
+
+        return;
+      }
+
+      Navigator.pop(context, true);
       return;
     }
 
@@ -142,7 +209,23 @@ class _MedicineEditDoseAmountScreenState
       dosageUnit: _selectedUnit,
     );
 
-    Navigator.pop(context, updatedMedicine);
+    final result = await provider.updateMedicine(medicine.id!, updatedMedicine);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Gagal memperbarui dosis.'),
+        ),
+      );
+
+      return;
+    }
+
+    Navigator.pop(context, result);
   }
 
   @override
@@ -342,7 +425,7 @@ Widget _buildShimmerContent() {
           highlightColor: AppColors.surfaceCool,
           child: Container(
             width: double.infinity,
-            height: 70, 
+            height: 70,
             decoration: BoxDecoration(
               color: AppColors.surfacePrimary,
               borderRadius: BorderRadius.circular(40),

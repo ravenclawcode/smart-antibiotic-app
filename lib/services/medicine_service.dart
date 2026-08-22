@@ -181,7 +181,7 @@ class MedicineService {
     final uuid = await _getUserUuid();
 
     final response = await apiClient.delete(
-      '${ApiConstants.medicines}/medicines/$medicineId/single-dose',
+      '${ApiConstants.medicines}/$medicineId/single-dose',
       queryParameters: {
         'schedule_time_id': scheduleTimeId.toString(),
         'scheduled_date': scheduledDate,
@@ -227,6 +227,41 @@ class MedicineService {
         message:
             response['message']?.toString() ??
             'Gagal menghentikan dosis berikutnya.',
+      );
+    }
+  }
+
+  Future<void> updateDose({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String scheduledDate,
+    required String dosage,
+    required String dosageUnit,
+    required String instruction,
+  }) async {
+    final uuid = await _getUserUuid();
+
+    final body = <String, dynamic>{
+      'schedule_time_id': scheduleTimeId,
+      'scheduled_date': scheduledDate,
+      'dosage': dosage,
+      'dosage_unit': dosageUnit,
+      'instruction': instruction,
+    };
+
+    final response = await apiClient.put(
+      '${ApiConstants.medicines}/$medicineId/dose',
+      headers: {'X-User-UUID': uuid},
+      body: body,
+    );
+
+    if (response is! Map) {
+      throw const ApiException(message: 'Response update dosis tidak valid.');
+    }
+
+    if (response['success'] != true) {
+      throw ApiException(
+        message: response['message']?.toString() ?? 'Gagal memperbarui dosis.',
       );
     }
   }
