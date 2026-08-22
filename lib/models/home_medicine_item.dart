@@ -1,3 +1,5 @@
+import 'medicine_model.dart';
+
 class HomeMedicineItem {
   final int medicineId;
   final int scheduleTimeId;
@@ -11,6 +13,7 @@ class HomeMedicineItem {
   final String? skippedAt;
   final String? notes;
   final String? rescheduledTime;
+  final MedicineModel medicine;
 
   const HomeMedicineItem({
     required this.medicineId,
@@ -19,8 +22,9 @@ class HomeMedicineItem {
     required this.name,
     required this.dosage,
     required this.time,
-    this.instruction,
     required this.status,
+    required this.medicine,
+    this.instruction,
     this.takenAt,
     this.skippedAt,
     this.notes,

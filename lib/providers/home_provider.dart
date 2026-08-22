@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/home_medicine_item.dart';
+import '../models/medicine_model.dart';
 import '../services/home_service.dart';
 import '../services/medicine_history_service.dart';
 
@@ -42,8 +43,6 @@ class HomeProvider extends ChangeNotifier {
       errorMessage = e.toString();
       medicines = [];
     } finally {
-      await Future.delayed(const Duration(milliseconds: 600));
-
       isLoading = false;
 
       notifyListeners();
@@ -73,6 +72,8 @@ class HomeProvider extends ChangeNotifier {
       }
 
       final medicineData = Map<String, dynamic>.from(medicine);
+
+      final homeMedicine = MedicineModel.fromJson(medicineData);
 
       final medicineId =
           int.tryParse(medicineData['id']?.toString() ?? '') ?? 0;
@@ -107,6 +108,7 @@ class HomeProvider extends ChangeNotifier {
           skippedAt: data['skipped_at']?.toString(),
           notes: data['notes']?.toString(),
           rescheduledTime: _formatRescheduledTime(data['rescheduled_time']),
+          medicine: homeMedicine,
         ),
       );
     }

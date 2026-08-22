@@ -47,11 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeMedicineItem item,
     DateTime selectedDate,
   ) async {
-    final medicineProvider = context.read<MedicineProvider>();
+    final medicine = item.medicine;
 
-    final medicine = await medicineProvider.getMedicine(item.medicineId);
-
-    if (!context.mounted || medicine == null) {
+    if (!context.mounted) {
       return;
     }
 

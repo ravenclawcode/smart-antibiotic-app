@@ -67,19 +67,18 @@ class _MedicineEditDoseAmountScreenState
       _medicineId = arguments.id;
     } else if (arguments is Map) {
       final map = Map<String, dynamic>.from(arguments);
+      final medicineData = map['medicine'];
 
-      if (map['medicine'] is MedicineModel) {
-        _medicine = map['medicine'] as MedicineModel;
-      } else if (map['medicine'] is Map) {
+      if (medicineData is MedicineModel) {
+        _medicine = medicineData;
+      } else if (medicineData is Map) {
         _medicine = MedicineModel.fromJson(
-          Map<String, dynamic>.from(map['medicine']),
+          Map<String, dynamic>.from(medicineData),
         );
       }
 
       _medicineId = int.tryParse(map['medicineId']?.toString() ?? '');
-
       _scheduleTimeId = int.tryParse(map['scheduleTimeId']?.toString() ?? '');
-
       _scheduledDate = map['scheduledDate']?.toString();
     }
 
@@ -87,7 +86,6 @@ class _MedicineEditDoseAmountScreenState
     final dosageUnit = _medicine?.dosageUnit?.trim() ?? '';
 
     _initialDosage = dosage;
-
     _selectedUnit = dosageUnit.isNotEmpty ? dosageUnit : 'Tablet';
 
     dosageController.text = dosage;
@@ -124,9 +122,7 @@ class _MedicineEditDoseAmountScreenState
         : 'Tablet';
 
     final bool hasDosageChanged = currentText != _initialDosage;
-
     final bool hasUnitChanged = _selectedUnit != initialUnit;
-
     final bool isValid = currentText.isNotEmpty;
 
     final bool hasChanges = (hasDosageChanged || hasUnitChanged) && isValid;
