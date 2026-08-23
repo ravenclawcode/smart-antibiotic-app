@@ -17,8 +17,13 @@ class CustomInputMedicineForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final items = [
+      <String, dynamic>{'medicine_id': null, 'name': 'Semua Obat'},
+      ...medicines,
+    ];
+
     final currentValue =
-        medicines.any(
+        items.any(
           (medicine) => medicine['name']?.toString() == selectedMedicine,
         )
         ? selectedMedicine
@@ -26,14 +31,19 @@ class CustomInputMedicineForm extends StatelessWidget {
 
     return DropdownButtonFormField<String>(
       initialValue: currentValue,
-      items: medicines.map((medicine) {
+
+      items: items.map((medicine) {
         final name = medicine['name']?.toString() ?? '';
 
         return DropdownMenuItem<String>(value: name, child: Text(name));
       }).toList(),
+
       hint: Text('Pilih obat', style: AppTextStyles.hint),
+
       style: AppTextStyles.bodyMedium.copyWith(fontSize: 18),
+
       icon: Icon(Icons.arrow_drop_down, color: AppColors.textPrimary),
+
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
@@ -54,13 +64,14 @@ class CustomInputMedicineForm extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
       ),
+
       onChanged: (value) {
         if (value == null) {
           onChanged(null);
           return;
         }
 
-        final medicine = medicines.firstWhere(
+        final medicine = items.firstWhere(
           (item) => item['name']?.toString() == value,
           orElse: () => <String, dynamic>{},
         );

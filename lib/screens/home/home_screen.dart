@@ -38,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     selectedDate = DateTime(now.year, now.month, now.day);
 
-    // Minggu dianggap sebagai awal minggu (index 0)
     final daysToSubtract = now.weekday % 7;
     currentWeekStart = DateTime(
       now.year,

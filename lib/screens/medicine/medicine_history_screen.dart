@@ -21,6 +21,7 @@ class MedicineHistoryScreen extends StatefulWidget {
 class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
     with SingleTickerProviderStateMixin {
   bool _isLoading = true;
+  bool _isFilterLoading = false;
   bool _isFiltered = false;
   bool _isSharing = false;
   String _selectedMedicine = '';
@@ -74,6 +75,7 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
     await Future.wait([
       provider.fetchHistory(format: 'daily'),
       provider.fetchMedicineOptions(),
+      Future.delayed(const Duration(milliseconds: 600)),
     ]);
 
     if (!mounted) {
@@ -187,7 +189,7 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
     }
 
     setState(() {
-      _isLoading = true;
+      _isFilterLoading = true;
       _isFiltered = true;
       _selectedMedicine = medicineName;
       _selectedMedicineId = medicineId;
@@ -198,7 +200,10 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
       // ignore: use_build_context_synchronously
       final provider = context.read<MedicineHistoryProvider>();
 
-      await provider.fetchHistory(medicineId: medicineId, format: apiFormat);
+      await Future.wait([
+        provider.fetchHistory(medicineId: medicineId, format: apiFormat),
+        Future.delayed(const Duration(milliseconds: 300)),
+      ]);
 
       if (!mounted) {
         return;
@@ -214,13 +219,13 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
           final end = period['end_date']?.toString() ?? '';
 
           if (start.isNotEmpty && end.isNotEmpty) {
-            _dateRangeText = '$start - $end';
+            _dateRangeText = _formatDateRange(start, end);
           } else {
             _dateRangeText = '';
           }
         }
 
-        _isLoading = false;
+        _isFilterLoading = false;
       });
 
       _animationController.forward(from: 0);
@@ -230,7 +235,7 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
       }
 
       setState(() {
-        _isLoading = false;
+        _isFilterLoading = false;
       });
 
       ScaffoldMessenger.of(
@@ -253,7 +258,9 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
             children: [
               _buildHeader(context, isLoading: _isLoading),
               _buildContent(
+                context: context,
                 isLoading: _isLoading,
+                filterLoading: _isFilterLoading,
                 filterMedicine: _filterMedicine,
                 onShare: _sharePdfReport,
                 isFiltered: _isFiltered,
@@ -348,7 +355,9 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
 }
 
 Widget _buildContent({
+  required BuildContext context,
   required bool isLoading,
+  required bool filterLoading,
   required VoidCallback filterMedicine,
   required VoidCallback onShare,
   required bool isFiltered,
@@ -367,7 +376,7 @@ Widget _buildContent({
         SizedBox(height: isFiltered ? 20 : 25),
         Row(
           children: [
-            isLoading
+            (isLoading || filterLoading)
                 ? Shimmer.fromColors(
                     baseColor: AppColors.surfaceSecondary,
                     highlightColor: AppColors.surfaceCool,
@@ -415,7 +424,7 @@ Widget _buildContent({
                     ),
                   ),
 
-            if (!isLoading && isFiltered) ...[
+            if (!isLoading && !filterLoading && isFiltered) ...[
               const SizedBox(width: 10),
               FadeTransition(
                 opacity: fadeAnimation,
@@ -472,9 +481,26 @@ Widget _buildContent({
             ],
           ],
         ),
-        if (!isLoading && isFiltered) ...[
+        if (!isLoading && !filterLoading && isFiltered) ...[
           const SizedBox(height: 26),
-          _buildListHistory(historyItems, animationController),
+
+          if (historyItems.isEmpty)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height * 0.6,
+              ),
+              child: Center(
+                child: Text(
+                  'Tidak ada riwayat obat.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else
+            _buildListHistory(historyItems, animationController),
         ],
       ],
     ),
@@ -485,13 +511,27 @@ Widget _buildListHistory(
   List<Map<String, dynamic>> items,
   AnimationController controller,
 ) {
+  final Map<String, List<Map<String, dynamic>>> groupedItems = {};
+
+  for (final item in items) {
+    final date = item['date']?.toString() ?? '';
+
+    groupedItems.putIfAbsent(date, () => []);
+    groupedItems[date]!.add(item);
+  }
+
+  final groupedEntries = groupedItems.entries.toList();
+
   return ListView.builder(
-    itemCount: items.length,
+    itemCount: groupedEntries.length,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
-      final data = items[index];
+      final entry = groupedEntries[index];
+
+      final date = entry.key;
+      final dateItems = entry.value;
 
       final double start = (index * 0.15).clamp(0.0, 0.6);
       final double end = (start + 0.4).clamp(0.0, 1.0);
@@ -516,20 +556,36 @@ Widget _buildListHistory(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(data['date'], style: AppTextStyles.bodyLarge),
+              Text(_formatDate(date), style: AppTextStyles.bodyLarge),
+
               const SizedBox(height: 12),
-              CustomHistoryCard(
-                time: data['time']?.toString() ?? '-',
-                image: _medicineImage(data['medicine_image']?.toString()),
-                name: data['name']?.toString() ?? '-',
-                dosage: data['dosage']?.toString() ?? '-',
-                isTaken: data['status'] == 'taken',
-                isSkipped: data['status'] == 'skipped',
-                isMissed: data['status'] == 'missed',
-                imgStatus: _statusImage(data['status']?.toString()),
-                statusText: _statusText(data['status']?.toString()),
+
+              ...dateItems.map(
+                (data) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: CustomHistoryCard(
+                    time: data['time']?.toString() ?? '-',
+
+                    image: _medicineImage(data['medicine_image']?.toString()),
+
+                    name: data['name']?.toString() ?? '-',
+
+                    dosage: _formatDosage(data['dosage'], data['dosage_unit']),
+
+                    isTaken: data['status'] == 'taken',
+
+                    isSkipped: data['status'] == 'skipped',
+
+                    isMissed: data['status'] == 'missed',
+
+                    imgStatus: _statusImage(data['status']?.toString()),
+
+                    statusText: _statusText(data['status']?.toString()),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -586,4 +642,91 @@ String _statusText(String? status) {
     default:
       return '-';
   }
+}
+
+String _formatDate(String? dateString) {
+  if (dateString == null || dateString.isEmpty) {
+    return '-';
+  }
+
+  try {
+    final date = DateTime.parse(dateString);
+
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    const weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+    return '${weekdays[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
+  } catch (_) {
+    return dateString;
+  }
+}
+
+String _formatDateRange(String startString, String endString) {
+  try {
+    final start = DateTime.parse(startString);
+    final end = DateTime.parse(endString);
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
+    if (start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day) {
+      return '${start.day} ${months[start.month - 1]} ${start.year}';
+    }
+
+    if (start.year == end.year) {
+      return '${start.day} ${months[start.month - 1]} - '
+          '${end.day} ${months[end.month - 1]} ${end.year}';
+    }
+
+    return '${start.day} ${months[start.month - 1]} ${start.year} - '
+        '${end.day} ${months[end.month - 1]} ${end.year}';
+  } catch (_) {
+    return '$startString - $endString';
+  }
+}
+
+String _formatDosage(dynamic dosage, dynamic dosageUnit) {
+  if (dosage == null) {
+    return '-';
+  }
+
+  final dosageText = dosage.toString();
+
+  if (dosageUnit == null || dosageUnit.toString().trim().isEmpty) {
+    return 'Minum $dosageText';
+  }
+
+  String unit = dosageUnit.toString().trim();
+
+  unit = unit[0].toUpperCase() + unit.substring(1).toLowerCase();
+
+  return 'Minum $dosageText $unit';
 }

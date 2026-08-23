@@ -62,6 +62,10 @@ class _MedicineScreenState extends State<MedicineScreen> {
                   ? _buildShimmerContent()
                   : Consumer<MedicineProvider>(
                       builder: (context, medicineProvider, child) {
+                        if (medicineProvider.medicines.isEmpty) {
+                          return _buildEmptyState(context);
+                        }
+
                         return _buildContent(
                           medicineProvider.medicines,
                           context,
@@ -259,5 +263,22 @@ Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
         ),
       );
     },
+  );
+}
+
+Widget _buildEmptyState(BuildContext context) {
+  final screenHeight = MediaQuery.of(context).size.height;
+
+  return Center(
+    child: Transform.translate(
+      offset: Offset(0, -screenHeight * 0.06),
+      child: Text(
+        'Belum ada obat.',
+        textAlign: TextAlign.center,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
+    ),
   );
 }

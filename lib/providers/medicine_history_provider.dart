@@ -32,16 +32,24 @@ class MedicineHistoryProvider extends ChangeNotifier {
       format: format,
     );
 
-    _period = response['period'] != null
-        ? Map<String, dynamic>.from(response['period'])
+    final data = response['data'];
+
+    if (data is! Map) {
+      throw Exception('Data riwayat obat tidak valid.');
+    }
+
+    final historyData = Map<String, dynamic>.from(data);
+
+    _period = historyData['period'] != null
+        ? Map<String, dynamic>.from(historyData['period'])
         : null;
 
     _historyItems = [];
 
-    final data = response['data'];
+    final itemsByDate = historyData['data'];
 
-    if (data is List) {
-      for (final day in data) {
+    if (itemsByDate is List) {
+      for (final day in itemsByDate) {
         final dayData = Map<String, dynamic>.from(day);
 
         final date = dayData['date']?.toString() ?? '';
