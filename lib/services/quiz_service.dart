@@ -1,8 +1,8 @@
 import '../core/network/api_client.dart';
 import '../core/constants/api_constants.dart';
-import '../models/quiz.dart';
-import '../models/quiz_question.dart';
-import '../models/quiz_result.dart';
+import '../models/quiz_model.dart';
+import '../models/quiz_question_model.dart';
+import '../models/quiz_result_model.dart';
 import 'local_storage_service.dart';
 
 class QuizService {
@@ -11,13 +11,13 @@ class QuizService {
 
   QuizService({required this.apiClient, required this.localStorage});
 
-  Future<List<Quiz>> getQuizzes() async {
+  Future<List<QuizModel>> getQuizzes() async {
     final response = await apiClient.get(ApiConstants.quizzes);
 
     final List data = response['data'] as List;
 
     return data
-        .map((json) => Quiz.fromJson(json as Map<String, dynamic>))
+        .map((json) => QuizModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -26,7 +26,7 @@ class QuizService {
 
     final data = response['data'] as Map<String, dynamic>;
 
-    final quiz = Quiz(
+    final quiz = QuizModel(
       id: data['id'] as int,
       level: data['level'] as int,
       description: data['description'] as String?,
@@ -35,13 +35,13 @@ class QuizService {
     final questionsData = data['questions'] as List;
 
     final questions = questionsData
-        .map((json) => QuizQuestion.fromJson(json as Map<String, dynamic>))
+        .map((json) => QuizQuestionModel.fromJson(json as Map<String, dynamic>))
         .toList();
 
     return QuizDetail(quiz: quiz, questions: questions);
   }
 
-  Future<QuizResult> submitQuiz({
+  Future<QuizResultModel> submitQuiz({
     required int quizId,
     required List<Map<String, dynamic>> answers,
   }) async {
@@ -57,13 +57,13 @@ class QuizService {
       body: {'answers': answers},
     );
 
-    return QuizResult.fromJson(response['data'] as Map<String, dynamic>);
+    return QuizResultModel.fromJson(response['data'] as Map<String, dynamic>);
   }
 }
 
 class QuizDetail {
-  final Quiz quiz;
-  final List<QuizQuestion> questions;
+  final QuizModel quiz;
+  final List<QuizQuestionModel> questions;
 
   QuizDetail({required this.quiz, required this.questions});
 }

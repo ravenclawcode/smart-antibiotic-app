@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/quiz.dart';
-import '../models/quiz_question.dart';
-import '../models/quiz_result.dart';
+import '../models/quiz_model.dart';
+import '../models/quiz_question_model.dart';
+import '../models/quiz_result_model.dart';
 import '../services/quiz_service.dart';
 
 class QuizProvider extends ChangeNotifier {
@@ -10,26 +10,26 @@ class QuizProvider extends ChangeNotifier {
 
   QuizProvider({required this.service});
 
-  List<Quiz> _quizzes = [];
+  List<QuizModel> _quizzes = [];
 
-  Quiz? _selectedQuiz;
+  QuizModel? _selectedQuiz;
 
-  List<QuizQuestion> _questions = [];
+  List<QuizQuestionModel> _questions = [];
 
-  QuizResult? _result;
+  QuizResultModel? _result;
 
   bool _isLoading = false;
   bool _isSubmitting = false;
 
   String? _errorMessage;
 
-  List<Quiz> get quizzes => _quizzes;
+  List<QuizModel> get quizzes => _quizzes;
 
-  Quiz? get selectedQuiz => _selectedQuiz;
+  QuizModel? get selectedQuiz => _selectedQuiz;
 
-  List<QuizQuestion> get questions => _questions;
+  List<QuizQuestionModel> get questions => _questions;
 
-  QuizResult? get result => _result;
+  QuizResultModel? get result => _result;
 
   bool get isLoading => _isLoading;
 

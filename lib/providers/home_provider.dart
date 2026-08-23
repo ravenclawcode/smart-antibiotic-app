@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/home_medicine_item.dart';
-import '../models/medicine_model.dart';
-import '../services/home_service.dart';
-import '../services/medicine_history_service.dart';
+import '../../models/home_medicine_item.dart';
+import '../../models/medicine_model.dart';
+import '../../services/home_service.dart';
+import '../../services/medicine_history_service.dart';
 
 class HomeProvider extends ChangeNotifier {
   final HomeService homeService;
@@ -16,17 +16,28 @@ class HomeProvider extends ChangeNotifier {
 
   List<HomeMedicineItem> medicines = [];
 
+  String? userName;
+
   String? errorMessage;
 
-  Future<void> load(DateTime date) async {
-    isLoading = true;
-    errorMessage = null;
+  Future<void> load(DateTime date, {bool showLoading = true}) async {
+    if (showLoading) {
+      isLoading = true;
+      errorMessage = null;
 
-    notifyListeners();
+      notifyListeners();
+    }
 
     try {
       final dateString = _formatDate(date);
+
       final response = await homeService.getHome(date: dateString);
+
+      final user = response['user'];
+
+      if (user is Map) {
+        userName = user['name']?.toString();
+      }
 
       dynamic schedules;
 
@@ -39,13 +50,20 @@ class HomeProvider extends ChangeNotifier {
       }
 
       medicines = _parseHomeSchedules(schedules, dateString);
+
+      if (showLoading) {
+        await Future.delayed(const Duration(milliseconds: 600));
+      }
     } catch (e) {
       errorMessage = e.toString();
       medicines = [];
-    } finally {
-      isLoading = false;
 
-      notifyListeners();
+      rethrow;
+    } finally {
+      if (showLoading) {
+        isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -65,6 +83,7 @@ class HomeProvider extends ChangeNotifier {
       }
 
       final data = Map<String, dynamic>.from(item);
+
       final medicine = data['medicine'];
 
       if (medicine is! Map) {
@@ -167,7 +186,7 @@ class HomeProvider extends ChangeNotifier {
         actionTime: actionTime,
       );
 
-      await load(date);
+      await load(date, showLoading: false);
     });
   }
 
@@ -185,7 +204,7 @@ class HomeProvider extends ChangeNotifier {
         notes: notes,
       );
 
-      await load(date);
+      await load(date, showLoading: false);
     });
   }
 
@@ -205,7 +224,7 @@ class HomeProvider extends ChangeNotifier {
         rescheduledTime: rescheduledDateTime,
       );
 
-      await load(date);
+      await load(date, showLoading: false);
     });
   }
 
@@ -219,7 +238,7 @@ class HomeProvider extends ChangeNotifier {
         scheduledDate: _formatDate(date),
       );
 
-      await load(date);
+      await load(date, showLoading: false);
     });
   }
 
@@ -233,7 +252,7 @@ class HomeProvider extends ChangeNotifier {
         scheduledDate: _formatDate(date),
       );
 
-      await load(date);
+      await load(date, showLoading: false);
     });
   }
 
@@ -246,20 +265,15 @@ class HomeProvider extends ChangeNotifier {
 
     try {
       await action();
+
+      await Future.delayed(const Duration(milliseconds: 600));
     } catch (e) {
       errorMessage = e.toString();
-
-      isLoading = false;
-
-      notifyListeners();
 
       rethrow;
     } finally {
       isActionLoading = false;
-
-      if (isLoading) {
-        isLoading = false;
-      }
+      isLoading = false;
 
       notifyListeners();
     }
@@ -272,12 +286,39 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      return await action();
+      final result = await action();
+
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      return result;
     } catch (e) {
       errorMessage = e.toString();
+
       rethrow;
     } finally {
       isLoading = false;
+
+      notifyListeners();
+    }
+  }
+
+  Future<void> reloadWithLoading(DateTime date) async {
+    isLoading = true;
+    errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      await load(date, showLoading: false);
+
+      await Future.delayed(const Duration(milliseconds: 600));
+    } catch (e) {
+      errorMessage = e.toString();
+
+      rethrow;
+    } finally {
+      isLoading = false;
+
       notifyListeners();
     }
   }

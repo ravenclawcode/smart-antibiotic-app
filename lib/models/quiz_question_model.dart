@@ -1,4 +1,4 @@
-class QuizQuestion {
+class QuizQuestionModel {
   final int id;
   final String question;
   final String optionA;
@@ -6,7 +6,7 @@ class QuizQuestion {
   final String optionC;
   final String optionD;
 
-  QuizQuestion({
+  QuizQuestionModel({
     required this.id,
     required this.question,
     required this.optionA,
@@ -15,8 +15,8 @@ class QuizQuestion {
     required this.optionD,
   });
 
-  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
-    return QuizQuestion(
+  factory QuizQuestionModel.fromJson(Map<String, dynamic> json) {
+    return QuizQuestionModel(
       id: json['id'] as int,
       question: json['question'] as String,
       optionA: json['option_a'] as String,

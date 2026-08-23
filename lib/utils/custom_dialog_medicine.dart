@@ -291,6 +291,13 @@ class CustomDialogMedicine extends StatelessWidget {
                                   ],
                                   onItemTap: (index) async {
                                     Navigator.pop(bottomSheetContext);
+
+                                    Navigator.pop(context);
+
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 50),
+                                    );
+
                                     if (index == 0) {
                                       if (onDeleteSingleDose != null) {
                                         await onDeleteSingleDose!(
@@ -302,6 +309,7 @@ class CustomDialogMedicine extends StatelessWidget {
 
                                       return;
                                     }
+
                                     if (onDeleteFutureDoses != null) {
                                       await onDeleteFutureDoses!(
                                         medicineId,
@@ -331,64 +339,87 @@ class CustomDialogMedicine extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (bottomSheetContext) =>
-                                CustomMedicineSheet(
-                                  title: 'Edit Amoxicillin',
-                                  list: const [
-                                    'Hanya dosis ini',
-                                    'Semua dosis berikutnya',
-                                  ],
-                                  onItemTap: (index) async {
-                                    if (index == 1) {
-                                      final navigator = Navigator.of(context);
+                            builder: (bottomSheetContext) => CustomMedicineSheet(
+                              title: 'Edit Amoxicillin',
+                              list: const [
+                                'Hanya dosis ini',
+                                'Semua dosis berikutnya',
+                              ],
+                              onItemTap: (index) async {
+                                // ===================================================
+                                // SEMUA DOSIS BERIKUTNYA
+                                // ===================================================
 
-                                      Navigator.pop(bottomSheetContext);
+                                if (index == 1) {
+                                  final navigator = Navigator.of(context);
 
-                                      navigator.pop();
+                                  Navigator.pop(bottomSheetContext);
 
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) async {
-                                            if (!navigator.mounted) {
-                                              return;
-                                            }
+                                  // Tutup CustomDialogMedicine.
+                                  navigator.pop();
 
-                                            await navigator.pushNamed(
-                                              '/medicine-detail',
-                                              arguments: medicine,
-                                            );
-                                            if (navigator.mounted &&
-                                                onEditFutureDoses != null) {
-                                              await onEditFutureDoses!();
-                                            }
-                                          });
-
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) async {
+                                    if (!navigator.mounted) {
                                       return;
                                     }
 
-                                    Navigator.pop(bottomSheetContext);
-
-                                    final result = await Navigator.pushNamed(
-                                      context,
-                                      '/medicine-edit-dosage',
-                                      arguments: {
-                                        'medicine': medicine,
-                                        'medicineId': medicineId,
-                                        'scheduleTimeId': scheduleTimeId,
-                                        'scheduledDate': scheduledDate,
-                                        'instruction': notesText ?? notes,
-                                        'editType': 'single',
-                                      },
+                                    await navigator.pushNamed(
+                                      '/medicine-detail',
+                                      arguments: medicine,
                                     );
 
-                                    if (!context.mounted) {
-                                      return;
+                                    if (navigator.mounted &&
+                                        onEditFutureDoses != null) {
+                                      await onEditFutureDoses!();
                                     }
+                                  });
 
-                                    if (result == true) {
-                                      Navigator.of(context).pop(true);
-                                    }
-                                  },
-                                ),
+                                  return;
+                                }
+
+                                // ===================================================
+                                // HANYA DOSIS INI
+                                // ===================================================
+
+                                Navigator.pop(bottomSheetContext);
+
+                                final navigator = Navigator.of(context);
+
+                                // Tutup CustomDialogMedicine terlebih dahulu.
+                                navigator.pop();
+
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) async {
+                                  if (!navigator.mounted) {
+                                    return;
+                                  }
+
+                                  final result = await navigator.pushNamed(
+                                    '/medicine-edit-dosage',
+                                    arguments: {
+                                      'medicine': medicine,
+                                      'medicineId': medicineId,
+                                      'scheduleTimeId': scheduleTimeId,
+                                      'scheduledDate': scheduledDate,
+                                      'instruction': notesText ?? notes,
+                                      'editType': 'single',
+                                    },
+                                  );
+
+                                  if (!navigator.mounted) {
+                                    return;
+                                  }
+
+                                  if (result == true &&
+                                      onEditFutureDoses != null) {
+                                    await onEditFutureDoses!();
+                                  }
+                                });
+                              },
+                            ),
                           );
                         },
                         child: Image.asset(
