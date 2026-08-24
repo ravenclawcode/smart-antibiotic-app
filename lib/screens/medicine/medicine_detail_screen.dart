@@ -22,6 +22,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
 
   MedicineModel? _medicine;
   bool _isInitialized = false;
+  bool _hasChanged = false;
 
   @override
   void initState() {
@@ -127,6 +128,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       if (scheduleTimeId == null ||
           scheduledDate == null ||
           scheduledDate.isEmpty) {
+        if (!mounted) return;
+
         setState(() {
           _isLoading = false;
         });
@@ -169,6 +172,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
 
       return;
     }
+
+    _hasChanged = true;
 
     Navigator.of(context).pop(true);
   }
@@ -338,6 +343,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         return;
       }
 
+      _hasChanged = true;
+
       setState(() {
         _medicine = updatedMedicine;
       });
@@ -477,6 +484,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               context,
               _deleteMedicine,
               name,
+              _hasChanged,
               medicineData,
               isLoading: _isLoading,
               onNameEdit: _editMedicineName,
@@ -509,6 +517,7 @@ Widget _buildHeader(
   BuildContext context,
   VoidCallback onDeleteTap,
   String name,
+  bool hasChanged,
   Map<String, dynamic> medicineData, {
   required bool isLoading,
   required VoidCallback onNameEdit,
@@ -546,7 +555,7 @@ Widget _buildHeader(
                     hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context, hasChanged),
                     child: Container(
                       width: 36,
                       height: 36,

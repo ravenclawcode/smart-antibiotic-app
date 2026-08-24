@@ -7,6 +7,7 @@ import 'package:smart_antibiotic/providers/medicine_provider.dart';
 import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/custom_medicine_list_card.dart';
 
+import '../../providers/home_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
 import '../../utils/custom_button.dart';
@@ -248,7 +249,7 @@ Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
           title: item.name,
           image: medicineImage,
           onTap: () async {
-            await Navigator.pushNamed(
+            final result = await Navigator.pushNamed(
               context,
               '/medicine-detail',
               arguments: item,
@@ -256,7 +257,13 @@ Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
 
             if (!context.mounted) return;
 
-            await context.read<MedicineProvider>().loadMedicines();
+            if (result == true) {
+              await context.read<MedicineProvider>().loadMedicines();
+
+              if (!context.mounted) return;
+
+              context.read<HomeProvider>().markMedicineChanged();
+            }
           },
         ),
       );

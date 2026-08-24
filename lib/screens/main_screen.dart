@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:smart_antibiotic/screens/home/home_screen.dart';
 import 'package:smart_antibiotic/screens/medicine/medicine_screen.dart';
 
+import '../providers/home_provider.dart';
 import '../utils/app_assets.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_text.dart';
@@ -17,10 +19,14 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
 
-  void onNavItemSelected(int index) {
+  Future<void> onNavItemSelected(int index) async {
     setState(() {
       selectedIndex = index;
     });
+
+    if (index == 0) {
+      await context.read<HomeProvider>().refreshIfMedicineChanged();
+    }
   }
 
   Color onIconSelected(int index) {
@@ -48,7 +54,9 @@ class _MainScreenState extends State<MainScreen> {
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
             currentIndex: selectedIndex,
-            onTap: onNavItemSelected,
+            onTap: (index) {
+              onNavItemSelected(index);
+            },
             selectedLabelStyle: AppTextStyles.bodySmall.copyWith(
               height: 2.5,
               fontWeight: FontWeight.bold,

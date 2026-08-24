@@ -20,7 +20,39 @@ class HomeProvider extends ChangeNotifier {
 
   String? errorMessage;
 
+  bool _medicineChanged = false;
+
+  DateTime? currentDate;
+
+  bool get medicineChanged => _medicineChanged;
+
+  void markMedicineChanged() {
+    _medicineChanged = true;
+    notifyListeners();
+  }
+
+  void clearMedicineChanged() {
+    _medicineChanged = false;
+    notifyListeners();
+  }
+
+  Future<void> refreshIfMedicineChanged() async {
+    if (!_medicineChanged || currentDate == null) {
+      return;
+    }
+
+    final date = currentDate!;
+
+    try {
+      await load(date, showLoading: false);
+    } finally {
+      clearMedicineChanged();
+    }
+  }
+
   Future<void> load(DateTime date, {bool showLoading = true}) async {
+    currentDate = date;
+
     if (showLoading) {
       isLoading = true;
       errorMessage = null;
