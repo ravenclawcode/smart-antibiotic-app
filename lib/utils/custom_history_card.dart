@@ -10,6 +10,7 @@ class CustomHistoryCard extends StatelessWidget {
   final bool isTaken;
   final bool isSkipped;
   final bool isMissed;
+  final bool isReschedule;
   final Widget imgStatus;
   final String? statusText;
 
@@ -22,6 +23,7 @@ class CustomHistoryCard extends StatelessWidget {
     required this.isTaken,
     required this.isSkipped,
     required this.isMissed,
+    required this.isReschedule,
     required this.imgStatus,
     this.statusText,
   });
@@ -53,13 +55,9 @@ class CustomHistoryCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Padding(
-                    padding: isTaken
-                        ? EdgeInsets.only(top: 12, right: 4)
-                        : isSkipped
-                        ? EdgeInsetsGeometry.only(top: 12, right: 4)
-                        : isMissed
-                        ? EdgeInsetsGeometry.only(top: 12, right: 4)
-                        : EdgeInsets.only(left: 2, right: 2),
+                    padding: (isTaken || isSkipped || isMissed || isReschedule)
+                        ? const EdgeInsets.only(top: 12, right: 4)
+                        : const EdgeInsets.only(left: 2, right: 2),
                     child: image,
                   ),
                   Positioned(top: 0, right: 0, child: imgStatus),
@@ -70,6 +68,7 @@ class CustomHistoryCard extends StatelessWidget {
             VerticalDivider(width: 1, color: AppColors.border),
             SizedBox(width: 10),
             Expanded(
+              flex: 5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -91,14 +90,21 @@ class CustomHistoryCard extends StatelessWidget {
             ),
             SizedBox(width: 10),
             if (statusText != null) ...[
-              Text(
-                statusText!,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isTaken
-                      ? AppColors.success
-                      : isMissed
-                      ? AppColors.error
-                      : AppColors.textSecondary,
+              Expanded(
+                flex: 4,
+                child: Text(
+                  statusText!,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isTaken
+                        ? AppColors.success
+                        : isMissed
+                        ? AppColors.error
+                        : isReschedule
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
+                  ),
+                  maxLines: 2,
+                  textAlign: TextAlign.right,
                 ),
               ),
             ],

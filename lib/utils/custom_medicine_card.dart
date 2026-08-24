@@ -67,7 +67,7 @@ class CustomMedicineCard extends StatelessWidget {
 
   EdgeInsets _imagePadding() {
     if (isTaken || isSkipped || isMissed || isRescheduled) {
-      return const EdgeInsets.only(top: 12, right: 4);
+      return const EdgeInsets.only(top: 16, right: 4);
     }
 
     return const EdgeInsets.only(left: 2, right: 2);

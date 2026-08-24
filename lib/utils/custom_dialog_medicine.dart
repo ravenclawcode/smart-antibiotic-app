@@ -249,6 +249,14 @@ class CustomDialogMedicine extends StatelessWidget {
     return AppColors.textSecondary;
   }
 
+   EdgeInsets _imagePadding() {
+    if (isTaken || isSkipped || isMissed || isRescheduled) {
+      return const EdgeInsets.only(top: 16, right: 4);
+    }
+
+    return const EdgeInsets.only(left: 2, right: 2);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool leftIsCancel = isSkipped;
@@ -346,16 +354,12 @@ class CustomDialogMedicine extends StatelessWidget {
                                 'Semua dosis berikutnya',
                               ],
                               onItemTap: (index) async {
-                                // ===================================================
-                                // SEMUA DOSIS BERIKUTNYA
-                                // ===================================================
 
                                 if (index == 1) {
                                   final navigator = Navigator.of(context);
 
                                   Navigator.pop(bottomSheetContext);
 
-                                  // Tutup CustomDialogMedicine.
                                   navigator.pop();
 
                                   WidgetsBinding.instance.addPostFrameCallback((
@@ -379,15 +383,10 @@ class CustomDialogMedicine extends StatelessWidget {
                                   return;
                                 }
 
-                                // ===================================================
-                                // HANYA DOSIS INI
-                                // ===================================================
-
                                 Navigator.pop(bottomSheetContext);
 
                                 final navigator = Navigator.of(context);
 
-                                // Tutup CustomDialogMedicine terlebih dahulu.
                                 navigator.pop();
 
                                 WidgetsBinding.instance.addPostFrameCallback((
@@ -439,10 +438,7 @@ class CustomDialogMedicine extends StatelessWidget {
                       Stack(
                         alignment: Alignment.topRight,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: image,
-                          ),
+                          Padding(padding: _imagePadding(), child: image),
                           imgStatus,
                         ],
                       ),

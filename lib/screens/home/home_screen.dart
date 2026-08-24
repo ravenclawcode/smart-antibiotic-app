@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return CustomDialogMedicine(
           medicine: medicine,
           time: item.time,
-          image: Image.asset(imgTablet, width: 44),
+          image: _medicineImage(medicine.dosageUnit),
           name: item.name,
           dosage: item.dosage,
           notes: item.instruction ?? '',
@@ -592,7 +592,7 @@ class _HomeMedicineList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: CustomMedicineCard(
             time: item.time,
-            image: Image.asset(imgTablet, width: 30),
+            image: _medicineImage(item.medicine.dosageUnit),
             name: item.name,
             dosage: item.dosage,
             notes: item.instruction ?? '',
@@ -814,7 +814,7 @@ Widget _buildStatusImage(HomeMedicineItem item) {
     return Image.asset(imgMissed, width: 14);
   }
   if (item.isRescheduled) {
-    return Image.asset(icClock, width: 14, color: AppColors.primary);
+    return Image.asset(imgReschedule, width: 14);
   }
   return const SizedBox();
 }
@@ -910,4 +910,18 @@ String _monthShort(int month) {
     'Des',
   ];
   return (month >= 1 && month <= 12) ? months[month] : '';
+}
+
+Widget _medicineImage(String? dosageUnit) {
+  switch (dosageUnit?.trim().toLowerCase()) {
+    case 'kapsul':
+      return Image.asset(imgKapsul, width: 30);
+
+    case 'kaplet':
+      return Image.asset(imgKaplet, width: 30);
+
+    case 'tablet':
+    default:
+      return Image.asset(imgTablet, width: 30);
+  }
 }

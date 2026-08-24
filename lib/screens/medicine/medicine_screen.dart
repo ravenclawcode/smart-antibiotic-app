@@ -233,13 +233,11 @@ Widget _buildList(List<MedicineModel> medicineData, BuildContext context) {
     padding: EdgeInsets.zero,
     itemBuilder: (context, index) {
       final item = medicineData[index];
+
       final isFirstItem = index == 0;
       final isLastItem = index == medicineData.length - 1;
 
-      final dosageUnit = item.dosageUnit?.trim().toLowerCase();
-      final Widget medicineImage = dosageUnit == 'kapsul'
-          ? Image.asset(imgTablet, height: 30)
-          : Image.asset(imgTablet, height: 30);
+      final Widget medicineImage = _medicineImage(item.dosageUnit);
 
       final double paddingTop = isFirstItem ? 20 : 0;
       final double paddingBottom = isLastItem ? 120 : 10;
@@ -281,4 +279,18 @@ Widget _buildEmptyState(BuildContext context) {
       ),
     ),
   );
+}
+
+Widget _medicineImage(String? dosageUnit) {
+  switch (dosageUnit?.trim().toLowerCase()) {
+    case 'kapsul':
+      return Image.asset(imgKapsul, width: 30);
+
+    case 'kaplet':
+      return Image.asset(imgKaplet, width: 30);
+
+    case 'tablet':
+    default:
+      return Image.asset(imgTablet, width: 30);
+  }
 }

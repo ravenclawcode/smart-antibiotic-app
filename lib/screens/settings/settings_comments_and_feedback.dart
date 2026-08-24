@@ -62,11 +62,13 @@ class _SettingsCommentsAndFeedbackState
   }
 
   Future<void> _addFeedback() async {
-    final text = feedbackController.text.trim();
+    final inputText = feedbackController.text.trim();
 
-    if (text.isEmpty) {
+    if (inputText.isEmpty) {
       return;
     }
+
+    final text = _capitalizeWords(inputText);
 
     final provider = context.read<FeedbackProvider>();
 
@@ -84,6 +86,24 @@ class _SettingsCommentsAndFeedbackState
     final provider = context.read<FeedbackProvider>();
 
     await provider.deleteFeedback(feedback.id);
+  }
+
+  String _capitalizeWords(String input) {
+    if (input.trim().isEmpty) {
+      return input;
+    }
+
+    return input
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map((word) {
+          if (word.isEmpty) {
+            return word;
+          }
+
+          return word[0].toUpperCase() + word.substring(1);
+        })
+        .join(' ');
   }
 
   @override

@@ -565,21 +565,14 @@ Widget _buildListHistory(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: CustomHistoryCard(
                     time: data['time']?.toString() ?? '-',
-
-                    image: _medicineImage(data['medicine_image']?.toString()),
-
+                    image: _medicineImage(data['dosage_unit']?.toString()),
                     name: data['name']?.toString() ?? '-',
-
                     dosage: _formatDosage(data['dosage'], data['dosage_unit']),
-
                     isTaken: data['status'] == 'taken',
-
                     isSkipped: data['status'] == 'skipped',
-
                     isMissed: data['status'] == 'missed',
-
+                    isReschedule: data['status'] == 'rescheduled',
                     imgStatus: _statusImage(data['status']?.toString()),
-
                     statusText: _statusText(data['status']?.toString()),
                   ),
                 ),
@@ -595,10 +588,12 @@ Widget _buildListHistory(
 }
 
 Widget _medicineImage(String? imageType) {
-  switch (imageType?.toLowerCase()) {
+  switch (imageType?.toLowerCase().trim()) {
     case 'kapsul':
-    case 'capsule':
-      return Image.asset(imgTablet, width: 30);
+      return Image.asset(imgKapsul, width: 30);
+
+    case 'kaplet':
+      return Image.asset(imgKaplet, width: 30);
 
     case 'tablet':
     default:
@@ -618,7 +613,7 @@ Widget _statusImage(String? status) {
       return Image.asset(imgMissed, width: 12);
 
     case 'rescheduled':
-      return Image.asset(imgSkipped, width: 12);
+      return Image.asset(imgReschedule, width: 12);
 
     default:
       return const SizedBox.shrink();
@@ -637,7 +632,7 @@ String _statusText(String? status) {
       return 'Terlewatkan';
 
     case 'rescheduled':
-      return 'Dijadwalkan Ulang';
+      return 'Dijadwalkan ulang';
 
     default:
       return '-';

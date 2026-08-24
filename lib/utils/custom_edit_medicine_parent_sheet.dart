@@ -178,7 +178,8 @@ class _CustomEditMedicineParentSheetState
   }
 
   void _normalizeScheduleTimes() {
-    final defaultHours = [8, 13, 16, 20, 22, 23];
+    const int startHour = 8;
+    const int endHour = 22;
 
     final List<TimeOfDay> normalized = [];
 
@@ -186,11 +187,18 @@ class _CustomEditMedicineParentSheetState
       if (i < _scheduleTimes.length) {
         normalized.add(_scheduleTimes[i]);
       } else {
-        final hour = i < defaultHours.length
-            ? defaultHours[i]
-            : (8 + (i * 2)) % 24;
+        if (_timesPerDay <= 1) {
+          normalized.add(const TimeOfDay(hour: startHour, minute: 0));
+        } else {
+          final double position =
+              startHour + (i * (endHour - startHour) / (_timesPerDay - 1));
 
-        normalized.add(TimeOfDay(hour: hour, minute: 0));
+          final int hour = position.round();
+
+          normalized.add(
+            TimeOfDay(hour: hour.clamp(startHour, endHour), minute: 0),
+          );
+        }
       }
     }
 
@@ -272,13 +280,26 @@ class _CustomEditMedicineParentSheetState
   }
 
   void _generateDefaultSchedules() {
-    final List<TimeOfDay> defaults = [];
-    final defaultHours = [8, 13, 16, 20, 22, 23];
-    for (int i = 0; i < _timesPerDay; i++) {
-      final h = i < defaultHours.length ? defaultHours[i] : (8 + (i * 2)) % 24;
-      defaults.add(TimeOfDay(hour: h, minute: 0));
+    const int startHour = 8;
+    const int endHour = 22;
+
+    if (_timesPerDay <= 1) {
+      _scheduleTimes = [const TimeOfDay(hour: startHour, minute: 0)];
+      return;
     }
-    _scheduleTimes = defaults;
+
+    final List<TimeOfDay> schedules = [];
+
+    for (int i = 0; i < _timesPerDay; i++) {
+      final double position =
+          startHour + (i * (endHour - startHour) / (_timesPerDay - 1));
+
+      final int hour = position.round();
+
+      schedules.add(TimeOfDay(hour: hour.clamp(startHour, endHour), minute: 0));
+    }
+
+    _scheduleTimes = schedules;
   }
 
   String get _scheduleSubtitle {

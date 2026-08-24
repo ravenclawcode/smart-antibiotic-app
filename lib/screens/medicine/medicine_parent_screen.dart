@@ -237,11 +237,25 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
   void _generateDefaultSchedules() {
     final List<TimeOfDay> defaults = [];
-    final defaultHours = [8, 13, 16, 20, 22, 23];
-    for (int i = 0; i < _timesPerDay; i++) {
-      final h = i < defaultHours.length ? defaultHours[i] : (8 + (i * 2)) % 24;
-      defaults.add(TimeOfDay(hour: h, minute: 0));
+
+    const int startHour = 8;
+    const int endHour = 22;
+
+    if (_timesPerDay <= 1) {
+      defaults.add(const TimeOfDay(hour: startHour, minute: 0));
+    } else {
+      final int totalHours = endHour - startHour;
+
+      for (int i = 0; i < _timesPerDay; i++) {
+        final int hour =
+            startHour + ((totalHours * i) / (_timesPerDay - 1)).round();
+
+        defaults.add(
+          TimeOfDay(hour: hour.clamp(startHour, endHour), minute: 0),
+        );
+      }
     }
+
     _scheduleTimes = defaults;
   }
 
