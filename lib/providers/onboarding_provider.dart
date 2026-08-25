@@ -16,6 +16,7 @@ class OnboardingProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get userTimezone => userService.getUserTimezone();
 
   Future<String> _getDeviceTimezone() async {
     try {

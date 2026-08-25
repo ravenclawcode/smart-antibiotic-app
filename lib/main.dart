@@ -26,6 +26,7 @@ import 'package:smart_antibiotic/services/local_storage_service.dart';
 import 'package:smart_antibiotic/services/medicine_catalog_service.dart';
 import 'package:smart_antibiotic/services/medicine_history_service.dart';
 import 'package:smart_antibiotic/services/medicine_service.dart';
+import 'package:smart_antibiotic/services/notification_service.dart';
 import 'package:smart_antibiotic/services/quiz_service.dart';
 import 'package:smart_antibiotic/services/user_service.dart';
 
@@ -34,6 +35,10 @@ import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final notificationService = NotificationService.instance;
+
+  await notificationService.initialize();
 
   if (await WebViewFeature.isFeatureSupported(
     WebViewFeature.CREATE_WEB_MESSAGE_CHANNEL,
@@ -47,6 +52,12 @@ void main() async {
   final preferences = await SharedPreferences.getInstance();
 
   final localStorage = LocalStorageService(preferences);
+
+  final savedTimezone = localStorage.getUserTimezone();
+
+  if (savedTimezone != null && savedTimezone.isNotEmpty) {
+    notificationService.setTimezone(savedTimezone);
+  }
 
   final apiClient = ApiClient(
     client: http.Client(),
