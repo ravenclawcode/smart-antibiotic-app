@@ -26,16 +26,6 @@ class HomeProvider extends ChangeNotifier {
 
   bool get medicineChanged => _medicineChanged;
 
-  void markMedicineChanged() {
-    _medicineChanged = true;
-    notifyListeners();
-  }
-
-  void clearMedicineChanged() {
-    _medicineChanged = false;
-    notifyListeners();
-  }
-
   Future<void> refreshIfMedicineChanged() async {
     if (!_medicineChanged || currentDate == null) {
       return;
@@ -48,6 +38,16 @@ class HomeProvider extends ChangeNotifier {
     } finally {
       clearMedicineChanged();
     }
+  }
+
+  void clearMedicineChanged() {
+    _medicineChanged = false;
+    notifyListeners();
+  }
+
+  void markMedicineChanged() {
+    _medicineChanged = true;
+    notifyListeners();
   }
 
   Future<void> load(DateTime date, {bool showLoading = true}) async {
