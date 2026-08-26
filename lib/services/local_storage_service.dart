@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   static const String _userUuidKey = 'user_uuid';
   static const String _userTimezoneKey = 'user_timezone';
+  static const String _reminderTypeKey = 'reminder_type';
+  static const String _reminderSoundKey = 'reminder_sound';
 
   final SharedPreferences preferences;
 
@@ -40,8 +42,31 @@ class LocalStorageService {
     return preferences.containsKey(_userTimezoneKey);
   }
 
+  Future<void> saveReminderType(String type) async {
+    await preferences.setString(_reminderTypeKey, type);
+  }
+
+  String? getReminderType() {
+    return preferences.getString(_reminderTypeKey);
+  }
+
+  Future<void> saveReminderSound(String sound) async {
+    await preferences.setString(_reminderSoundKey, sound);
+  }
+
+  String? getReminderSound() {
+    return preferences.getString(_reminderSoundKey);
+  }
+
+  Future<void> removeReminderPreferences() async {
+    await preferences.remove(_reminderTypeKey);
+    await preferences.remove(_reminderSoundKey);
+  }
+
   Future<void> clearUserData() async {
     await preferences.remove(_userUuidKey);
     await preferences.remove(_userTimezoneKey);
+    await preferences.remove(_reminderTypeKey);
+    await preferences.remove(_reminderSoundKey);
   }
 }

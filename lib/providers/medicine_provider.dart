@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../core/error/api_exception.dart';
 import '../models/medicine_model.dart';
 import '../services/medicine_service.dart';
+import '../services/notification_service.dart';
 
 class MedicineProvider extends ChangeNotifier {
   final MedicineService medicineService;
@@ -50,6 +51,40 @@ class MedicineProvider extends ChangeNotifier {
     }
   }
 
+  Future<MedicineModel?> createMedicine(MedicineModel medicine) async {
+    if (_isSaving) {
+      return null;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+
+    notifyListeners();
+
+    try {
+      final createdMedicine = await medicineService.createMedicine(medicine);
+
+      await NotificationService.instance.scheduleMedicineNotifications(
+        medicine: createdMedicine,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
+
+      _medicines.add(createdMedicine);
+
+      return createdMedicine;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      return null;
+    } catch (_) {
+      _errorMessage = 'Gagal menyimpan obat.';
+      return null;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<MedicineModel?> getMedicine(int id) async {
     if (_isLoading) {
       return null;
@@ -74,34 +109,6 @@ class MedicineProvider extends ChangeNotifier {
     }
   }
 
-  Future<MedicineModel?> createMedicine(MedicineModel medicine) async {
-    if (_isSaving) {
-      return null;
-    }
-
-    _isSaving = true;
-    _errorMessage = null;
-
-    notifyListeners();
-
-    try {
-      final createdMedicine = await medicineService.createMedicine(medicine);
-
-      _medicines.insert(0, createdMedicine);
-
-      return createdMedicine;
-    } on ApiException catch (e) {
-      _errorMessage = e.message;
-      return null;
-    } catch (_) {
-      _errorMessage = 'Gagal menyimpan obat.';
-      return null;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
-  }
-
   Future<MedicineModel?> updateMedicine(int id, MedicineModel medicine) async {
     if (_isSaving) {
       return null;
@@ -118,11 +125,19 @@ class MedicineProvider extends ChangeNotifier {
         medicine,
       );
 
+      await NotificationService.instance.cancelMedicineNotifications(id);
+
+      await NotificationService.instance.scheduleMedicineNotifications(
+        medicine: updatedMedicine,
+      );
+
       final index = _medicines.indexWhere((item) => item.id == id);
 
       if (index != -1) {
         _medicines[index] = updatedMedicine;
       }
+
+      await NotificationService.instance.debugPendingNotifications();
 
       return updatedMedicine;
     } on ApiException catch (e) {
@@ -149,6 +164,10 @@ class MedicineProvider extends ChangeNotifier {
 
     try {
       await medicineService.deleteMedicine(id);
+
+      await NotificationService.instance.cancelMedicineNotifications(id);
+
+      await NotificationService.instance.debugPendingNotifications();
 
       _medicines.removeWhere((item) => item.id == id);
 
@@ -177,6 +196,8 @@ class MedicineProvider extends ChangeNotifier {
 
     try {
       await medicineService.deleteMedicinePermanent(id);
+
+      await NotificationService.instance.cancelMedicineNotifications(id);
 
       _medicines.removeWhere((item) => item.id == id);
 
@@ -223,6 +244,21 @@ class MedicineProvider extends ChangeNotifier {
         scheduleTimeId: scheduleTimeId,
         scheduledDate: scheduledDate,
       );
+
+      final medicine = _medicines.firstWhere(
+        (item) => item.id == medicineId,
+        orElse: () => throw Exception('Medicine $medicineId tidak ditemukan.'),
+      );
+
+      final date = DateTime.parse(scheduledDate);
+
+      await NotificationService.instance.cancelMedicineDoseByDate(
+        medicine: medicine,
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: date,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
 
       return true;
     } on ApiException catch (e) {

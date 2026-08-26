@@ -22,6 +22,7 @@ import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
 import '../../providers/medicine_provider.dart';
+import '../../services/notification_service.dart';
 import '../../utils/custom_change_hour_sheet.dart';
 
 enum StepType {
@@ -391,6 +392,24 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       final createdMedicine = await medicineProvider.createMedicine(medicine);
 
+      if (createdMedicine != null) {
+        debugPrint('===== CREATED MEDICINE =====');
+        debugPrint('ID: ${createdMedicine.id}');
+        debugPrint('NAME: ${createdMedicine.name}');
+        debugPrint('FREQUENCY: ${createdMedicine.frequencyType}');
+        debugPrint('TIMES: ${createdMedicine.times}');
+        debugPrint('SCHEDULE TIMES: ${createdMedicine.scheduleTimes.length}');
+
+        for (final scheduleTime in createdMedicine.scheduleTimes) {
+          debugPrint(
+            'SCHEDULE ID: ${scheduleTime.id}, '
+            'TIME: ${scheduleTime.time}',
+          );
+        }
+
+        debugPrint('============================');
+      }
+
       if (!mounted) {
         return;
       }
@@ -400,6 +419,13 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
         return;
       }
 
+      await NotificationService.instance.scheduleMedicineNotifications(
+        medicine: createdMedicine,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
+
+      // ignore: use_build_context_synchronously
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
       if (!mounted) {

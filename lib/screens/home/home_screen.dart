@@ -16,7 +16,6 @@ import '../../models/home_medicine_item.dart';
 import '../../providers/home_provider.dart';
 import '../../providers/medicine_provider.dart';
 import '../../providers/quiz_provider.dart';
-import '../../services/notification_service.dart';
 import '../../utils/custom_dialog_delete_medicine.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -315,12 +314,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await NotificationService.instance.scheduleTestNotification();
-              },
-              child: const Text('1. SCHEDULE 10 DETIK'),
             ),
           ],
         ),

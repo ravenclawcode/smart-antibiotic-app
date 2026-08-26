@@ -4,6 +4,7 @@ import '../../models/home_medicine_item.dart';
 import '../../models/medicine_model.dart';
 import '../../services/home_service.dart';
 import '../../services/medicine_history_service.dart';
+import '../services/notification_service.dart';
 
 class HomeProvider extends ChangeNotifier {
   final HomeService homeService;
@@ -218,6 +219,14 @@ class HomeProvider extends ChangeNotifier {
         actionTime: actionTime,
       );
 
+      await NotificationService.instance.cancelMedicineDoseByDate(
+        medicine: item.medicine,
+        scheduleTimeId: item.scheduleTimeId,
+        scheduledDate: date,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
+
       await load(date, showLoading: false);
     });
   }
@@ -235,6 +244,14 @@ class HomeProvider extends ChangeNotifier {
         actionTime: actionTime,
         notes: notes,
       );
+
+      await NotificationService.instance.cancelMedicineDoseByDate(
+        medicine: item.medicine,
+        scheduleTimeId: item.scheduleTimeId,
+        scheduledDate: date,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
 
       await load(date, showLoading: false);
     });
@@ -255,6 +272,21 @@ class HomeProvider extends ChangeNotifier {
         scheduledDate: _formatDate(date),
         rescheduledTime: rescheduledDateTime,
       );
+
+      await NotificationService.instance.cancelMedicineDoseByDate(
+        medicine: item.medicine,
+        scheduleTimeId: item.scheduleTimeId,
+        scheduledDate: date,
+      );
+
+      await NotificationService.instance.scheduleMedicineDose(
+        medicine: item.medicine,
+        scheduleTimeId: item.scheduleTimeId,
+        scheduledDate: date,
+        time: cleanTime,
+      );
+
+      await NotificationService.instance.debugPendingNotifications();
 
       await load(date, showLoading: false);
     });
