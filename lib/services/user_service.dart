@@ -26,7 +26,12 @@ class UserService {
     }
 
     await localStorage.saveUserUuid(onboarding.uuid);
+
     await localStorage.saveUserTimezone(onboarding.timezone);
+
+    await localStorage.saveReminderType(onboarding.reminderType);
+
+    await localStorage.saveReminderSound(onboarding.reminderSound);
   }
 
   Future<bool> checkRegistration(String uuid) async {
@@ -132,7 +137,15 @@ class UserService {
       throw Exception('Data update preferences tidak valid.');
     }
 
-    return PreferenceModel.fromJson(Map<String, dynamic>.from(data));
+    final updatedPreference = PreferenceModel.fromJson(
+      Map<String, dynamic>.from(data),
+    );
+
+    await localStorage.saveReminderType(updatedPreference.reminderType);
+
+    await localStorage.saveReminderSound(updatedPreference.reminderSound);
+
+    return updatedPreference;
   }
 
   String? getUserUuid() {

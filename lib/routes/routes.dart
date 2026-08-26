@@ -40,6 +40,8 @@ import '../screens/onboarding/onboarding_splash_screen.dart';
 import '../screens/onboarding/onboarding_welcome_screen.dart';
 import '../screens/quiz/quiz_detail_screen.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class Routes {
   static const String main = '/';
 
@@ -201,7 +203,24 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case Routes.reminder:
-      return MaterialPageRoute(builder: (_) => const CustomReminder());
+      final args = settings.arguments;
+
+      if (args is! Map<String, dynamic>) {
+        return MaterialPageRoute(builder: (_) => const CustomReminder());
+      }
+
+      return MaterialPageRoute(
+        builder: (_) => CustomReminder(
+          medicineId: args['medicine_id'] as int?,
+          medicineName: args['name']?.toString(),
+          dosage: args['dosage']?.toString(),
+          dosageUnit: args['dosage_unit']?.toString(),
+          instruction: args['instruction']?.toString(),
+          scheduleTimeId: args['schedule_time_id'] as int?,
+          scheduledTime: args['scheduled_time']?.toString(),
+          scheduledDate: args['scheduled_date']?.toString(),
+        ),
+      );
 
     case Routes.quiz:
       return MaterialPageRoute(builder: (_) => const QuizScreen());

@@ -68,8 +68,6 @@ class MedicineProvider extends ChangeNotifier {
         medicine: createdMedicine,
       );
 
-      await NotificationService.instance.debugPendingNotifications();
-
       _medicines.add(createdMedicine);
 
       return createdMedicine;
@@ -137,8 +135,6 @@ class MedicineProvider extends ChangeNotifier {
         _medicines[index] = updatedMedicine;
       }
 
-      await NotificationService.instance.debugPendingNotifications();
-
       return updatedMedicine;
     } on ApiException catch (e) {
       _errorMessage = e.message;
@@ -166,8 +162,6 @@ class MedicineProvider extends ChangeNotifier {
       await medicineService.deleteMedicine(id);
 
       await NotificationService.instance.cancelMedicineNotifications(id);
-
-      await NotificationService.instance.debugPendingNotifications();
 
       _medicines.removeWhere((item) => item.id == id);
 
@@ -257,8 +251,6 @@ class MedicineProvider extends ChangeNotifier {
         scheduleTimeId: scheduleTimeId,
         scheduledDate: date,
       );
-
-      await NotificationService.instance.debugPendingNotifications();
 
       return true;
     } on ApiException catch (e) {

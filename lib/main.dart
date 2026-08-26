@@ -36,7 +36,13 @@ import 'utils/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final preferences = await SharedPreferences.getInstance();
+
+  final localStorage = LocalStorageService(preferences);
+
   final notificationService = NotificationService.instance;
+
+  notificationService.setLocalStorage(localStorage);
 
   await notificationService.initialize();
 
@@ -49,20 +55,24 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  final preferences = await SharedPreferences.getInstance();
-
-  final localStorage = LocalStorageService(preferences);
-
   final savedTimezone = localStorage.getUserTimezone();
 
   if (savedTimezone != null && savedTimezone.isNotEmpty) {
     notificationService.setTimezone(savedTimezone);
   }
 
+  // ============================================================
+  // API CLIENT
+  // ============================================================
+
   final apiClient = ApiClient(
     client: http.Client(),
     localStorage: localStorage,
   );
+
+  // ============================================================
+  // SERVICES
+  // ============================================================
 
   final userService = UserService(
     apiClient: apiClient,
@@ -99,6 +109,10 @@ void main() async {
     apiClient: apiClient,
     localStorage: localStorage,
   );
+
+  // ============================================================
+  // RUN APP
+  // ============================================================
 
   runApp(
     MultiProvider(
@@ -152,19 +166,46 @@ void main() async {
           ),
         ),
       ],
+
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+// ================================================================
+// MY APP
+// ================================================================
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // ------------------------------------------------------------
+    // PENTING:
+    // Jangan langsung navigate di main().
+    //
+    // Tunggu MaterialApp + navigator selesai dibuat.
+    // ------------------------------------------------------------
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.instance.handlePendingNotification();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Antibiotik',
+      navigatorKey: navigatorKey,
       initialRoute: '/onboarding-splash',
       onGenerateRoute: generateRoute,
       theme: AppTheme.lightTheme,

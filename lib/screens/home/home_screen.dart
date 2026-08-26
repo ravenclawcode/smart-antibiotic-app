@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (!context.mounted) return;
 
-                if (!success) {
+                if (!success!) {
                   final message =
                       medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
                   ScaffoldMessenger.of(
@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (!context.mounted) return;
 
-                if (!success) {
+                if (!success!) {
                   final message =
                       medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
                   ScaffoldMessenger.of(

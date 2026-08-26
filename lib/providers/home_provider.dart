@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/error/api_exception.dart';
 import '../../models/home_medicine_item.dart';
 import '../../models/medicine_model.dart';
 import '../../services/home_service.dart';
@@ -88,10 +89,12 @@ class HomeProvider extends ChangeNotifier {
         await Future.delayed(const Duration(milliseconds: 600));
       }
     } catch (e) {
-      errorMessage = e.toString();
+      if (e is ApiException) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = e.toString();
+      }
       medicines = [];
-
-      rethrow;
     } finally {
       if (showLoading) {
         isLoading = false;
@@ -225,8 +228,6 @@ class HomeProvider extends ChangeNotifier {
         scheduledDate: date,
       );
 
-      await NotificationService.instance.debugPendingNotifications();
-
       await load(date, showLoading: false);
     });
   }
@@ -250,8 +251,6 @@ class HomeProvider extends ChangeNotifier {
         scheduleTimeId: item.scheduleTimeId,
         scheduledDate: date,
       );
-
-      await NotificationService.instance.debugPendingNotifications();
 
       await load(date, showLoading: false);
     });
@@ -285,8 +284,6 @@ class HomeProvider extends ChangeNotifier {
         scheduledDate: date,
         time: cleanTime,
       );
-
-      await NotificationService.instance.debugPendingNotifications();
 
       await load(date, showLoading: false);
     });
@@ -332,9 +329,11 @@ class HomeProvider extends ChangeNotifier {
 
       await Future.delayed(const Duration(milliseconds: 600));
     } catch (e) {
-      errorMessage = e.toString();
-
-      rethrow;
+      if (e is ApiException) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = e.toString();
+      }
     } finally {
       isActionLoading = false;
       isLoading = false;
@@ -343,7 +342,7 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  Future<T> runWithLoading<T>(Future<T> Function() action) async {
+  Future<T?> runWithLoading<T>(Future<T> Function() action) async {
     isLoading = true;
     errorMessage = null;
 
@@ -356,9 +355,12 @@ class HomeProvider extends ChangeNotifier {
 
       return result;
     } catch (e) {
-      errorMessage = e.toString();
-
-      rethrow;
+      if (e is ApiException) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = e.toString();
+      }
+      return null;
     } finally {
       isLoading = false;
 
@@ -377,9 +379,11 @@ class HomeProvider extends ChangeNotifier {
 
       await Future.delayed(const Duration(milliseconds: 600));
     } catch (e) {
-      errorMessage = e.toString();
-
-      rethrow;
+      if (e is ApiException) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = e.toString();
+      }
     } finally {
       isLoading = false;
 

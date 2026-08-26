@@ -348,7 +348,10 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     try {
-      // ignore: use_build_context_synchronously
+      if (!mounted) {
+        return;
+      }
+
       final medicineProvider = context.read<MedicineProvider>();
 
       final now = DateTime.now();
@@ -392,24 +395,6 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
 
       final createdMedicine = await medicineProvider.createMedicine(medicine);
 
-      if (createdMedicine != null) {
-        debugPrint('===== CREATED MEDICINE =====');
-        debugPrint('ID: ${createdMedicine.id}');
-        debugPrint('NAME: ${createdMedicine.name}');
-        debugPrint('FREQUENCY: ${createdMedicine.frequencyType}');
-        debugPrint('TIMES: ${createdMedicine.times}');
-        debugPrint('SCHEDULE TIMES: ${createdMedicine.scheduleTimes.length}');
-
-        for (final scheduleTime in createdMedicine.scheduleTimes) {
-          debugPrint(
-            'SCHEDULE ID: ${scheduleTime.id}, '
-            'TIME: ${scheduleTime.time}',
-          );
-        }
-
-        debugPrint('============================');
-      }
-
       if (!mounted) {
         return;
       }
@@ -423,9 +408,10 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
         medicine: createdMedicine,
       );
 
-      await NotificationService.instance.debugPendingNotifications();
+      if (!mounted) {
+        return;
+      }
 
-      // ignore: use_build_context_synchronously
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
       if (!mounted) {
