@@ -61,18 +61,10 @@ void main() async {
     notificationService.setTimezone(savedTimezone);
   }
 
-  // ============================================================
-  // API CLIENT
-  // ============================================================
-
   final apiClient = ApiClient(
     client: http.Client(),
     localStorage: localStorage,
   );
-
-  // ============================================================
-  // SERVICES
-  // ============================================================
 
   final userService = UserService(
     apiClient: apiClient,
@@ -109,10 +101,6 @@ void main() async {
     apiClient: apiClient,
     localStorage: localStorage,
   );
-
-  // ============================================================
-  // RUN APP
-  // ============================================================
 
   runApp(
     MultiProvider(
@@ -172,10 +160,6 @@ void main() async {
   );
 }
 
-// ================================================================
-// MY APP
-// ================================================================
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -187,13 +171,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    // ------------------------------------------------------------
-    // PENTING:
-    // Jangan langsung navigate di main().
-    //
-    // Tunggu MaterialApp + navigator selesai dibuat.
-    // ------------------------------------------------------------
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService.instance.handlePendingNotification();

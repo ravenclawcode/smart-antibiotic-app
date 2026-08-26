@@ -43,10 +43,6 @@ class NotificationService {
     _localStorage = localStorage;
   }
 
-  // ============================================================
-  // INITIALIZATION
-  // ============================================================
-
   Future<void> initialize() async {
     if (_initialized) {
       return;
@@ -83,11 +79,6 @@ class NotificationService {
       final response = launchDetails?.notificationResponse;
       final payload = response?.payload;
 
-      print('===== APP LAUNCHED BY NOTIFICATION =====');
-      print('didNotificationLaunchApp = true');
-      print('payload = $payload');
-      print('========================================');
-
       if (payload != null && payload.isNotEmpty) {
         _pendingPayload = payload;
       }
@@ -96,33 +87,17 @@ class NotificationService {
     _initialized = true;
   }
 
-  // ============================================================
-  // TIMEZONE
-  // ============================================================
-
   void setTimezone(String timezoneName) {
     try {
       final location = tz.getLocation(timezoneName);
       tz.setLocalLocation(location);
-
-      print('Notification timezone: $timezoneName');
     } catch (e) {
       tz.setLocalLocation(tz.UTC);
-
-      print('Invalid timezone: $timezoneName');
-      print('Fallback timezone: UTC');
     }
   }
 
-  // ============================================================
-  // NOTIFICATION RESPONSE
-  // ============================================================
   void _onNotificationResponse(NotificationResponse response) {
     final payload = response.payload;
-
-    print('===== NOTIFICATION RESPONSE =====');
-    print('payload = $payload');
-    print('=================================');
 
     if (payload == null || payload.isEmpty) {
       return;
@@ -133,29 +108,21 @@ class NotificationService {
     _openReminderFromPayload(payload);
   }
 
-  // ============================================================
-  // OPEN REMINDER
-  // ============================================================
-
   void _openReminderFromPayload(String payload) {
     try {
       final decoded = jsonDecode(payload);
 
       if (decoded is! Map<String, dynamic>) {
-        print('Invalid notification payload.');
         return;
       }
 
       if (decoded['type'] != 'medicine_reminder') {
-        print('Unknown notification type.');
         return;
       }
 
       final navigator = navigatorKey.currentState;
 
       if (navigator == null) {
-        print('Navigator belum siap. Retry...');
-
         Future.delayed(const Duration(milliseconds: 500), () {
           _openReminderFromPayload(payload);
         });
@@ -163,31 +130,16 @@ class NotificationService {
         return;
       }
 
-      print('===== OPEN CUSTOM REMINDER =====');
-      print(decoded);
-      print('================================');
-
       navigator.pushNamed(Routes.reminder, arguments: decoded);
-    } catch (e) {
-      print('Failed to open reminder: $e');
-    }
+    } catch (_) {}
   }
-
-  // ============================================================
-  // HANDLE PENDING NOTIFICATION
-  // ============================================================
 
   void handlePendingNotification() {
     final payload = consumePendingPayload();
 
     if (payload == null || payload.isEmpty) {
-      print('===== NO PENDING NOTIFICATION =====');
       return;
     }
-
-    print('===== HANDLE PENDING REMINDER =====');
-    print('payload = $payload');
-    print('===================================');
 
     Future.delayed(const Duration(milliseconds: 800), () {
       _openReminderFromPayload(payload);
@@ -199,10 +151,6 @@ class NotificationService {
     _pendingPayload = null;
     return payload;
   }
-
-  // ============================================================
-  // PERMISSION
-  // ============================================================
 
   Future<void> requestPermission() async {
     final androidImplementation = _notifications
@@ -219,15 +167,8 @@ class NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
 
-    final result = await androidImplementation
-        ?.requestFullScreenIntentPermission();
-
-    print('Full screen permission: $result');
+    await androidImplementation?.requestFullScreenIntentPermission();
   }
-
-  // ============================================================
-  // SOUND
-  // ============================================================
 
   String _getSoundResourceName() {
     final savedSound = _localStorage?.getReminderSound();
@@ -259,10 +200,6 @@ class NotificationService {
     }
   }
 
-  // ============================================================
-  // TEST NOTIFICATION
-  // ============================================================
-
   Future<void> showTestNotification() async {
     await _notifications.show(
       id: 999999,
@@ -286,10 +223,6 @@ class NotificationService {
     );
   }
 
-  // ============================================================
-  // GENERIC SCHEDULE
-  // ============================================================
-
   Future<void> scheduleMedicineNotification({
     required int id,
     required String title,
@@ -301,17 +234,8 @@ class NotificationService {
     final now = tz.TZDateTime.now(tz.local);
 
     if (!scheduledDate.isAfter(now)) {
-      print('NOTIFICATION SKIPPED: waktu sudah lewat');
       return;
     }
-
-    print('===== ZONED SCHEDULE DEBUG =====');
-    print('id = $id');
-    print('title = $title');
-    print('scheduledDate = $scheduledDate');
-    print('now = $now');
-    print('isAfter = ${scheduledDate.isAfter(now)}');
-    print('================================');
 
     await _notifications.zonedSchedule(
       id: id,
@@ -322,28 +246,12 @@ class NotificationService {
       payload: payload,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
-
-    print('NOTIFICATION SCHEDULED SUCCESS: $id');
   }
-
-  // ============================================================
-  // SCHEDULE MEDICINE
-  // ============================================================
 
   Future<void> scheduleMedicineNotifications({
     required MedicineModel medicine,
     int preReminderMinutes = 30,
   }) async {
-    print('===== SCHEDULE MEDICINE DEBUG =====');
-    print('medicine.id = ${medicine.id}');
-    print('medicine.name = ${medicine.name}');
-    print('medicine.isActive = ${medicine.isActive}');
-    print('medicine.startDate = ${medicine.startDate}');
-    print('medicine.endDate = ${medicine.endDate}');
-    print('medicine.frequencyType = ${medicine.frequencyType}');
-    print('scheduleTimes = ${medicine.scheduleTimes.length}');
-    print('===================================');
-
     if (medicine.id == null) {
       return;
     }
@@ -428,10 +336,6 @@ class NotificationService {
           type: 1,
         );
 
-        // --------------------------------------------------------
-        // 30 MENIT SEBELUMNYA
-        // --------------------------------------------------------
-
         if (preReminderTime.isAfter(now)) {
           await scheduleMedicineNotification(
             id: preNotificationId,
@@ -444,18 +348,8 @@ class NotificationService {
           );
         }
 
-        // --------------------------------------------------------
-        // WAKTU MINUM OBAT
-        // --------------------------------------------------------
-
         if (medicineTime.isAfter(now)) {
           final reminderType = _getReminderType();
-
-          print('===== NOTIFICATION TYPE DEBUG =====');
-          print('reminderType = $reminderType');
-          print('medicineTime = $medicineTime');
-          print('now = $now');
-          print('===================================');
 
           final payload = _buildMedicinePayload(
             medicine: medicine,
@@ -465,8 +359,6 @@ class NotificationService {
           );
 
           if (reminderType == _reminderTypeFullScreen) {
-            print('MODE: FULL SCREEN');
-
             await scheduleMedicineNotification(
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
@@ -476,8 +368,6 @@ class NotificationService {
               payload: payload,
             );
           } else {
-            print('MODE: COMPACT');
-
             await scheduleMedicineNotification(
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
@@ -493,10 +383,6 @@ class NotificationService {
       }
     }
   }
-
-  // ============================================================
-  // GENERATE DATES
-  // ============================================================
 
   List<DateTime> _generateDates({
     required MedicineModel medicine,
@@ -571,10 +457,6 @@ class NotificationService {
     return dates;
   }
 
-  // ============================================================
-  // DATE / TIME
-  // ============================================================
-
   DateTime? _parseDate(String value) {
     try {
       final parsed = DateTime.tryParse(value);
@@ -623,10 +505,6 @@ class NotificationService {
     return DateTime(year, month, day);
   }
 
-  // ============================================================
-  // NOTIFICATION ID
-  // ============================================================
-
   int _notificationId({
     required int medicineId,
     required int occurrenceIndex,
@@ -638,10 +516,6 @@ class NotificationService {
         (occurrenceIndex * 2) +
         type;
   }
-
-  // ============================================================
-  // CANCEL
-  // ============================================================
 
   Future<void> cancelMedicineNotifications(int medicineId) async {
     final pending = await _notifications.pendingNotificationRequests();
@@ -712,10 +586,6 @@ class NotificationService {
       occurrenceIndex: occurrenceIndex,
     );
   }
-
-  // ============================================================
-  // SINGLE DOSE
-  // ============================================================
 
   Future<void> scheduleMedicineDose({
     required MedicineModel medicine,
@@ -831,10 +701,6 @@ class NotificationService {
     }
   }
 
-  // ============================================================
-  // OCCURRENCE INDEX
-  // ============================================================
-
   int? _getOccurrenceIndexByDate({
     required MedicineModel medicine,
     required DateTime targetDate,
@@ -867,20 +733,8 @@ class NotificationService {
     return index;
   }
 
-  // ============================================================
-  // REMINDER TYPE
-  // ============================================================
-
   String _getReminderType() {
     final savedType = _localStorage?.getReminderType();
-
-    print('===== REMINDER TYPE DEBUG =====');
-    print('savedType = $savedType');
-    print(
-      'localStorage initialized = '
-      '${_localStorage != null}',
-    );
-    print('================================');
 
     if (savedType == _reminderTypeFullScreen) {
       return _reminderTypeFullScreen;
@@ -888,10 +742,6 @@ class NotificationService {
 
     return _reminderTypeCompact;
   }
-
-  // ============================================================
-  // PRE REMINDER
-  // ============================================================
 
   AndroidNotificationDetails _preReminderAndroidDetails() {
     return const AndroidNotificationDetails(
@@ -907,10 +757,6 @@ class NotificationService {
   NotificationDetails _preReminderDetails() {
     return NotificationDetails(android: _preReminderAndroidDetails());
   }
-
-  // ============================================================
-  // COMPACT
-  // ============================================================
 
   AndroidNotificationDetails _compactAndroidDetails() {
     final soundResource = _getSoundResourceName();
@@ -935,10 +781,6 @@ class NotificationService {
     return NotificationDetails(android: _compactAndroidDetails());
   }
 
-  // ============================================================
-  // FULL SCREEN
-  // ============================================================
-
   AndroidNotificationDetails _fullScreenAndroidDetails() {
     final soundResource = _getSoundResourceName();
 
@@ -946,22 +788,12 @@ class NotificationService {
       _getChannelId(soundResource),
       _getChannelName(soundResource),
       channelDescription: _channelDescription,
-
       importance: Importance.max,
       priority: Priority.high,
-
       playSound: true,
-
       sound: RawResourceAndroidNotificationSound(soundResource),
-
-      // ========================================================
-      // INI YANG MEMBUAT ANDROID MEMBUKA ACTIVITY SECARA
-      // FULL SCREEN PADA SAAT WAKTUNYA TIBA.
-      // ========================================================
       fullScreenIntent: true,
-
       category: AndroidNotificationCategory.alarm,
-
       visibility: NotificationVisibility.public,
     );
   }
@@ -969,10 +801,6 @@ class NotificationService {
   NotificationDetails _fullScreenNotificationDetails() {
     return NotificationDetails(android: _fullScreenAndroidDetails());
   }
-
-  // ============================================================
-  // PAYLOAD
-  // ============================================================
 
   String _buildMedicinePayload({
     required MedicineModel medicine,
@@ -982,28 +810,16 @@ class NotificationService {
   }) {
     return jsonEncode({
       'type': 'medicine_reminder',
-
       'medicine_id': medicine.id,
-
       'name': medicine.name,
-
       'dosage': medicine.dosage,
-
       'dosage_unit': medicine.dosageUnit,
-
       'instruction': medicine.instruction,
-
       'schedule_time_id': scheduleTime.id,
-
       'scheduled_time': scheduledTime,
-
       'scheduled_date': scheduledDate.toIso8601String(),
     });
   }
-
-  // ============================================================
-  // CANCEL ALL
-  // ============================================================
 
   Future<void> cancelAll() async {
     await _notifications.cancelAll();
