@@ -2,7 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   static const String baseUrl = 'http://10.0.2.2:8000/api';
-  // static const String baseUrl = 'http://10.28.96.109:8000/api';
+  // static const String baseUrl = 'http://10.70.49.109:8000/api';
 
   // Public
   static const String onboarding = '/onboarding';

@@ -77,24 +77,6 @@ class _CustomReminderState extends State<CustomReminder> {
     return cleanTime;
   }
 
-  String get _formattedDate {
-    final rawDate = widget.scheduledDate;
-
-    if (rawDate == null || rawDate.trim().isEmpty) {
-      return '';
-    }
-
-    final parsedDate = DateTime.tryParse(rawDate);
-
-    if (parsedDate == null) {
-      return '';
-    }
-
-    return '${parsedDate.day.toString().padLeft(2, '0')}/'
-        '${parsedDate.month.toString().padLeft(2, '0')}/'
-        '${parsedDate.year}';
-  }
-
   String get _dosageText {
     final dosage = (widget.dosage ?? '').trim();
     final dosageUnit = (widget.dosageUnit ?? '').trim();
@@ -217,17 +199,6 @@ class _CustomReminderState extends State<CustomReminder> {
             ),
             textAlign: TextAlign.center,
           ),
-
-          if (_formattedDate.isNotEmpty) ...[
-            const SizedBox(height: 4),
-
-            Text(
-              _formattedDate,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
 
           const SizedBox(height: 24),
 
