@@ -33,6 +33,7 @@ import '../screens/medicine/medicine_edit_dose_amount_screen.dart';
 import '../screens/medicine/medicine_edit_duration_screen.dart';
 import '../screens/medicine/medicine_edit_instruction_screen.dart';
 import '../screens/medicine/medicine_history_screen.dart';
+import '../screens/medicine/notification_startup_screen.dart';
 import '../screens/onboarding/onboarding_permission_screen.dart';
 
 import '../screens/main_screen.dart';
@@ -44,6 +45,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Routes {
   static const String main = '/';
+
+  static const String notificationStartup = '/notification-startup';
 
   static const String onboardingSplash = '/onboarding-splash';
   static const String onboardingWelcome = '/onboarding-welcome';
@@ -220,6 +223,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
           scheduledTime: args['scheduled_time']?.toString(),
           scheduledDate: args['scheduled_date']?.toString(),
         ),
+      );
+
+    case Routes.notificationStartup:
+      return MaterialPageRoute(
+        builder: (_) => const NotificationStartupScreen(),
       );
 
     case Routes.quiz:

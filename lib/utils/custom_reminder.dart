@@ -12,6 +12,7 @@ import 'package:smart_antibiotic/utils/custom_reschedule_reminder_sheet.dart';
 
 import '../providers/medicine_history_provider.dart';
 import '../services/notification_service.dart';
+import '../services/reminder_audio_player.dart';
 
 class CustomReminder extends StatefulWidget {
   final int? medicineId;
@@ -42,11 +43,18 @@ class CustomReminder extends StatefulWidget {
 class _CustomReminderState extends State<CustomReminder> {
   bool _isLoading = true;
   bool _isReminder = true;
+  bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
+
+    _startReminderAudio();
     _fetchData();
+  }
+
+  Future<void> _startReminderAudio() async {
+    await ReminderAudioPlayer.instance.play();
   }
 
   Future<void> _fetchData() async {
@@ -61,10 +69,16 @@ class _CustomReminderState extends State<CustomReminder> {
     });
   }
 
-  void _toggleReminder() {
+  Future<void> _toggleReminder() async {
     setState(() {
       _isReminder = !_isReminder;
     });
+
+    if (_isReminder) {
+      await ReminderAudioPlayer.instance.unmute();
+    } else {
+      await ReminderAudioPlayer.instance.mute();
+    }
   }
 
   String get _formattedTime {
@@ -110,12 +124,46 @@ class _CustomReminderState extends State<CustomReminder> {
     return instruction;
   }
 
+  Widget _medicineImage(String? dosageUnit) {
+    switch (dosageUnit?.trim().toLowerCase()) {
+      case 'kapsul':
+        return Image.asset(imgKapsul, width: 44);
+
+      case 'kaplet':
+        return Image.asset(imgKaplet, width: 44);
+
+      case 'tablet':
+      default:
+        return Image.asset(imgTablet, width: 44);
+    }
+  }
+
+  Future<void> _stopReminderAudio() async {
+    await ReminderAudioPlayer.instance.stop();
+  }
+
   Future<void> _handleTaken() async {
+    if (_isProcessing) {
+      return;
+    }
+
     if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
       return;
     }
 
+    setState(() {
+      _isProcessing = true;
+    });
+
     try {
+      await _stopReminderAudio();
+
+      await NotificationService.instance.stopActiveMedicineAlarm();
+
+      if (!mounted) {
+        return;
+      }
+
       await context.read<MedicineHistoryProvider>().taken(
         scheduleTimeId: widget.scheduleTimeId!,
         scheduledDate: widget.scheduledDate!,
@@ -127,15 +175,39 @@ class _CustomReminderState extends State<CustomReminder> {
       }
 
       Navigator.of(context).pop();
-    } catch (_) {}
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isProcessing = false;
+      });
+    }
   }
 
   Future<void> _handleSkipped() async {
+    if (_isProcessing) {
+      return;
+    }
+
     if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
       return;
     }
 
+    setState(() {
+      _isProcessing = true;
+    });
+
     try {
+      await _stopReminderAudio();
+
+      await NotificationService.instance.stopActiveMedicineAlarm();
+
+      if (!mounted) {
+        return;
+      }
+
       await context.read<MedicineHistoryProvider>().skipped(
         scheduleTimeId: widget.scheduleTimeId!,
         scheduledDate: widget.scheduledDate!,
@@ -148,7 +220,15 @@ class _CustomReminderState extends State<CustomReminder> {
       }
 
       Navigator.of(context).pop();
-    } catch (_) {}
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isProcessing = false;
+      });
+    }
   }
 
   void _openRescheduleSheet() {
@@ -156,7 +236,7 @@ class _CustomReminderState extends State<CustomReminder> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         return CustomRescheduleReminderSheet(
           medicineName: widget.medicineName ?? 'Obat',
           initialValue: 5,
@@ -177,32 +257,48 @@ class _CustomReminderState extends State<CustomReminder> {
 
             final rescheduledTime = rescheduledDateTime.toIso8601String();
 
-            await context.read<MedicineHistoryProvider>().reschedule(
-              scheduleTimeId: widget.scheduleTimeId!,
-              scheduledDate: widget.scheduledDate!,
-              rescheduledTime: rescheduledTime,
-            );
+            try {
+              await _stopReminderAudio();
 
-            if (widget.medicineId != null) {
-              await NotificationService.instance.scheduleRescheduledReminder(
-                medicineId: widget.medicineId!,
-                scheduleTimeId: widget.scheduleTimeId!,
-                medicineName: widget.medicineName ?? 'Obat',
-                dosage: widget.dosage ?? '',
-                dosageUnit: widget.dosageUnit ?? '',
-                instruction: widget.instruction ?? '',
-                scheduledDateTime: rescheduledDateTime,
-              );
-            }
+              await NotificationService.instance.stopActiveMedicineAlarm();
 
-            if (mounted) {
               // ignore: use_build_context_synchronously
-              Navigator.of(context).pop();
-            }
+              await context.read<MedicineHistoryProvider>().reschedule(
+                scheduleTimeId: widget.scheduleTimeId!,
+                scheduledDate: widget.scheduledDate!,
+                rescheduledTime: rescheduledTime,
+              );
+
+              if (widget.medicineId != null) {
+                await NotificationService.instance.scheduleRescheduledReminder(
+                  medicineId: widget.medicineId!,
+                  scheduleTimeId: widget.scheduleTimeId!,
+                  medicineName: widget.medicineName ?? 'Obat',
+                  dosage: widget.dosage ?? '',
+                  dosageUnit: widget.dosageUnit ?? '',
+                  instruction: widget.instruction ?? '',
+                  scheduledDateTime: rescheduledDateTime,
+                );
+              }
+
+              if (sheetContext.mounted) {
+                Navigator.of(sheetContext).pop();
+              }
+
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            } catch (_) {}
           },
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    ReminderAudioPlayer.instance.stop();
+    super.dispose();
   }
 
   @override
@@ -276,7 +372,7 @@ class _CustomReminderState extends State<CustomReminder> {
 
           const SizedBox(height: 24),
 
-          Image.asset(imgTablet, height: 44),
+          _medicineImage(widget.dosageUnit),
 
           const SizedBox(height: 40),
 
@@ -300,7 +396,7 @@ class _CustomReminderState extends State<CustomReminder> {
           const SizedBox(height: 24),
 
           CustomButtonReminder(
-            onTap: _handleTaken,
+            onTap: _isProcessing ? null : _handleTaken,
             label: 'Minum sekarang',
             colorBg: AppColors.primary,
             colorText: AppColors.textWhite,
@@ -309,7 +405,7 @@ class _CustomReminderState extends State<CustomReminder> {
           const SizedBox(height: 14),
 
           CustomButtonReminder(
-            onTap: _handleSkipped,
+            onTap: _isProcessing ? null : _handleSkipped,
             label: 'Lewati',
             colorBg: AppColors.surfaceSecondary,
             colorText: AppColors.textSecondary,
@@ -318,7 +414,7 @@ class _CustomReminderState extends State<CustomReminder> {
           const SizedBox(height: 30),
 
           CustomButtonSchedule(
-            onTap: _openRescheduleSheet,
+            onTap: _isProcessing ? () {} : _openRescheduleSheet,
             label: 'Jadwal Ulang',
           ),
 

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:smart_antibiotic/services/medicine_history_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -19,6 +21,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+
+  int? _activeNotificationId;
 
   String? _pendingPayload;
 
@@ -79,17 +83,31 @@ class NotificationService {
 
     await androidImplementation?.requestFullScreenIntentPermission();
 
-    // await androidImplementation?.requestExactAlarmsPermission();
-
     final launchDetails = await _notifications
         .getNotificationAppLaunchDetails();
 
     if (launchDetails?.didNotificationLaunchApp ?? false) {
       final response = launchDetails?.notificationResponse;
-      final payload = response?.payload;
 
-      if (payload != null && payload.isNotEmpty) {
-        _pendingPayload = payload;
+      if (response != null) {
+        final notificationId = response.id;
+
+        if (notificationId != null) {
+          _activeNotificationId = notificationId;
+        }
+
+        final payload = response.payload;
+
+        if (payload != null && payload.isNotEmpty) {
+          try {
+            final decoded = jsonDecode(payload);
+
+            if (decoded is Map<String, dynamic> &&
+                decoded['reminder_type'] == _reminderTypeFullScreen) {
+              _pendingPayload = payload;
+            }
+          } catch (_) {}
+        }
       }
     }
 
@@ -100,12 +118,18 @@ class NotificationService {
     try {
       final location = tz.getLocation(timezoneName);
       tz.setLocalLocation(location);
-    } catch (e) {
+    } catch (_) {
       tz.setLocalLocation(tz.UTC);
     }
   }
 
-  void _onNotificationResponse(NotificationResponse response) {
+  Future<void> _onNotificationResponse(NotificationResponse response) async {
+    final notificationId = response.id;
+
+    if (notificationId != null) {
+      _activeNotificationId = notificationId;
+    }
+
     final payload = response.payload;
 
     if (payload == null || payload.isEmpty) {
@@ -113,21 +137,66 @@ class NotificationService {
     }
 
     if (response.actionId == 'TAKEN') {
+      _cancelNotificationFromPayload(payload);
       _handleNotificationTaken(payload);
       return;
     }
 
     if (response.actionId == 'SKIPPED') {
+      _cancelNotificationFromPayload(payload);
       _handleNotificationSkipped(payload);
       return;
     }
 
-    _pendingPayload = payload;
+    try {
+      final decoded = jsonDecode(payload);
 
-    _openReminderFromPayload(payload);
+      if (decoded is! Map<String, dynamic>) {
+        return;
+      }
+
+      final reminderType = decoded['reminder_type'];
+
+      await _cancelActiveNotification();
+
+      if (reminderType == _reminderTypeCompact) {
+        return;
+      }
+
+      _pendingPayload = payload;
+
+      _openReminderFromPayload(payload);
+    } catch (_) {}
   }
 
-  void _openReminderFromPayload(String payload) {
+  Future<void> _cancelActiveNotification() async {
+    final notificationId = _activeNotificationId;
+
+    if (notificationId == null) {
+      return;
+    }
+
+    await _notifications.cancel(id: notificationId);
+
+    _activeNotificationId = null;
+  }
+
+  Future<void> _cancelNotificationFromPayload(String payload) async {
+    final notificationId = _activeNotificationId;
+
+    if (notificationId == null) {
+      return;
+    }
+
+    await _notifications.cancel(id: notificationId);
+
+    _activeNotificationId = null;
+  }
+
+  void _openReminderFromPayload(
+    String payload, {
+    bool replaceCurrentRoute = false,
+  }) {
     try {
       final decoded = jsonDecode(payload);
 
@@ -142,33 +211,56 @@ class NotificationService {
       final navigator = navigatorKey.currentState;
 
       if (navigator == null) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _openReminderFromPayload(payload);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _openReminderFromPayload(
+            payload,
+            replaceCurrentRoute: replaceCurrentRoute,
+          );
         });
 
         return;
       }
 
-      navigator.pushNamed(Routes.reminder, arguments: decoded);
+      if (replaceCurrentRoute) {
+        navigator.pushReplacementNamed(Routes.reminder, arguments: decoded);
+      } else {
+        navigator.pushNamed(Routes.reminder, arguments: decoded);
+      }
     } catch (_) {}
   }
 
-  void handlePendingNotification() {
+  Future<void> handlePendingNotification() async {
     final payload = consumePendingPayload();
 
     if (payload == null || payload.isEmpty) {
       return;
     }
 
-    Future.delayed(const Duration(milliseconds: 800), () {
-      _openReminderFromPayload(payload);
-    });
+    await _cancelActiveNotification();
+
+    _openReminderFromPayload(payload, replaceCurrentRoute: true);
+  }
+
+  Future<void> openPendingNotification() async {
+    final payload = consumePendingPayload();
+
+    if (payload == null || payload.isEmpty) {
+      return;
+    }
+
+    await _cancelActiveNotification();
+
+    _openReminderFromPayload(payload);
   }
 
   String? consumePendingPayload() {
     final payload = _pendingPayload;
     _pendingPayload = null;
     return payload;
+  }
+
+  bool hasPendingNotification() {
+    return _pendingPayload != null && _pendingPayload!.isNotEmpty;
   }
 
   Future<void> requestPermission() async {
@@ -359,7 +451,8 @@ class NotificationService {
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
               body:
-                  'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
+                  'Saatnya minum ${medicine.name} '
+                  '${medicine.dosage} ${medicine.dosageUnit}.',
               scheduledDate: medicineTime,
               notificationDetails: _fullScreenNotificationDetails(),
               payload: payload,
@@ -369,7 +462,8 @@ class NotificationService {
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
               body:
-                  'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
+                  'Saatnya minum ${medicine.name} '
+                  '${medicine.dosage} ${medicine.dosageUnit}.',
               scheduledDate: medicineTime,
               notificationDetails: _compactNotificationDetails(),
               payload: payload,
@@ -407,7 +501,6 @@ class NotificationService {
 
         case 'interval_days':
           final difference = current.difference(startDate).inDays;
-
           final interval = medicine.intervalValue ?? 1;
 
           if (interval > 0) {
@@ -417,7 +510,6 @@ class NotificationService {
 
         case 'interval_weeks':
           final difference = current.difference(startDate).inDays;
-
           final interval = medicine.intervalValue ?? 1;
 
           if (interval > 0 && medicine.days.isNotEmpty) {
@@ -677,27 +769,20 @@ class NotificationService {
         scheduledDate: medicineTime,
       );
 
-      if (reminderType == _reminderTypeFullScreen) {
-        await scheduleMedicineNotification(
-          id: exactReminderId,
-          title: 'Waktunya Minum Obat',
-          body:
-              'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
-          scheduledDate: medicineTime,
-          notificationDetails: _fullScreenNotificationDetails(),
-          payload: payload,
-        );
-      } else {
-        await scheduleMedicineNotification(
-          id: exactReminderId,
-          title: 'Waktunya Minum Obat',
-          body:
-              'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
-          scheduledDate: medicineTime,
-          notificationDetails: _compactNotificationDetails(),
-          payload: payload,
-        );
-      }
+      final notificationDetails = reminderType == _reminderTypeFullScreen
+          ? _fullScreenNotificationDetails()
+          : _compactNotificationDetails();
+
+      await scheduleMedicineNotification(
+        id: exactReminderId,
+        title: 'Waktunya Minum Obat',
+        body:
+            'Saatnya minum ${medicine.name} '
+            '${medicine.dosage} ${medicine.dosageUnit}.',
+        scheduledDate: medicineTime,
+        notificationDetails: notificationDetails,
+        payload: payload,
+      );
     }
   }
 
@@ -797,6 +882,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound(soundResource),
       fullScreenIntent: true,
+      autoCancel: true,
       category: AndroidNotificationCategory.alarm,
       visibility: NotificationVisibility.public,
     );
@@ -814,6 +900,7 @@ class NotificationService {
   }) {
     return jsonEncode({
       'type': 'medicine_reminder',
+      'reminder_type': _getReminderType(),
       'medicine_id': medicine.id,
       'name': medicine.name,
       'dosage': medicine.dosage,
@@ -827,6 +914,7 @@ class NotificationService {
 
   Future<void> cancelAll() async {
     await _notifications.cancelAll();
+    _activeNotificationId = null;
   }
 
   Future<void> _handleNotificationTaken(String payload) async {
@@ -947,5 +1035,22 @@ class NotificationService {
       notificationDetails: notificationDetails,
       payload: payload,
     );
+  }
+
+  Future<void> stopMedicineAlarm() async {
+    await _notifications.cancelAll();
+    _activeNotificationId = null;
+  }
+
+  Future<void> stopActiveMedicineAlarm() async {
+    final notificationId = _activeNotificationId;
+
+    if (notificationId == null) {
+      return;
+    }
+
+    await _notifications.cancel(id: notificationId);
+
+    _activeNotificationId = null;
   }
 }

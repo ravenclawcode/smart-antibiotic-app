@@ -44,9 +44,7 @@ void main() async {
 
   notificationService.setLocalStorage(localStorage);
 
-  try {
-    await notificationService.initialize();
-  } catch (_) {}
+  await notificationService.initialize();
 
   try {
     if (await WebViewFeature.isFeatureSupported(
@@ -174,22 +172,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String _initialRoute = Routes.onboardingSplash;
+  bool _startupReady = false;
+
   @override
   void initState() {
     super.initState();
+    _prepareStartup();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService.instance.handlePendingNotification();
+  Future<void> _prepareStartup() async {
+    final notificationService = NotificationService.instance;
+
+    if (notificationService.hasPendingNotification()) {
+      _initialRoute = Routes.notificationStartup;
+    } else {
+      _initialRoute = Routes.onboardingSplash;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _startupReady = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_startupReady) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(body: SizedBox.shrink()),
+      );
+    }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Antibiotik',
       navigatorKey: navigatorKey,
-      initialRoute: '/onboarding-splash',
+      initialRoute: _initialRoute,
       onGenerateRoute: generateRoute,
       theme: AppTheme.lightTheme,
     );
