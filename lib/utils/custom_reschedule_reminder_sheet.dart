@@ -11,12 +11,14 @@ extension SnoozeUnitExtension on SnoozeUnit {
 }
 
 class CustomRescheduleReminderSheet extends StatefulWidget {
+  final String medicineName;
   final int initialValue;
   final SnoozeUnit initialUnit;
-  final Function(int value, SnoozeUnit unit) onSave;
+  final Future<void> Function(int value, SnoozeUnit unit) onSave;
 
   const CustomRescheduleReminderSheet({
     super.key,
+    required this.medicineName,
     this.initialValue = 5,
     this.initialUnit = SnoozeUnit.minute,
     required this.onSave,
@@ -83,7 +85,7 @@ class _CustomRescheduleReminderSheetState
         children: [
           const SizedBox(height: 4),
           Text(
-            'Amoxicillin',
+            widget.medicineName,
             style: AppTextStyles.labelMedium.copyWith(
               fontSize: 18,
               color: AppColors.textSecondary,
@@ -177,9 +179,12 @@ class _CustomRescheduleReminderSheetState
           ),
           const SizedBox(height: 40),
           CustomButtonSheet(
-            onTap: () {
-              widget.onSave(selectedValue, selectedUnit);
-              Navigator.pop(context);
+            onTap: () async {
+              await widget.onSave(selectedValue, selectedUnit);
+
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             label: 'Menunda selama $selectedValue ${selectedUnit.label}',
           ),

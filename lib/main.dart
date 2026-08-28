@@ -44,11 +44,15 @@ void main() async {
 
   notificationService.setLocalStorage(localStorage);
 
-  await notificationService.initialize();
+  try {
+    await notificationService.initialize();
+  } catch (_) {}
 
-  if (await WebViewFeature.isFeatureSupported(
-    WebViewFeature.CREATE_WEB_MESSAGE_CHANNEL,
-  )) {}
+  try {
+    if (await WebViewFeature.isFeatureSupported(
+      WebViewFeature.CREATE_WEB_MESSAGE_CHANNEL,
+    )) {}
+  } catch (_) {}
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -96,6 +100,8 @@ void main() async {
     apiClient: apiClient,
     localStorage: localStorage,
   );
+
+  notificationService.setMedicineHistoryService(medicineHistoryService);
 
   final homeService = HomeService(
     apiClient: apiClient,

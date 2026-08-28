@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:smart_antibiotic/services/medicine_history_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -39,8 +40,14 @@ class NotificationService {
 
   LocalStorageService? _localStorage;
 
+  MedicineHistoryService? _medicineHistoryService;
+
   void setLocalStorage(LocalStorageService localStorage) {
     _localStorage = localStorage;
+  }
+
+  void setMedicineHistoryService(MedicineHistoryService service) {
+    _medicineHistoryService = service;
   }
 
   Future<void> initialize() async {
@@ -72,6 +79,8 @@ class NotificationService {
 
     await androidImplementation?.requestFullScreenIntentPermission();
 
+    // await androidImplementation?.requestExactAlarmsPermission();
+
     final launchDetails = await _notifications
         .getNotificationAppLaunchDetails();
 
@@ -100,6 +109,16 @@ class NotificationService {
     final payload = response.payload;
 
     if (payload == null || payload.isEmpty) {
+      return;
+    }
+
+    if (response.actionId == 'TAKEN') {
+      _handleNotificationTaken(payload);
+      return;
+    }
+
+    if (response.actionId == 'SKIPPED') {
+      _handleNotificationSkipped(payload);
       return;
     }
 
@@ -198,29 +217,6 @@ class NotificationService {
       default:
         return _channelName;
     }
-  }
-
-  Future<void> showTestNotification() async {
-    await _notifications.show(
-      id: 999999,
-      title: 'Pengingat Obat',
-      body: 'Ini adalah test notification Smart Antibiotik.',
-      notificationDetails: _compactNotificationDetails(),
-    );
-  }
-
-  Future<void> scheduleTestNotification() async {
-    final scheduledDate = tz.TZDateTime.now(
-      tz.local,
-    ).add(const Duration(seconds: 10));
-
-    await scheduleMedicineNotification(
-      id: 999998,
-      title: 'Pengingat Obat',
-      body: 'Waktunya minum obat.',
-      scheduledDate: scheduledDate,
-      notificationDetails: _compactNotificationDetails(),
-    );
   }
 
   Future<void> scheduleMedicineNotification({
@@ -339,7 +335,7 @@ class NotificationService {
         if (preReminderTime.isAfter(now)) {
           await scheduleMedicineNotification(
             id: preNotificationId,
-            title: 'Pengingat Obat',
+            title: 'Pengingat Minum Obat',
             body:
                 '${medicine.name} akan diminum dalam '
                 '$preReminderMinutes menit.',
@@ -362,7 +358,8 @@ class NotificationService {
             await scheduleMedicineNotification(
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
-              body: 'Waktunya minum ${medicine.name}.',
+              body:
+                  'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
               scheduledDate: medicineTime,
               notificationDetails: _fullScreenNotificationDetails(),
               payload: payload,
@@ -371,7 +368,8 @@ class NotificationService {
             await scheduleMedicineNotification(
               id: exactReminderId,
               title: 'Waktunya Minum Obat',
-              body: 'Waktunya minum ${medicine.name}.',
+              body:
+                  'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
               scheduledDate: medicineTime,
               notificationDetails: _compactNotificationDetails(),
               payload: payload,
@@ -655,7 +653,7 @@ class NotificationService {
     if (preReminderTime.isAfter(now)) {
       await scheduleMedicineNotification(
         id: preNotificationId,
-        title: 'Pengingat Obat',
+        title: 'Pengingat Minum Obat',
         body:
             '${medicine.name} akan diminum dalam '
             '$preReminderMinutes menit.',
@@ -683,7 +681,8 @@ class NotificationService {
         await scheduleMedicineNotification(
           id: exactReminderId,
           title: 'Waktunya Minum Obat',
-          body: 'Waktunya minum ${medicine.name}.',
+          body:
+              'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
           scheduledDate: medicineTime,
           notificationDetails: _fullScreenNotificationDetails(),
           payload: payload,
@@ -692,7 +691,8 @@ class NotificationService {
         await scheduleMedicineNotification(
           id: exactReminderId,
           title: 'Waktunya Minum Obat',
-          body: 'Waktunya minum ${medicine.name}.',
+          body:
+              'Saatnya minum ${medicine.name} ${medicine.dosage} ${medicine.dosageUnit}.',
           scheduledDate: medicineTime,
           notificationDetails: _compactNotificationDetails(),
           payload: payload,
@@ -771,8 +771,12 @@ class NotificationService {
       sound: RawResourceAndroidNotificationSound(soundResource),
       category: AndroidNotificationCategory.alarm,
       actions: const [
-        AndroidNotificationAction('TAKEN', 'Minum'),
-        AndroidNotificationAction('SKIPPED', 'Lewati'),
+        AndroidNotificationAction('TAKEN', 'Minum', showsUserInterface: true),
+        AndroidNotificationAction(
+          'SKIPPED',
+          'Lewati',
+          showsUserInterface: true,
+        ),
       ],
     );
   }
@@ -823,5 +827,125 @@ class NotificationService {
 
   Future<void> cancelAll() async {
     await _notifications.cancelAll();
+  }
+
+  Future<void> _handleNotificationTaken(String payload) async {
+    try {
+      final decoded = jsonDecode(payload);
+
+      if (decoded is! Map<String, dynamic>) {
+        return;
+      }
+
+      if (decoded['type'] != 'medicine_reminder') {
+        return;
+      }
+
+      final scheduleTimeId = decoded['schedule_time_id'];
+
+      final scheduledDate = decoded['scheduled_date']?.toString();
+
+      if (scheduleTimeId is! int ||
+          scheduledDate == null ||
+          scheduledDate.isEmpty) {
+        return;
+      }
+
+      await _medicineHistoryService?.taken(
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+        actionTime: 'now',
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _handleNotificationSkipped(String payload) async {
+    try {
+      final decoded = jsonDecode(payload);
+
+      if (decoded is! Map<String, dynamic>) {
+        return;
+      }
+
+      if (decoded['type'] != 'medicine_reminder') {
+        return;
+      }
+
+      final scheduleTimeId = decoded['schedule_time_id'];
+
+      final scheduledDate = decoded['scheduled_date']?.toString();
+
+      if (scheduleTimeId is! int ||
+          scheduledDate == null ||
+          scheduledDate.isEmpty) {
+        return;
+      }
+
+      await _medicineHistoryService?.skipped(
+        scheduleTimeId: scheduleTimeId,
+        scheduledDate: scheduledDate,
+        actionTime: 'now',
+        notes: 'Lainnya',
+      );
+    } catch (_) {}
+  }
+
+  Future<void> scheduleRescheduledReminder({
+    required int medicineId,
+    required int scheduleTimeId,
+    required String medicineName,
+    required String dosage,
+    required String dosageUnit,
+    required String instruction,
+    required DateTime scheduledDateTime,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+
+    final scheduledDate = tz.TZDateTime(
+      tz.local,
+      scheduledDateTime.year,
+      scheduledDateTime.month,
+      scheduledDateTime.day,
+      scheduledDateTime.hour,
+      scheduledDateTime.minute,
+    );
+
+    if (!scheduledDate.isAfter(now)) {
+      return;
+    }
+
+    final reminderType = _getReminderType();
+
+    final payload = jsonEncode({
+      'type': 'medicine_reminder',
+      'medicine_id': medicineId,
+      'name': medicineName,
+      'dosage': dosage,
+      'dosage_unit': dosageUnit,
+      'instruction': instruction,
+      'schedule_time_id': scheduleTimeId,
+      'scheduled_time':
+          '${scheduledDate.hour.toString().padLeft(2, '0')}:'
+          '${scheduledDate.minute.toString().padLeft(2, '0')}:00',
+      'scheduled_date': scheduledDate.toIso8601String(),
+    });
+
+    final notificationId =
+        medicineId * 1000000 +
+        scheduleTimeId * 1000 +
+        (scheduledDate.millisecondsSinceEpoch % 1000);
+
+    final notificationDetails = reminderType == _reminderTypeFullScreen
+        ? _fullScreenNotificationDetails()
+        : _compactNotificationDetails();
+
+    await scheduleMedicineNotification(
+      id: notificationId,
+      title: 'Waktunya Minum Obat',
+      body: 'Saatnya minum $medicineName $dosage $dosageUnit.',
+      scheduledDate: scheduledDate,
+      notificationDetails: notificationDetails,
+      payload: payload,
+    );
   }
 }

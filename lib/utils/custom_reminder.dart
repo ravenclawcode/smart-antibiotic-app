@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:smart_antibiotic/utils/app_assets.dart';
@@ -8,6 +9,9 @@ import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_button_reminder.dart';
 import 'package:smart_antibiotic/utils/custom_button_schedule.dart';
 import 'package:smart_antibiotic/utils/custom_reschedule_reminder_sheet.dart';
+
+import '../providers/medicine_history_provider.dart';
+import '../services/notification_service.dart';
 
 class CustomReminder extends StatefulWidget {
   final int? medicineId;
@@ -106,12 +110,45 @@ class _CustomReminderState extends State<CustomReminder> {
     return instruction;
   }
 
-  void _handleTaken() {
-    Navigator.of(context).pop();
+  Future<void> _handleTaken() async {
+    if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
+      return;
+    }
+
+    try {
+      await context.read<MedicineHistoryProvider>().taken(
+        scheduleTimeId: widget.scheduleTimeId!,
+        scheduledDate: widget.scheduledDate!,
+        actionTime: 'now',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop();
+    } catch (_) {}
   }
 
-  void _handleSkipped() {
-    Navigator.of(context).pop();
+  Future<void> _handleSkipped() async {
+    if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
+      return;
+    }
+
+    try {
+      await context.read<MedicineHistoryProvider>().skipped(
+        scheduleTimeId: widget.scheduleTimeId!,
+        scheduledDate: widget.scheduledDate!,
+        actionTime: 'now',
+        notes: 'Lainnya',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop();
+    } catch (_) {}
   }
 
   void _openRescheduleSheet() {
@@ -121,10 +158,47 @@ class _CustomReminderState extends State<CustomReminder> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return CustomRescheduleReminderSheet(
+          medicineName: widget.medicineName ?? 'Obat',
           initialValue: 5,
           initialUnit: SnoozeUnit.minute,
-          onSave: (value, unit) {
-            Navigator.of(context).pop();
+          onSave: (value, unit) async {
+            if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
+              return;
+            }
+
+            final minutes = switch (unit) {
+              SnoozeUnit.minute => value,
+              SnoozeUnit.hour => value * 60,
+            };
+
+            final rescheduledDateTime = DateTime.now().add(
+              Duration(minutes: minutes),
+            );
+
+            final rescheduledTime = rescheduledDateTime.toIso8601String();
+
+            await context.read<MedicineHistoryProvider>().reschedule(
+              scheduleTimeId: widget.scheduleTimeId!,
+              scheduledDate: widget.scheduledDate!,
+              rescheduledTime: rescheduledTime,
+            );
+
+            if (widget.medicineId != null) {
+              await NotificationService.instance.scheduleRescheduledReminder(
+                medicineId: widget.medicineId!,
+                scheduleTimeId: widget.scheduleTimeId!,
+                medicineName: widget.medicineName ?? 'Obat',
+                dosage: widget.dosage ?? '',
+                dosageUnit: widget.dosageUnit ?? '',
+                instruction: widget.instruction ?? '',
+                scheduledDateTime: rescheduledDateTime,
+              );
+            }
+
+            if (mounted) {
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+            }
           },
         );
       },

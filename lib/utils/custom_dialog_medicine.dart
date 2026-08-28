@@ -249,7 +249,7 @@ class CustomDialogMedicine extends StatelessWidget {
     return AppColors.textSecondary;
   }
 
-   EdgeInsets _imagePadding() {
+  EdgeInsets _imagePadding() {
     if (isTaken || isSkipped || isMissed || isRescheduled) {
       return const EdgeInsets.only(top: 16, right: 4);
     }
@@ -347,78 +347,80 @@ class CustomDialogMedicine extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (bottomSheetContext) => CustomMedicineSheet(
-                              title: 'Edit Amoxicillin',
-                              list: const [
-                                'Hanya dosis ini',
-                                'Semua dosis berikutnya',
-                              ],
-                              onItemTap: (index) async {
+                            builder: (bottomSheetContext) =>
+                                CustomMedicineSheet(
+                                  title: 'Edit Amoxicillin',
+                                  list: const [
+                                    'Hanya dosis ini',
+                                    'Semua dosis berikutnya',
+                                  ],
+                                  onItemTap: (index) async {
+                                    if (index == 1) {
+                                      final navigator = Navigator.of(context);
 
-                                if (index == 1) {
-                                  final navigator = Navigator.of(context);
+                                      Navigator.pop(bottomSheetContext);
 
-                                  Navigator.pop(bottomSheetContext);
+                                      navigator.pop();
 
-                                  navigator.pop();
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) async {
+                                            if (!navigator.mounted) {
+                                              return;
+                                            }
 
-                                  WidgetsBinding.instance.addPostFrameCallback((
-                                    _,
-                                  ) async {
-                                    if (!navigator.mounted) {
+                                            await navigator.pushNamed(
+                                              '/medicine-detail',
+                                              arguments: medicine,
+                                            );
+
+                                            if (navigator.mounted &&
+                                                onEditFutureDoses != null) {
+                                              await onEditFutureDoses!();
+                                            }
+                                          });
+
                                       return;
                                     }
 
-                                    await navigator.pushNamed(
-                                      '/medicine-detail',
-                                      arguments: medicine,
-                                    );
+                                    Navigator.pop(bottomSheetContext);
 
-                                    if (navigator.mounted &&
-                                        onEditFutureDoses != null) {
-                                      await onEditFutureDoses!();
-                                    }
-                                  });
+                                    final navigator = Navigator.of(context);
 
-                                  return;
-                                }
+                                    navigator.pop();
 
-                                Navigator.pop(bottomSheetContext);
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) async {
+                                          if (!navigator.mounted) {
+                                            return;
+                                          }
 
-                                final navigator = Navigator.of(context);
+                                          final result = await navigator
+                                              .pushNamed(
+                                                '/medicine-edit-dosage',
+                                                arguments: {
+                                                  'medicine': medicine,
+                                                  'medicineId': medicineId,
+                                                  'scheduleTimeId':
+                                                      scheduleTimeId,
+                                                  'scheduledDate':
+                                                      scheduledDate,
+                                                  'instruction':
+                                                      notesText ?? notes,
+                                                  'editType': 'single',
+                                                },
+                                              );
 
-                                navigator.pop();
+                                          if (!navigator.mounted) {
+                                            return;
+                                          }
 
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) async {
-                                  if (!navigator.mounted) {
-                                    return;
-                                  }
-
-                                  final result = await navigator.pushNamed(
-                                    '/medicine-edit-dosage',
-                                    arguments: {
-                                      'medicine': medicine,
-                                      'medicineId': medicineId,
-                                      'scheduleTimeId': scheduleTimeId,
-                                      'scheduledDate': scheduledDate,
-                                      'instruction': notesText ?? notes,
-                                      'editType': 'single',
-                                    },
-                                  );
-
-                                  if (!navigator.mounted) {
-                                    return;
-                                  }
-
-                                  if (result == true &&
-                                      onEditFutureDoses != null) {
-                                    await onEditFutureDoses!();
-                                  }
-                                });
-                              },
-                            ),
+                                          if (result == true &&
+                                              onEditFutureDoses != null) {
+                                            await onEditFutureDoses!();
+                                          }
+                                        });
+                                  },
+                                ),
                           );
                         },
                         child: Image.asset(
@@ -520,10 +522,15 @@ class CustomDialogMedicine extends StatelessWidget {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                notesText!,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textSecondary,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 1,
+                                ),
+                                child: Text(
+                                  notesText!,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
