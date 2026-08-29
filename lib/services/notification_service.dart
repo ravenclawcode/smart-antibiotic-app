@@ -123,8 +123,6 @@ class NotificationService {
 
             if (decoded is Map<String, dynamic> &&
                 decoded['type'] == 'medicine_reminder') {
-              final reminderType = decoded['reminder_type'];
-
               if (response.actionId == 'TAKEN') {
                 if (response.id != null) {
                   await _notifications.cancel(id: response.id!);
@@ -132,14 +130,9 @@ class NotificationService {
 
                 _activeNotificationId = null;
 
-                if (reminderType == _reminderTypeCompact) {
-                  if (_medicineHistoryService != null) {
-                    await _handleNotificationTaken(payload);
-                  } else {
-                    _pendingActionId = 'TAKEN';
-                    _pendingActionPayload = payload;
-                  }
-                }
+                _pendingPayload = payload;
+                _pendingActionId = 'TAKEN';
+                _pendingActionPayload = payload;
               } else if (response.actionId == 'SKIPPED') {
                 if (response.id != null) {
                   await _notifications.cancel(id: response.id!);
@@ -147,14 +140,9 @@ class NotificationService {
 
                 _activeNotificationId = null;
 
-                if (reminderType == _reminderTypeCompact) {
-                  if (_medicineHistoryService != null) {
-                    await _handleNotificationSkipped(payload);
-                  } else {
-                    _pendingActionId = 'SKIPPED';
-                    _pendingActionPayload = payload;
-                  }
-                }
+                _pendingPayload = payload;
+                _pendingActionId = 'SKIPPED';
+                _pendingActionPayload = payload;
               } else {
                 _pendingPayload = payload;
               }
@@ -200,6 +188,15 @@ class NotificationService {
       final reminderType = decoded['reminder_type'];
 
       if (response.actionId == 'TAKEN') {
+        if (reminderType == _reminderTypeCompact) {
+          await _handleCompactAction(
+            actionId: 'TAKEN',
+            payload: payload,
+            notificationId: notificationId,
+          );
+          return;
+        }
+
         if (notificationId != null) {
           await _notifications.cancel(id: notificationId);
         }
@@ -211,6 +208,15 @@ class NotificationService {
       }
 
       if (response.actionId == 'SKIPPED') {
+        if (reminderType == _reminderTypeCompact) {
+          await _handleCompactAction(
+            actionId: 'SKIPPED',
+            payload: payload,
+            notificationId: notificationId,
+          );
+          return;
+        }
+
         if (notificationId != null) {
           await _notifications.cancel(id: notificationId);
         }
@@ -221,12 +227,14 @@ class NotificationService {
         return;
       }
 
-      await _cancelActiveNotification();
-
       if (reminderType == _reminderTypeCompact) {
+        await _cancelActiveNotification();
         _openMainApp();
         return;
       }
+
+      // HANYA LAYAR PENUH YANG BOLEH KE CUSTOM REMINDER
+      await _cancelActiveNotification();
 
       _pendingPayload = payload;
 
@@ -320,6 +328,12 @@ class NotificationService {
     final payload = _pendingPayload;
     _pendingPayload = null;
     return payload;
+  }
+
+  String? consumePendingAction() {
+    final actionId = _pendingActionId;
+    _pendingActionId = null;
+    return actionId;
   }
 
   bool hasPendingNotification() {
@@ -1116,6 +1130,26 @@ class NotificationService {
     await _notifications.cancel(id: notificationId);
 
     _activeNotificationId = null;
+  }
+
+  Future<void> _handleCompactAction({
+    required String actionId,
+    required String payload,
+    required int? notificationId,
+  }) async {
+    if (notificationId != null) {
+      await _notifications.cancel(id: notificationId);
+    }
+
+    _activeNotificationId = null;
+
+    if (actionId == 'TAKEN') {
+      await _handleNotificationTaken(payload);
+    } else if (actionId == 'SKIPPED') {
+      await _handleNotificationSkipped(payload);
+    }
+
+    _openMainApp();
   }
 }
 

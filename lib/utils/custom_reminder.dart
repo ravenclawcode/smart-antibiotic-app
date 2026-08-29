@@ -11,6 +11,7 @@ import 'package:smart_antibiotic/utils/custom_button_schedule.dart';
 import 'package:smart_antibiotic/utils/custom_reschedule_reminder_sheet.dart';
 
 import '../providers/medicine_history_provider.dart';
+import '../routes/routes.dart';
 import '../services/notification_service.dart';
 import '../services/reminder_audio_player.dart';
 
@@ -53,6 +54,16 @@ class _CustomReminderState extends State<CustomReminder> {
 
     _startReminderAudio();
     _fetchData();
+  }
+
+  void _goToHome() {
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(Routes.main, (route) => false);
   }
 
   Future<void> _startReminderAudio() async {
@@ -176,7 +187,7 @@ class _CustomReminderState extends State<CustomReminder> {
         return;
       }
 
-      Navigator.of(context).pop();
+      _goToHome();
     } catch (_) {
       if (!mounted) {
         return;
@@ -221,7 +232,7 @@ class _CustomReminderState extends State<CustomReminder> {
         return;
       }
 
-      Navigator.of(context).pop();
+      _goToHome();
     } catch (_) {
       if (!mounted) {
         return;
@@ -288,7 +299,7 @@ class _CustomReminderState extends State<CustomReminder> {
               }
 
               if (mounted) {
-                Navigator.of(context).pop();
+                _goToHome();
               }
             } catch (_) {}
           },
