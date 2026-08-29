@@ -53,12 +53,12 @@ class _MedicineSetScheduleHourScreenState
 
   void _initPickerValues(TimeOfDay time) {
     selectedHour = time.hour;
-    final initialMinute = (time.minute / 5).round() * 5;
-    selectedMinute = initialMinute % 60;
+    // Menggunakan nilai menit asli tanpa pembulatan ke kelipatan 5
+    selectedMinute = time.minute;
 
     final initialHourIndex = (_kLoopOffset * 24) + selectedHour;
-    final initialMinuteIndexStep = selectedMinute ~/ 5;
-    final initialMinuteIndex = (_kLoopOffset * 12) + initialMinuteIndexStep;
+    // Menggunakan offset siklus 60 untuk menit
+    final initialMinuteIndex = (_kLoopOffset * 60) + selectedMinute;
 
     hourController = FixedExtentScrollController(initialItem: initialHourIndex);
     minuteController = FixedExtentScrollController(
@@ -132,6 +132,7 @@ class _MedicineSetScheduleHourScreenState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Picker Jam (0-23)
                 SizedBox(
                   width: 50,
                   child: CupertinoPicker.builder(
@@ -177,6 +178,7 @@ class _MedicineSetScheduleHourScreenState
                     ),
                   ),
                 ),
+                // Picker Menit (0-59)
                 SizedBox(
                   width: 50,
                   child: CupertinoPicker.builder(
@@ -189,13 +191,13 @@ class _MedicineSetScheduleHourScreenState
                     scrollController: minuteController,
                     onSelectedItemChanged: (index) {
                       setState(() {
-                        selectedMinute = (index % 12) * 5;
+                        selectedMinute = index % 60; // Menggunakan % 60
                       });
                       _notifyParent();
                     },
                     childCount: null,
                     itemBuilder: (context, index) {
-                      final minute = (index % 12) * 5;
+                      final minute = index % 60; // Menggunakan % 60 untuk rentang 0-59
                       final isSelected = selectedMinute == minute;
                       return Center(
                         child: AnimatedDefaultTextStyle(

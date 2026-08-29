@@ -181,10 +181,6 @@ class _CustomRescheduleReminderSheetState
           CustomButtonSheet(
             onTap: () async {
               await widget.onSave(selectedValue, selectedUnit);
-
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
             },
             label: 'Menunda selama $selectedValue ${selectedUnit.label}',
           ),

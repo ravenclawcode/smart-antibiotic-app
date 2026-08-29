@@ -49,6 +49,8 @@ class _CustomReminderState extends State<CustomReminder> {
   void initState() {
     super.initState();
 
+    NotificationService.instance.stopActiveMedicineAlarm();
+
     _startReminderAudio();
     _fetchData();
   }

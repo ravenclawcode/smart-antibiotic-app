@@ -25,6 +25,8 @@ class NotificationService {
   int? _activeNotificationId;
 
   String? _pendingPayload;
+  String? _pendingActionId;
+  String? _pendingActionPayload;
 
   static const int _defaultScheduleDays = 30;
 
@@ -52,6 +54,22 @@ class NotificationService {
 
   void setMedicineHistoryService(MedicineHistoryService service) {
     _medicineHistoryService = service;
+
+    final actionId = _pendingActionId;
+    final payload = _pendingActionPayload;
+
+    if (actionId == null || payload == null) {
+      return;
+    }
+
+    _pendingActionId = null;
+    _pendingActionPayload = null;
+
+    if (actionId == 'TAKEN') {
+      _handleNotificationTaken(payload);
+    } else if (actionId == 'SKIPPED') {
+      _handleNotificationSkipped(payload);
+    }
   }
 
   Future<void> initialize() async {
@@ -72,6 +90,7 @@ class NotificationService {
     await _notifications.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
     final androidImplementation = _notifications
@@ -103,8 +122,42 @@ class NotificationService {
             final decoded = jsonDecode(payload);
 
             if (decoded is Map<String, dynamic> &&
-                decoded['reminder_type'] == _reminderTypeFullScreen) {
-              _pendingPayload = payload;
+                decoded['type'] == 'medicine_reminder') {
+              final reminderType = decoded['reminder_type'];
+
+              if (response.actionId == 'TAKEN') {
+                if (response.id != null) {
+                  await _notifications.cancel(id: response.id!);
+                }
+
+                _activeNotificationId = null;
+
+                if (reminderType == _reminderTypeCompact) {
+                  if (_medicineHistoryService != null) {
+                    await _handleNotificationTaken(payload);
+                  } else {
+                    _pendingActionId = 'TAKEN';
+                    _pendingActionPayload = payload;
+                  }
+                }
+              } else if (response.actionId == 'SKIPPED') {
+                if (response.id != null) {
+                  await _notifications.cancel(id: response.id!);
+                }
+
+                _activeNotificationId = null;
+
+                if (reminderType == _reminderTypeCompact) {
+                  if (_medicineHistoryService != null) {
+                    await _handleNotificationSkipped(payload);
+                  } else {
+                    _pendingActionId = 'SKIPPED';
+                    _pendingActionPayload = payload;
+                  }
+                }
+              } else {
+                _pendingPayload = payload;
+              }
             }
           } catch (_) {}
         }
@@ -136,30 +189,42 @@ class NotificationService {
       return;
     }
 
-    if (response.actionId == 'TAKEN') {
-      _cancelNotificationFromPayload(payload);
-      _handleNotificationTaken(payload);
-      return;
-    }
-
-    if (response.actionId == 'SKIPPED') {
-      _cancelNotificationFromPayload(payload);
-      _handleNotificationSkipped(payload);
-      return;
-    }
-
     try {
       final decoded = jsonDecode(payload);
 
-      if (decoded is! Map<String, dynamic>) {
+      if (decoded is! Map<String, dynamic> ||
+          decoded['type'] != 'medicine_reminder') {
         return;
       }
 
       final reminderType = decoded['reminder_type'];
 
+      if (response.actionId == 'TAKEN') {
+        if (notificationId != null) {
+          await _notifications.cancel(id: notificationId);
+        }
+
+        _activeNotificationId = null;
+
+        await _handleNotificationTaken(payload);
+        return;
+      }
+
+      if (response.actionId == 'SKIPPED') {
+        if (notificationId != null) {
+          await _notifications.cancel(id: notificationId);
+        }
+
+        _activeNotificationId = null;
+
+        await _handleNotificationSkipped(payload);
+        return;
+      }
+
       await _cancelActiveNotification();
 
       if (reminderType == _reminderTypeCompact) {
+        _openMainApp();
         return;
       }
 
@@ -169,19 +234,17 @@ class NotificationService {
     } catch (_) {}
   }
 
-  Future<void> _cancelActiveNotification() async {
-    final notificationId = _activeNotificationId;
+  void _openMainApp() {
+    final navigator = navigatorKey.currentState;
 
-    if (notificationId == null) {
+    if (navigator == null) {
       return;
     }
 
-    await _notifications.cancel(id: notificationId);
-
-    _activeNotificationId = null;
+    navigator.pushNamedAndRemoveUntil(Routes.main, (route) => false);
   }
 
-  Future<void> _cancelNotificationFromPayload(String payload) async {
+  Future<void> _cancelActiveNotification() async {
     final notificationId = _activeNotificationId;
 
     if (notificationId == null) {
@@ -250,7 +313,7 @@ class NotificationService {
 
     await _cancelActiveNotification();
 
-    _openReminderFromPayload(payload);
+    _openReminderFromPayload(payload, replaceCurrentRoute: true);
   }
 
   String? consumePendingPayload() {
@@ -1006,6 +1069,7 @@ class NotificationService {
 
     final payload = jsonEncode({
       'type': 'medicine_reminder',
+      'reminder_type': reminderType,
       'medicine_id': medicineId,
       'name': medicineName,
       'dosage': dosage,
@@ -1054,3 +1118,6 @@ class NotificationService {
     _activeNotificationId = null;
   }
 }
+
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse response) {}
