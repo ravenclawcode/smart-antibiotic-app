@@ -24,7 +24,7 @@ class NotificationService {
 
   int? _activeNotificationId;
 
-  String? _pendingPayload;
+  final List<String> _pendingPayloads = [];
   String? _pendingActionId;
   String? _pendingActionPayload;
 
@@ -79,9 +79,7 @@ class NotificationService {
 
     tz.initializeTimeZones();
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const androidSettings = AndroidInitializationSettings('ic_launcher');
 
     const initializationSettings = InitializationSettings(
       android: androidSettings,
@@ -123,28 +121,32 @@ class NotificationService {
 
             if (decoded is Map<String, dynamic> &&
                 decoded['type'] == 'medicine_reminder') {
-              if (response.actionId == 'TAKEN') {
-                if (response.id != null) {
-                  await _notifications.cancel(id: response.id!);
+              final actionId = response.actionId;
+
+              if (actionId == 'TAKEN') {
+                if (notificationId != null) {
+                  await _notifications.cancel(id: notificationId);
                 }
 
                 _activeNotificationId = null;
 
-                _pendingPayload = payload;
+                _addPendingPayload(payload);
+
                 _pendingActionId = 'TAKEN';
                 _pendingActionPayload = payload;
-              } else if (response.actionId == 'SKIPPED') {
-                if (response.id != null) {
-                  await _notifications.cancel(id: response.id!);
+              } else if (actionId == 'SKIPPED') {
+                if (notificationId != null) {
+                  await _notifications.cancel(id: notificationId);
                 }
 
                 _activeNotificationId = null;
 
-                _pendingPayload = payload;
+                _addPendingPayload(payload);
+
                 _pendingActionId = 'SKIPPED';
                 _pendingActionPayload = payload;
               } else {
-                _pendingPayload = payload;
+                _addPendingPayload(payload);
               }
             }
           } catch (_) {}
@@ -233,10 +235,9 @@ class NotificationService {
         return;
       }
 
-      // HANYA LAYAR PENUH YANG BOLEH KE CUSTOM REMINDER
       await _cancelActiveNotification();
 
-      _pendingPayload = payload;
+      _addPendingPayload(payload);
 
       _openReminderFromPayload(payload);
     } catch (_) {}
@@ -325,9 +326,21 @@ class NotificationService {
   }
 
   String? consumePendingPayload() {
-    final payload = _pendingPayload;
-    _pendingPayload = null;
-    return payload;
+    if (_pendingPayloads.isEmpty) {
+      return null;
+    }
+
+    return _pendingPayloads.removeAt(0);
+  }
+
+  void _addPendingPayload(String payload) {
+    if (payload.isEmpty) {
+      return;
+    }
+
+    if (!_pendingPayloads.contains(payload)) {
+      _pendingPayloads.add(payload);
+    }
   }
 
   String? consumePendingAction() {
@@ -337,7 +350,7 @@ class NotificationService {
   }
 
   bool hasPendingNotification() {
-    return _pendingPayload != null && _pendingPayload!.isNotEmpty;
+    return _pendingPayloads.isNotEmpty;
   }
 
   Future<void> requestPermission() async {
