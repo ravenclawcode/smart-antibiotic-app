@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_antibiotic/utils/app_assets.dart';
 import 'package:smart_antibiotic/utils/app_colors.dart';
 import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
+import 'package:smart_antibiotic/utils/custom_button_dialog.dart';
 
 class CustomRescheduleSheet extends StatefulWidget {
   final TimeOfDay initialTime;
@@ -53,6 +55,56 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
         border: Border(
           top: BorderSide(color: Color(0xFFE7ECF0), width: 1),
           bottom: BorderSide(color: Color(0xFFE7ECF0), width: 1),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showInvalidTimeDialog(String initialFormattedTime) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 26),
+          child: Material(
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              padding: const EdgeInsets.only(
+                top: 26,
+                bottom: 26,
+                left: 26,
+                right: 26,
+              ),
+              decoration: const BoxDecoration(color: AppColors.surfacePrimary),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(icAlert, height: 120),
+                  const SizedBox(height: 20),
+                  Text('Waktu Tidak Valid', style: AppTextStyles.titleMedium),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Jadwal ulang tidak boleh lebih awal dari waktu awal ($initialFormattedTime).',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  CustomButtonDialog(
+                    onTap: () => Navigator.pop(dialogContext),
+                    label: 'Mengerti',
+                    color: AppColors.surfaceAccent,
+                    textColor: AppColors.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -179,7 +231,22 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                   hoverColor: Colors.transparent,
                   highlightColor: Colors.transparent,
                   splashColor: Colors.transparent,
-                  onTap: () {
+                  onTap: () async {
+                    final initialMinutes =
+                        widget.initialTime.hour * 60 +
+                        widget.initialTime.minute;
+                    final selectedMinutes = selectedHour * 60 + selectedMinute;
+
+                    if (selectedMinutes < initialMinutes) {
+                      final initialFormattedTime =
+                          '${widget.initialTime.hour.toString().padLeft(2, '0')}:${widget.initialTime.minute.toString().padLeft(2, '0')}';
+
+                      await _showInvalidTimeDialog(initialFormattedTime);
+                      return;
+                    }
+
+                    if (!context.mounted) return;
+
                     Navigator.pop(
                       context,
                       TimeOfDay(hour: selectedHour, minute: selectedMinute),

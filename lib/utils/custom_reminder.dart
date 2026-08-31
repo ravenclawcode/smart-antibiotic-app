@@ -252,17 +252,11 @@ class _CustomReminderState extends State<CustomReminder> {
       builder: (sheetContext) {
         return CustomRescheduleReminderSheet(
           medicineName: widget.medicineName ?? 'Obat',
-          initialValue: 5,
-          initialUnit: SnoozeUnit.minute,
-          onSave: (value, unit) async {
+          initialMinute: 5,
+          onSave: (minutes) async {
             if (widget.scheduleTimeId == null || widget.scheduledDate == null) {
               return;
             }
-
-            final minutes = switch (unit) {
-              SnoozeUnit.minute => value,
-              SnoozeUnit.hour => value * 60,
-            };
 
             final rescheduledDateTime = DateTime.now().add(
               Duration(minutes: minutes),

@@ -53,11 +53,12 @@ class _CustomMedicineSetScheduleHourSheetState
 
   void _initPickerValues(TimeOfDay time) {
     selectedHour = time.hour;
-    // Menggunakan menit presisi 1 menit (0-59)
-    selectedMinute = time.minute;
+    final initialMinute = (time.minute / 5).round() * 5;
+    selectedMinute = initialMinute % 60;
 
     final initialHourIndex = (_kLoopOffset * 24) + selectedHour;
-    final initialMinuteIndex = (_kLoopOffset * 60) + selectedMinute;
+    final initialMinuteIndexStep = selectedMinute ~/ 5;
+    final initialMinuteIndex = (_kLoopOffset * 12) + initialMinuteIndexStep;
 
     hourController = FixedExtentScrollController(initialItem: initialHourIndex);
     minuteController = FixedExtentScrollController(
@@ -72,16 +73,6 @@ class _CustomMedicineSetScheduleHourSheetState
       setState(() {
         _initPickerValues(widget.initialValue);
       });
-
-      final initialHourIndex = (_kLoopOffset * 24) + selectedHour;
-      final initialMinuteIndex = (_kLoopOffset * 60) + selectedMinute;
-
-      if (hourController.hasClients) {
-        hourController.jumpToItem(initialHourIndex);
-      }
-      if (minuteController.hasClients) {
-        minuteController.jumpToItem(initialMinuteIndex);
-      }
     }
   }
 
@@ -141,7 +132,6 @@ class _CustomMedicineSetScheduleHourSheetState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Picker Jam
                 SizedBox(
                   width: 50,
                   child: CupertinoPicker.builder(
@@ -187,7 +177,6 @@ class _CustomMedicineSetScheduleHourSheetState
                     ),
                   ),
                 ),
-                // Picker Menit (Interval 1 Menit)
                 SizedBox(
                   width: 50,
                   child: CupertinoPicker.builder(
@@ -200,13 +189,13 @@ class _CustomMedicineSetScheduleHourSheetState
                     scrollController: minuteController,
                     onSelectedItemChanged: (index) {
                       setState(() {
-                        selectedMinute = index % 60;
+                        selectedMinute = (index % 12) * 5;
                       });
                       _notifyParent();
                     },
                     childCount: null,
                     itemBuilder: (context, index) {
-                      final minute = index % 60;
+                      final minute = (index % 12) * 5;
                       final isSelected = selectedMinute == minute;
                       return Center(
                         child: AnimatedDefaultTextStyle(

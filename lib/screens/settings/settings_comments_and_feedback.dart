@@ -8,6 +8,7 @@ import '../../providers/feedback_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_text.dart';
+import '../../utils/custom_dialog_delete_feedback.dart';
 import '../../utils/custom_feedback_card.dart';
 import '../../utils/custom_input_feedback_form.dart';
 
@@ -83,8 +84,17 @@ class _SettingsCommentsAndFeedbackState
   }
 
   Future<void> _deleteFeedback(FeedbackModel feedback) async {
-    final provider = context.read<FeedbackProvider>();
+    FocusManager.instance.primaryFocus?.unfocus();
 
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const CustomDialogDeleteFeedback(),
+    );
+
+    if (result != true || !mounted) return;
+
+    final provider = context.read<FeedbackProvider>();
     await provider.deleteFeedback(feedback.id);
   }
 

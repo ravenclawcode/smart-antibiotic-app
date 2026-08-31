@@ -4,23 +4,15 @@ import 'package:smart_antibiotic/utils/app_text.dart';
 import 'package:smart_antibiotic/utils/custom_base_bottom_sheet.dart';
 import 'package:smart_antibiotic/utils/custom_button_sheet.dart';
 
-enum SnoozeUnit { minute, hour }
-
-extension SnoozeUnitExtension on SnoozeUnit {
-  String get label => this == SnoozeUnit.minute ? 'menit' : 'jam';
-}
-
 class CustomRescheduleReminderSheet extends StatefulWidget {
   final String medicineName;
-  final int initialValue;
-  final SnoozeUnit initialUnit;
-  final Future<void> Function(int value, SnoozeUnit unit) onSave;
+  final int initialMinute;
+  final Future<void> Function(int minutes) onSave;
 
   const CustomRescheduleReminderSheet({
     super.key,
     required this.medicineName,
-    this.initialValue = 5,
-    this.initialUnit = SnoozeUnit.minute,
+    this.initialMinute = 5,
     required this.onSave,
   });
 
@@ -31,36 +23,31 @@ class CustomRescheduleReminderSheet extends StatefulWidget {
 
 class _CustomRescheduleReminderSheetState
     extends State<CustomRescheduleReminderSheet> {
-  late int selectedValue;
-  late SnoozeUnit selectedUnit;
+  late int selectedMinute;
+  late FixedExtentScrollController _minuteController;
 
-  late FixedExtentScrollController _valueController;
-  late FixedExtentScrollController _unitController;
-
-  final List<int> _values = List.generate(60, (index) => index + 1);
-  final List<SnoozeUnit> _units = [SnoozeUnit.minute, SnoozeUnit.hour];
+  static const int _kLoopOffset = 1000;
 
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.initialValue;
-    selectedUnit = widget.initialUnit;
 
-    final initialValueIndex = _values.indexOf(selectedValue);
-    final initialUnitIndex = _units.indexOf(selectedUnit);
+    final roundedInitial = (widget.initialMinute / 5).round() * 5;
+    selectedMinute = roundedInitial == 0
+        ? 5
+        : (roundedInitial > 60 ? 60 : roundedInitial);
 
-    _valueController = FixedExtentScrollController(
-      initialItem: initialValueIndex >= 0 ? initialValueIndex : 4,
-    );
-    _unitController = FixedExtentScrollController(
-      initialItem: initialUnitIndex >= 0 ? initialUnitIndex : 0,
+    final initialIndexStep = (selectedMinute ~/ 5) - 1;
+    final initialMinuteIndex = (_kLoopOffset * 12) + initialIndexStep;
+
+    _minuteController = FixedExtentScrollController(
+      initialItem: initialMinuteIndex,
     );
   }
 
   @override
   void dispose() {
-    _valueController.dispose();
-    _unitController.dispose();
+    _minuteController.dispose();
     super.dispose();
   }
 
@@ -98,7 +85,7 @@ class _CustomRescheduleReminderSheetState
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: 50,
+                  width: 60,
                   child: CupertinoPicker.builder(
                     itemExtent: 50,
                     diameterRatio: 10000,
@@ -106,22 +93,22 @@ class _CustomRescheduleReminderSheetState
                     magnification: 1.0,
                     useMagnifier: false,
                     selectionOverlay: _buildSelectionOverlay(),
-                    scrollController: _valueController,
+                    scrollController: _minuteController,
                     onSelectedItemChanged: (index) {
                       setState(() {
-                        selectedValue = _values[index];
+                        selectedMinute = ((index % 12) + 1) * 5;
                       });
                     },
-                    childCount: _values.length,
+                    childCount: null,
                     itemBuilder: (context, index) {
-                      final val = _values[index];
-                      final isSelected = selectedValue == val;
+                      final minute = ((index % 12) + 1) * 5;
+                      final isSelected = selectedMinute == minute;
                       return Center(
                         child: AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 150),
                           curve: Curves.easeOut,
                           style: AppTextStyles.titleLarge.copyWith(
-                            fontSize: 22,
+                            fontSize: 24,
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -129,49 +116,19 @@ class _CustomRescheduleReminderSheetState
                                 ? AppColors.textPrimary
                                 : const Color(0xFFCFD8E0),
                           ),
-                          child: Text('$val'),
+                          child: Text('$minute'),
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(width: 20),
-                SizedBox(
-                  width: 80,
-                  child: CupertinoPicker.builder(
-                    itemExtent: 50,
-                    diameterRatio: 10000,
-                    squeeze: 1.0,
-                    magnification: 1.0,
-                    useMagnifier: false,
-                    selectionOverlay: _buildSelectionOverlay(),
-                    scrollController: _unitController,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        selectedUnit = _units[index];
-                      });
-                    },
-                    childCount: _units.length,
-                    itemBuilder: (context, index) {
-                      final unit = _units[index];
-                      final isSelected = selectedUnit == unit;
-                      return Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 150),
-                          curve: Curves.easeOut,
-                          style: AppTextStyles.titleLarge.copyWith(
-                            fontSize: 22,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: isSelected
-                                ? AppColors.textPrimary
-                                : const Color(0xFFCFD8E0),
-                          ),
-                          child: Text(unit.label),
-                        ),
-                      );
-                    },
+                const SizedBox(width: 8),
+                Text(
+                  'menit',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -180,9 +137,9 @@ class _CustomRescheduleReminderSheetState
           const SizedBox(height: 40),
           CustomButtonSheet(
             onTap: () async {
-              await widget.onSave(selectedValue, selectedUnit);
+              await widget.onSave(selectedMinute);
             },
-            label: 'Menunda selama $selectedValue ${selectedUnit.label}',
+            label: 'Menunda selama $selectedMinute menit',
           ),
           const SizedBox(height: 16),
         ],
