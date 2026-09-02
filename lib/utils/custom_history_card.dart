@@ -56,7 +56,7 @@ class CustomHistoryCard extends StatelessWidget {
                 children: [
                   Padding(
                     padding: (isTaken || isSkipped || isMissed || isReschedule)
-                        ? const EdgeInsets.only(top: 12, right: 4)
+                        ? const EdgeInsets.only(top: 14, right: 4)
                         : const EdgeInsets.only(left: 2, right: 2),
                     child: image,
                   ),

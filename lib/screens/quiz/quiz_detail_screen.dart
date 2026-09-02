@@ -176,12 +176,6 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
         _isSubmitting = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.errorMessage ?? 'Gagal mengirim kuis.'),
-        ),
-      );
-
       return;
     }
 

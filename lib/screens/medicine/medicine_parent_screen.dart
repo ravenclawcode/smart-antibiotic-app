@@ -400,7 +400,6 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
       }
 
       if (createdMedicine == null) {
-        _showError(medicineProvider.errorMessage ?? 'Gagal menyimpan obat.');
         return;
       }
 
@@ -417,8 +416,6 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
       if (!mounted) {
         return;
       }
-
-      _showError('Gagal menyimpan obat.');
     } finally {
       if (mounted) {
         setState(() {
@@ -477,12 +474,6 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
       default:
         return 'daily';
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

@@ -104,21 +104,18 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
 
   Future<void> _saveName() async {
     if (_medicine == null) {
-      _showError('Data obat tidak ditemukan.');
       return;
     }
 
     final medicineId = _medicine!.id;
 
     if (medicineId == null) {
-      _showError('ID obat tidak ditemukan.');
       return;
     }
 
     final newName = _nameMedicineController.text.trim();
 
     if (newName.isEmpty) {
-      _showError('Nama obat tidak boleh kosong.');
       return;
     }
 
@@ -140,18 +137,6 @@ class _MedicineEditNameScreenState extends State<MedicineEditNameScreen> {
       Navigator.pop(context, result);
       return;
     }
-
-    _showError(provider.errorMessage ?? 'Gagal memperbarui nama obat.');
-  }
-
-  void _showError(String message) {
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

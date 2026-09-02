@@ -164,12 +164,6 @@ class _MedicineEditDoseAmountScreenState
           scheduleTimeId == null ||
           scheduledDate == null ||
           scheduledDate.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data dosis yang dipilih tidak lengkap.'),
-          ),
-        );
-
         return;
       }
 
@@ -187,12 +181,6 @@ class _MedicineEditDoseAmountScreenState
       }
 
       if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(provider.errorMessage ?? 'Gagal memperbarui dosis.'),
-          ),
-        );
-
         return;
       }
 
@@ -212,12 +200,6 @@ class _MedicineEditDoseAmountScreenState
     }
 
     if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.errorMessage ?? 'Gagal memperbarui dosis.'),
-        ),
-      );
-
       return;
     }
 

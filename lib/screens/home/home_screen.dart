@@ -149,30 +149,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 final medicineProvider = context.read<MedicineProvider>();
                 final homeProvider = context.read<HomeProvider>();
 
-                final success = await homeProvider.runWithLoading<bool>(
-                  () async {
-                    final success = await medicineProvider.deleteDose(
-                      medicineId: medicineId,
-                      scheduleTimeId: scheduleTimeId,
-                      scheduledDate: scheduledDate,
-                    );
+                await homeProvider.runWithLoading<bool>(() async {
+                  final success = await medicineProvider.deleteDose(
+                    medicineId: medicineId,
+                    scheduleTimeId: scheduleTimeId,
+                    scheduledDate: scheduledDate,
+                  );
 
-                    if (success) {
-                      await homeProvider.load(selectedDate, showLoading: false);
-                    }
-                    return success;
-                  },
-                );
-
-                if (!context.mounted) return;
-
-                if (!success!) {
-                  final message =
-                      medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
-                }
+                  if (success) {
+                    await homeProvider.load(selectedDate, showLoading: false);
+                  }
+                  return success;
+                });
               },
           onDeleteFutureDoses:
               (int medicineId, int scheduleTimeId, String scheduledDate) async {
@@ -189,30 +177,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 final homeProvider = context.read<HomeProvider>();
                 final keepHistory = result['keepHistory'] as bool? ?? true;
 
-                final success = await homeProvider.runWithLoading<bool>(
-                  () async {
-                    final success = keepHistory
-                        ? await medicineProvider.deleteMedicine(medicineId)
-                        : await medicineProvider.deleteMedicinePermanent(
-                            medicineId,
-                          );
+                await homeProvider.runWithLoading<bool>(() async {
+                  final success = keepHistory
+                      ? await medicineProvider.deleteMedicine(medicineId)
+                      : await medicineProvider.deleteMedicinePermanent(
+                          medicineId,
+                        );
 
-                    if (success) {
-                      await homeProvider.load(selectedDate, showLoading: false);
-                    }
-                    return success;
-                  },
-                );
-
-                if (!context.mounted) return;
-
-                if (!success!) {
-                  final message =
-                      medicineProvider.errorMessage ?? 'Gagal menghapus obat.';
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(message)));
-                }
+                  if (success) {
+                    await homeProvider.load(selectedDate, showLoading: false);
+                  }
+                  return success;
+                });
               },
         );
       },

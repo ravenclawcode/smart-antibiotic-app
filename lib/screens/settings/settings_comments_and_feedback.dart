@@ -69,7 +69,7 @@ class _SettingsCommentsAndFeedbackState
       return;
     }
 
-    final text = _capitalizeWords(inputText);
+    final text = _capitalizeFirstLetter(inputText);
 
     final provider = context.read<FeedbackProvider>();
 
@@ -98,22 +98,13 @@ class _SettingsCommentsAndFeedbackState
     await provider.deleteFeedback(feedback.id);
   }
 
-  String _capitalizeWords(String input) {
+  String _capitalizeFirstLetter(String input) {
     if (input.trim().isEmpty) {
       return input;
     }
 
-    return input
-        .trim()
-        .split(RegExp(r'\s+'))
-        .map((word) {
-          if (word.isEmpty) {
-            return word;
-          }
-
-          return word[0].toUpperCase() + word.substring(1);
-        })
-        .join(' ');
+    final trimmed = input.trim();
+    return trimmed[0].toUpperCase() + trimmed.substring(1);
   }
 
   @override
@@ -344,7 +335,7 @@ class _SettingsCommentsAndFeedbackState
 
   Widget _buildFeedbackList(FeedbackProvider provider) {
     if (provider.feedbacks.isEmpty) {
-      return SizedBox();
+      return const SizedBox();
     }
 
     return ListView.builder(

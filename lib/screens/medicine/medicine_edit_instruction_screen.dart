@@ -157,14 +157,6 @@ class _MedicineEditInstructionScreenState
       }
 
       if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              provider.errorMessage ?? 'Gagal memperbarui instruksi.',
-            ),
-          ),
-        );
-
         return;
       }
 
@@ -183,14 +175,6 @@ class _MedicineEditInstructionScreenState
     }
 
     if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            provider.errorMessage ?? 'Gagal memperbarui instruksi.',
-          ),
-        ),
-      );
-
       return;
     }
 

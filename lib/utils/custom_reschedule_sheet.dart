@@ -237,7 +237,7 @@ class _CustomRescheduleSheetState extends State<CustomRescheduleSheet> {
                         widget.initialTime.minute;
                     final selectedMinutes = selectedHour * 60 + selectedMinute;
 
-                    if (selectedMinutes < initialMinutes) {
+                    if (selectedMinutes <= initialMinutes) {
                       final initialFormattedTime =
                           '${widget.initialTime.hour.toString().padLeft(2, '0')}:${widget.initialTime.minute.toString().padLeft(2, '0')}';
 

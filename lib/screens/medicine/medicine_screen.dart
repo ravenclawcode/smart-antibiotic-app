@@ -291,13 +291,13 @@ Widget _buildEmptyState(BuildContext context) {
 Widget _medicineImage(String? dosageUnit) {
   switch (dosageUnit?.trim().toLowerCase()) {
     case 'kapsul':
-      return Image.asset(imgKapsul, width: 30);
+      return Image.asset(imgKapsul, width: 33);
 
     case 'kaplet':
-      return Image.asset(imgKaplet, width: 30);
+      return Image.asset(imgKaplet, width: 33);
 
     case 'tablet':
     default:
-      return Image.asset(imgTablet, width: 30);
+      return Image.asset(imgTablet, width: 33);
   }
 }

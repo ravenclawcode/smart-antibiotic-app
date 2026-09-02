@@ -130,10 +130,6 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
       if (!mounted) {
         return;
       }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal mengekspor laporan PDF')));
     } finally {
       if (mounted) {
         setState(() {
@@ -237,10 +233,6 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
       setState(() {
         _isFilterLoading = false;
       });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal mengambil riwayat obat')));
     }
   }
 
@@ -521,6 +513,12 @@ Widget _buildListHistory(
   }
 
   final groupedEntries = groupedItems.entries.toList();
+
+  groupedEntries.sort((a, b) {
+    final dateA = DateTime.tryParse(a.key) ?? DateTime(1970);
+    final dateB = DateTime.tryParse(b.key) ?? DateTime(1970);
+    return dateA.compareTo(dateB);
+  });
 
   return ListView.builder(
     itemCount: groupedEntries.length,

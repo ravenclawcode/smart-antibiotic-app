@@ -134,10 +134,6 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           _isLoading = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data dosis tidak lengkap.')),
-        );
-
         return;
       }
 
@@ -162,13 +158,6 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       setState(() {
         _isLoading = false;
       });
-
-      final errorMessage =
-          medicineProvider.errorMessage ?? 'Gagal menghapus dosis.';
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
 
       return;
     }
@@ -333,13 +322,6 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           _isLoading = false;
         });
 
-        final message =
-            medicineProvider.errorMessage ?? 'Gagal memperbarui obat.';
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-
         return;
       }
 
@@ -366,10 +348,6 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       setState(() {
         _isLoading = false;
       });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui obat: $e')));
     }
   }
 
