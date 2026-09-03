@@ -52,9 +52,11 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             _buildHeader(context, isLoading: _isLoading),
             Expanded(
-              child: _isLoading
-                  ? _buildShimmerContent()
-                  : _buildQuisList(context),
+              child: ClipRect(
+                child: _isLoading
+                    ? _buildShimmerContent()
+                    : _buildQuisList(context),
+              ),
             ),
           ],
         ),
@@ -188,7 +190,7 @@ Widget _buildHeader(BuildContext context, {required bool isLoading}) {
                         color: AppColors.accent,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 20,
                         color: AppColors.surfacePrimary,
@@ -268,41 +270,46 @@ Widget _buildQuisList(BuildContext context) {
     );
   }
 
+  if (quizzes.isEmpty) {
+    return Center(
+      child: Text(
+        'Belum ada kuis tersedia.',
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
   return SingleChildScrollView(
     scrollDirection: Axis.vertical,
-    clipBehavior: Clip.none,
+    clipBehavior: Clip.hardEdge,
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          const SizedBox(height: 20),
-
           ...quizzes.asMap().entries.map((entry) {
             final index = entry.key;
             final quiz = entry.value;
 
             final images = [imgKuis1, imgKuis2, imgKuis3];
-
             final imagePath = images[index % images.length];
 
-            return Column(
-              children: [
-                CustomQuizCard(
-                  title: 'Level ${quiz.level}',
-                  subtitle: quiz.description ?? '',
-                  image: Image.asset(imagePath),
-                  color: AppColors.surfaceSecondary,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/quiz-detail',
-                      arguments: quiz.id,
-                    );
-                  },
-                ),
-
-                if (index < quizzes.length - 1) const SizedBox(height: 10),
-              ],
+            return Padding(
+              padding: EdgeInsets.only(top: index == 0 ? 20 : 0, bottom: 10),
+              child: CustomQuizCard(
+                title: 'Level ${quiz.level}',
+                subtitle: quiz.description ?? '',
+                image: Image.asset(imagePath),
+                color: AppColors.surfaceSecondary,
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/quiz-detail',
+                    arguments: quiz.id,
+                  );
+                },
+              ),
             );
           }),
         ],

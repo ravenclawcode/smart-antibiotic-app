@@ -68,9 +68,6 @@ class _EducationAntibiotikScreenState extends State<EducationAntibiotikScreen> {
                   isLoading: isLoading,
                   count: provider.antibiotics.length,
                 ),
-
-                const SizedBox(height: 20),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -105,7 +102,7 @@ class _EducationAntibiotikScreenState extends State<EducationAntibiotikScreen> {
         final antibiotic = provider.antibiotics[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(top: index == 0 ? 20 : 0, bottom: 10),
           child: CustomAntibiotikCard(
             title: antibiotic.name,
             image: antibiotic.image != null
@@ -144,7 +141,7 @@ class _EducationAntibiotikScreenState extends State<EducationAntibiotikScreen> {
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: EdgeInsets.only(top: index == 0 ? 20 : 0, bottom: 10),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),

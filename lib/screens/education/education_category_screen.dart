@@ -83,9 +83,6 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
                   isLoading: isLoading,
                   onChanged: _onSearchChanged,
                 ),
-
-                const SizedBox(height: 20),
-
                 Expanded(
                   child: isLoading
                       ? _buildShimmerList()
@@ -126,7 +123,12 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
         final category = provider.categories[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+          padding: EdgeInsets.only(
+            top: index == 0 ? 20 : 0,
+            bottom: 10,
+            left: 20,
+            right: 20,
+          ),
           child: CustomCategoryCard(
             title: category.name,
             subtitle: '${category.antibioticsCount} Obat',
@@ -178,7 +180,12 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
         final category = provider.searchResults[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+          padding: EdgeInsets.only(
+            top: index == 0 ? 20 : 0,
+            bottom: 10,
+            left: 20,
+            right: 20,
+          ),
           child: CustomCategoryCard(
             title: category.name,
             subtitle: '${category.antibioticsCount} Obat',
@@ -229,7 +236,12 @@ class _EducationCategoryScreenState extends State<EducationCategoryScreen> {
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+            padding: EdgeInsets.only(
+              top: index == 0 ? 20 : 0,
+              bottom: 10,
+              left: 20,
+              right: 20,
+            ),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),

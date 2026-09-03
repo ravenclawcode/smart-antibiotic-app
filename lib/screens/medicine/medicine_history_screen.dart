@@ -245,11 +245,11 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeader(context, isLoading: _isLoading),
-              _buildContent(
+        body: Column(
+          children: [
+            _buildHeader(context, isLoading: _isLoading),
+            Expanded(
+              child: _buildContent(
                 context: context,
                 isLoading: _isLoading,
                 filterLoading: _isFilterLoading,
@@ -263,9 +263,8 @@ class _MedicineHistoryScreenState extends State<MedicineHistoryScreen>
                 slideAnimation: _slideAnimation,
                 animationController: _animationController,
               ),
-              const SizedBox(height: 26),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -474,13 +473,10 @@ Widget _buildContent({
           ],
         ),
         if (!isLoading && !filterLoading && isFiltered) ...[
-          const SizedBox(height: 26),
+          const SizedBox(height: 13),
 
           if (historyItems.isEmpty)
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height * 0.6,
-              ),
+            Expanded(
               child: Center(
                 child: Text(
                   'Tidak ada riwayat obat.',
@@ -492,7 +488,9 @@ Widget _buildContent({
               ),
             )
           else
-            _buildListHistory(historyItems, animationController),
+            Expanded(
+              child: _buildListHistory(historyItems, animationController),
+            ),
         ],
       ],
     ),
@@ -522,9 +520,8 @@ Widget _buildListHistory(
 
   return ListView.builder(
     itemCount: groupedEntries.length,
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    padding: EdgeInsets.zero,
+    shrinkWrap: false,
+    padding: const EdgeInsets.only(bottom: 26),
     itemBuilder: (context, index) {
       final entry = groupedEntries[index];
 
@@ -547,37 +544,43 @@ Widget _buildListHistory(
             ),
           );
 
-      return FadeTransition(
-        opacity: itemFade,
-        child: SlideTransition(
-          position: itemSlide,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_formatDate(date), style: AppTextStyles.bodyLarge),
+      return Padding(
+        padding: EdgeInsets.only(top: index == 0 ? 13 : 0),
+        child: FadeTransition(
+          opacity: itemFade,
+          child: SlideTransition(
+            position: itemSlide,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_formatDate(date), style: AppTextStyles.bodyLarge),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              ...dateItems.map(
-                (data) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CustomHistoryCard(
-                    time: data['time']?.toString() ?? '-',
-                    image: _medicineImage(data['dosage_unit']?.toString()),
-                    name: data['name']?.toString() ?? '-',
-                    dosage: _formatDosage(data['dosage'], data['dosage_unit']),
-                    isTaken: data['status'] == 'taken',
-                    isSkipped: data['status'] == 'skipped',
-                    isMissed: data['status'] == 'missed',
-                    isReschedule: data['status'] == 'rescheduled',
-                    imgStatus: _statusImage(data['status']?.toString()),
-                    statusText: _statusText(data['status']?.toString()),
+                ...dateItems.map(
+                  (data) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: CustomHistoryCard(
+                      time: data['time']?.toString() ?? '-',
+                      image: _medicineImage(data['dosage_unit']?.toString()),
+                      name: data['name']?.toString() ?? '-',
+                      dosage: _formatDosage(
+                        data['dosage'],
+                        data['dosage_unit'],
+                      ),
+                      isTaken: data['status'] == 'taken',
+                      isSkipped: data['status'] == 'skipped',
+                      isMissed: data['status'] == 'missed',
+                      isReschedule: data['status'] == 'rescheduled',
+                      imgStatus: _statusImage(data['status']?.toString()),
+                      statusText: _statusText(data['status']?.toString()),
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       );
