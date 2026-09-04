@@ -38,6 +38,10 @@ class MedicineProvider extends ChangeNotifier {
     try {
       _medicines = await medicineService.getMedicines();
 
+      NotificationService.instance
+          .resyncMedicines(List.of(_medicines))
+          .catchError((_) {});
+
       return true;
     } on ApiException catch (e) {
       _errorMessage = e.message;
@@ -291,6 +295,45 @@ class MedicineProvider extends ChangeNotifier {
         dosageUnit: dosageUnit,
         instruction: instruction,
       );
+
+      try {
+        final medicine = _medicines.firstWhere(
+          (item) => item.id == medicineId,
+        );
+
+        final date = DateTime.parse(scheduledDate.length >= 10
+            ? scheduledDate.substring(0, 10)
+            : scheduledDate);
+
+        String time = '';
+        for (final st in medicine.scheduleTimes) {
+          if (st.id == scheduleTimeId) {
+            time = st.time;
+            break;
+          }
+        }
+        if (time.isEmpty && medicine.times.isNotEmpty) {
+          time = medicine.times.first;
+        }
+
+        if (time.isNotEmpty) {
+          await NotificationService.instance.cancelMedicineDoseByDate(
+            medicine: medicine,
+            scheduleTimeId: scheduleTimeId,
+            scheduledDate: date,
+          );
+
+          await NotificationService.instance.scheduleMedicineDose(
+            medicine: medicine,
+            scheduleTimeId: scheduleTimeId,
+            scheduledDate: date,
+            time: time.length >= 5 ? time.substring(0, 5) : time,
+            dosageOverride: dosage,
+            dosageUnitOverride: dosageUnit,
+            instructionOverride: instruction,
+          );
+        }
+      } catch (_) {}
 
       return true;
     } on ApiException catch (e) {

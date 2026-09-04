@@ -22,7 +22,6 @@ import 'package:smart_antibiotic/utils/custom_loading.dart';
 import 'package:smart_antibiotic/utils/custom_progress_bar.dart';
 
 import '../../providers/medicine_provider.dart';
-import '../../services/notification_service.dart';
 import '../../utils/custom_change_hour_sheet.dart';
 
 enum StepType {
@@ -402,10 +401,6 @@ class _MedicineParentScreenState extends State<MedicineParentScreen> {
       if (createdMedicine == null) {
         return;
       }
-
-      await NotificationService.instance.scheduleMedicineNotifications(
-        medicine: createdMedicine,
-      );
 
       if (!mounted) {
         return;

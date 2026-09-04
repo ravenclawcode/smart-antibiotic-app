@@ -54,16 +54,22 @@ class _NotificationStartupScreenState extends State<NotificationStartupScreen> {
         final reminderType = decoded['reminder_type'];
 
         if (reminderType == 'Ringkas') {
+          final rawDate = decoded['scheduled_day']?.toString() ??
+              decoded['scheduled_date']?.toString() ??
+              '';
+          final day = rawDate.length >= 10
+              ? rawDate.substring(0, 10)
+              : rawDate;
           if (actionId == 'TAKEN') {
             await context.read<MedicineHistoryProvider>().taken(
               scheduleTimeId: decoded['schedule_time_id'],
-              scheduledDate: decoded['scheduled_date'],
+              scheduledDate: day,
               actionTime: 'now',
             );
           } else if (actionId == 'SKIPPED') {
             await context.read<MedicineHistoryProvider>().skipped(
               scheduleTimeId: decoded['schedule_time_id'],
-              scheduledDate: decoded['scheduled_date'],
+              scheduledDate: day,
               actionTime: 'now',
               notes: 'Lainnya',
             );

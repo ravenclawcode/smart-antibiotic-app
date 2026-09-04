@@ -29,6 +29,8 @@ class NotificationService {
   String? _pendingActionPayload;
 
   static const int _defaultScheduleDays = 30;
+  static const int _maxScheduleDays = 365;
+  static const int _snoozeIdOffset = 500000;
 
   static const String _reminderTypeFullScreen = 'Layar Penuh';
   static const String _reminderTypeCompact = 'Ringkas';
@@ -463,24 +465,55 @@ class NotificationService {
 
     final firstDate = _dateOnly(startDate.year, startDate.month, startDate.day);
 
-    final lastDate = parsedEndDate != null
-        ? _dateOnly(parsedEndDate.year, parsedEndDate.month, parsedEndDate.day)
-        : firstDate.add(const Duration(days: _defaultScheduleDays));
+    late final DateTime lastDate;
+
+    if (parsedEndDate != null) {
+      var endDateOnly = _dateOnly(
+        parsedEndDate.year,
+        parsedEndDate.month,
+        parsedEndDate.day,
+      );
+
+      if (endDateOnly.difference(firstDate).inDays > _maxScheduleDays) {
+        endDateOnly = firstDate.add(
+          const Duration(days: _maxScheduleDays),
+        );
+      }
+
+      lastDate = endDateOnly;
+    } else {
+      final today = _dateOnly(now.year, now.month, now.day);
+      final rollingEnd = today.add(
+        const Duration(days: _defaultScheduleDays),
+      );
+
+      lastDate = rollingEnd.isAfter(firstDate)
+          ? rollingEnd
+          : firstDate.add(const Duration(days: _defaultScheduleDays));
+    }
 
     if (lastDate.isBefore(firstDate)) {
       return;
     }
 
-    final dates = _generateDates(
+    var dates = _generateDates(
       medicine: medicine,
       startDate: firstDate,
       endDate: lastDate,
     );
 
-    int occurrenceIndex = 0;
+    final perDay = medicine.scheduleTimes.length;
+    const maxDoses = 800;
+    if (perDay > 0 && dates.length * perDay > maxDoses) {
+      final keepDays = (maxDoses ~/ perDay).clamp(1, dates.length);
+      dates = dates.sublist(0, keepDays);
+    }
+
+    final preCutoff = now.add(const Duration(days: 14));
 
     for (final date in dates) {
-      for (final scheduleTime in medicine.scheduleTimes) {
+      for (int t = 0; t < medicine.scheduleTimes.length; t++) {
+        final scheduleTime = medicine.scheduleTimes[t];
         final parsedTime = _parseTime(scheduleTime.time);
 
         if (parsedTime == null) {
@@ -500,21 +533,22 @@ class NotificationService {
           Duration(minutes: preReminderMinutes),
         );
 
-        final preNotificationId = _notificationId(
+        final preNotificationId = _regularNotificationId(
           medicineId: medicine.id!,
-          occurrenceIndex: occurrenceIndex,
-          scheduleTimeId: scheduleTime.id,
+          date: date,
+          timeIndex: t,
           type: 0,
         );
 
-        final exactReminderId = _notificationId(
+        final exactReminderId = _regularNotificationId(
           medicineId: medicine.id!,
-          occurrenceIndex: occurrenceIndex,
-          scheduleTimeId: scheduleTime.id,
+          date: date,
+          timeIndex: t,
           type: 1,
         );
 
-        if (preReminderTime.isAfter(now)) {
+        if (preReminderTime.isAfter(now) &&
+            !preReminderTime.isAfter(preCutoff)) {
           await scheduleMedicineNotification(
             id: preNotificationId,
             title: 'Pengingat Minum Obat',
@@ -534,6 +568,7 @@ class NotificationService {
             scheduleTime: scheduleTime,
             scheduledTime: scheduleTime.time,
             scheduledDate: medicineTime,
+            timeIndex: t,
           );
 
           if (reminderType == _reminderTypeFullScreen) {
@@ -560,8 +595,6 @@ class NotificationService {
             );
           }
         }
-
-        occurrenceIndex++;
       }
     }
   }
@@ -685,7 +718,42 @@ class NotificationService {
     return DateTime(year, month, day);
   }
 
-  int _notificationId({
+  int _daysSinceEpoch(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    return d.difference(DateTime(1970, 1, 1)).inDays;
+  }
+
+  int _timeIndex(MedicineModel medicine, int scheduleTimeId) {
+    final idx = medicine.scheduleTimes.indexWhere(
+      (e) => e.id == scheduleTimeId,
+    );
+    if (idx != -1) return idx.clamp(0, 49);
+    return scheduleTimeId % 50;
+  }
+
+  int _regularNotificationId({
+    required int medicineId,
+    required DateTime date,
+    required int timeIndex,
+    required int type,
+  }) {
+    final days = _daysSinceEpoch(date) % 2000;
+    final low = ((days * 50 + timeIndex.clamp(0, 49)) * 2 + type);
+    return (medicineId * 1000000) + low;
+  }
+
+  int _snoozeNotificationId({
+    required int medicineId,
+    required DateTime date,
+    required int timeIndex,
+  }) {
+    final days = _daysSinceEpoch(date) % 2000;
+    final low =
+        _snoozeIdOffset + ((days * 50 + timeIndex.clamp(0, 49)) * 2 + 1);
+    return (medicineId * 1000000) + low;
+  }
+
+  int _legacyNotificationId({
     required int medicineId,
     required int occurrenceIndex,
     required int scheduleTimeId,
@@ -713,29 +781,6 @@ class NotificationService {
     await _notifications.cancel(id: notificationId);
   }
 
-  Future<void> cancelMedicineDose({
-    required int medicineId,
-    required int scheduleTimeId,
-    required int occurrenceIndex,
-  }) async {
-    final preNotificationId = _notificationId(
-      medicineId: medicineId,
-      scheduleTimeId: scheduleTimeId,
-      occurrenceIndex: occurrenceIndex,
-      type: 0,
-    );
-
-    final exactReminderId = _notificationId(
-      medicineId: medicineId,
-      scheduleTimeId: scheduleTimeId,
-      occurrenceIndex: occurrenceIndex,
-      type: 1,
-    );
-
-    await cancel(preNotificationId);
-    await cancel(exactReminderId);
-  }
-
   Future<void> cancelMedicineDoseByDate({
     required MedicineModel medicine,
     required int scheduleTimeId,
@@ -751,20 +796,75 @@ class NotificationService {
       scheduledDate.day,
     );
 
-    final occurrenceIndex = _getOccurrenceIndexByDate(
+    final t = _timeIndex(medicine, scheduleTimeId);
+
+    final preId = _regularNotificationId(
+      medicineId: medicine.id!,
+      date: targetDate,
+      timeIndex: t,
+      type: 0,
+    );
+
+    final exactId = _regularNotificationId(
+      medicineId: medicine.id!,
+      date: targetDate,
+      timeIndex: t,
+      type: 1,
+    );
+
+    final snoozeId = _snoozeNotificationId(
+      medicineId: medicine.id!,
+      date: targetDate,
+      timeIndex: t,
+    );
+
+    await cancel(preId);
+    await cancel(exactId);
+    await cancel(snoozeId);
+
+    await _cancelLegacyDose(
       medicine: medicine,
+      scheduleTimeId: scheduleTimeId,
       targetDate: targetDate,
     );
+  }
 
-    if (occurrenceIndex == null) {
-      return;
-    }
+  Future<void> _cancelLegacyDose({
+    required MedicineModel medicine,
+    required int scheduleTimeId,
+    required DateTime targetDate,
+  }) async {
+    try {
+      final dateIndex = _getDateIndexByDate(
+        medicine: medicine,
+        targetDate: targetDate,
+      );
 
-    await cancelMedicineDose(
-      medicineId: medicine.id!,
-      scheduleTimeId: scheduleTimeId,
-      occurrenceIndex: occurrenceIndex,
-    );
+      if (dateIndex == null) return;
+
+      final t = _timeIndex(medicine, scheduleTimeId);
+      final n = medicine.scheduleTimes.isEmpty
+          ? 1
+          : medicine.scheduleTimes.length;
+      final occurrenceIndex = dateIndex * n + t;
+
+      await cancel(
+        _legacyNotificationId(
+          medicineId: medicine.id!,
+          occurrenceIndex: occurrenceIndex,
+          scheduleTimeId: scheduleTimeId,
+          type: 0,
+        ),
+      );
+      await cancel(
+        _legacyNotificationId(
+          medicineId: medicine.id!,
+          occurrenceIndex: occurrenceIndex,
+          scheduleTimeId: scheduleTimeId,
+          type: 1,
+        ),
+      );
+    } catch (_) {}
   }
 
   Future<void> scheduleMedicineDose({
@@ -773,6 +873,9 @@ class NotificationService {
     required DateTime scheduledDate,
     required String time,
     int preReminderMinutes = 30,
+    String? dosageOverride,
+    String? dosageUnitOverride,
+    String? instructionOverride,
   }) async {
     if (medicine.id == null) {
       return;
@@ -794,14 +897,7 @@ class NotificationService {
       scheduledDate.day,
     );
 
-    final occurrenceIndex = _getOccurrenceIndexByDate(
-      medicine: medicine,
-      targetDate: targetDate,
-    );
-
-    if (occurrenceIndex == null) {
-      return;
-    }
+    final t = _timeIndex(medicine, scheduleTimeId);
 
     final medicineTime = tz.TZDateTime(
       tz.local,
@@ -816,17 +912,17 @@ class NotificationService {
       Duration(minutes: preReminderMinutes),
     );
 
-    final preNotificationId = _notificationId(
+    final preNotificationId = _regularNotificationId(
       medicineId: medicine.id!,
-      occurrenceIndex: occurrenceIndex,
-      scheduleTimeId: scheduleTimeId,
+      date: targetDate,
+      timeIndex: t,
       type: 0,
     );
 
-    final exactReminderId = _notificationId(
+    final exactReminderId = _regularNotificationId(
       medicineId: medicine.id!,
-      occurrenceIndex: occurrenceIndex,
-      scheduleTimeId: scheduleTimeId,
+      date: targetDate,
+      timeIndex: t,
       type: 1,
     );
 
@@ -852,11 +948,20 @@ class NotificationService {
         orElse: () => MedicineScheduleTimeModel(id: scheduleTimeId, time: time),
       );
 
+      final effectiveDosage = dosageOverride ?? medicine.dosage;
+      final effectiveUnit = dosageUnitOverride ?? medicine.dosageUnit;
+      final effectiveInstruction =
+          instructionOverride ?? medicine.instruction;
+
       final payload = _buildMedicinePayload(
         medicine: medicine,
         scheduleTime: scheduleTime,
         scheduledTime: time,
         scheduledDate: medicineTime,
+        timeIndex: t,
+        dosageOverride: effectiveDosage,
+        dosageUnitOverride: effectiveUnit,
+        instructionOverride: effectiveInstruction,
       );
 
       final notificationDetails = reminderType == _reminderTypeFullScreen
@@ -866,9 +971,8 @@ class NotificationService {
       await scheduleMedicineNotification(
         id: exactReminderId,
         title: 'Waktunya Minum Obat',
-        body:
-            'Saatnya minum ${medicine.name} '
-            '${medicine.dosage} ${medicine.dosageUnit}.',
+        body: 'Saatnya minum ${medicine.name} '
+            '$effectiveDosage $effectiveUnit.',
         scheduledDate: medicineTime,
         notificationDetails: notificationDetails,
         payload: payload,
@@ -876,7 +980,7 @@ class NotificationService {
     }
   }
 
-  int? _getOccurrenceIndexByDate({
+  int? _getDateIndexByDate({
     required MedicineModel medicine,
     required DateTime targetDate,
   }) {
@@ -987,19 +1091,39 @@ class NotificationService {
     required MedicineScheduleTimeModel scheduleTime,
     required String scheduledTime,
     required DateTime scheduledDate,
+    int timeIndex = 0,
+    String? dosageOverride,
+    String? dosageUnitOverride,
+    String? instructionOverride,
   }) {
     return jsonEncode({
       'type': 'medicine_reminder',
       'reminder_type': _getReminderType(),
       'medicine_id': medicine.id,
       'name': medicine.name,
-      'dosage': medicine.dosage,
-      'dosage_unit': medicine.dosageUnit,
-      'instruction': medicine.instruction,
+      'dosage': dosageOverride ?? medicine.dosage,
+      'dosage_unit': dosageUnitOverride ?? medicine.dosageUnit,
+      'instruction': instructionOverride ?? medicine.instruction,
       'schedule_time_id': scheduleTime.id,
+      'time_index': timeIndex,
       'scheduled_time': scheduledTime,
       'scheduled_date': scheduledDate.toIso8601String(),
+      'scheduled_day':
+          '${scheduledDate.year.toString().padLeft(4, '0')}-'
+          '${scheduledDate.month.toString().padLeft(2, '0')}-'
+          '${scheduledDate.day.toString().padLeft(2, '0')}',
     });
+  }
+
+  String _toDayString(String raw) {
+    try {
+      final parsed = DateTime.parse(raw);
+      return '${parsed.year.toString().padLeft(4, '0')}-'
+          '${parsed.month.toString().padLeft(2, '0')}-'
+          '${parsed.day.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return raw.length >= 10 ? raw.substring(0, 10) : raw;
+    }
   }
 
   Future<void> cancelAll() async {
@@ -1021,17 +1145,16 @@ class NotificationService {
 
       final scheduleTimeId = decoded['schedule_time_id'];
 
-      final scheduledDate = decoded['scheduled_date']?.toString();
+      final rawDate = decoded['scheduled_day']?.toString() ??
+          decoded['scheduled_date']?.toString();
 
-      if (scheduleTimeId is! int ||
-          scheduledDate == null ||
-          scheduledDate.isEmpty) {
+      if (scheduleTimeId is! int || rawDate == null || rawDate.isEmpty) {
         return;
       }
 
       await _medicineHistoryService?.taken(
         scheduleTimeId: scheduleTimeId,
-        scheduledDate: scheduledDate,
+        scheduledDate: _toDayString(rawDate),
         actionTime: 'now',
       );
     } catch (_) {}
@@ -1051,17 +1174,16 @@ class NotificationService {
 
       final scheduleTimeId = decoded['schedule_time_id'];
 
-      final scheduledDate = decoded['scheduled_date']?.toString();
+      final rawDate = decoded['scheduled_day']?.toString() ??
+          decoded['scheduled_date']?.toString();
 
-      if (scheduleTimeId is! int ||
-          scheduledDate == null ||
-          scheduledDate.isEmpty) {
+      if (scheduleTimeId is! int || rawDate == null || rawDate.isEmpty) {
         return;
       }
 
       await _medicineHistoryService?.skipped(
         scheduleTimeId: scheduleTimeId,
-        scheduledDate: scheduledDate,
+        scheduledDate: _toDayString(rawDate),
         actionTime: 'now',
         notes: 'Lainnya',
       );
@@ -1076,6 +1198,8 @@ class NotificationService {
     required String dosageUnit,
     required String instruction,
     required DateTime scheduledDateTime,
+    String? originalScheduledDate,
+    int timeIndex = 0,
   }) async {
     final now = tz.TZDateTime.now(tz.local);
 
@@ -1092,6 +1216,27 @@ class NotificationService {
       return;
     }
 
+    DateTime anchorDay;
+    try {
+      anchorDay = originalScheduledDate != null &&
+              originalScheduledDate.isNotEmpty
+          ? _dateOnly(
+              DateTime.parse(originalScheduledDate).year,
+              DateTime.parse(originalScheduledDate).month,
+              DateTime.parse(originalScheduledDate).day,
+            )
+          : _dateOnly(
+              scheduledDate.year, scheduledDate.month, scheduledDate.day);
+    } catch (_) {
+      anchorDay = _dateOnly(
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+      );
+    }
+
+    final t = timeIndex.clamp(0, 49);
+
     final reminderType = _getReminderType();
 
     final payload = jsonEncode({
@@ -1103,16 +1248,23 @@ class NotificationService {
       'dosage_unit': dosageUnit,
       'instruction': instruction,
       'schedule_time_id': scheduleTimeId,
+      'time_index': t,
+      'is_snooze': true,
       'scheduled_time':
           '${scheduledDate.hour.toString().padLeft(2, '0')}:'
           '${scheduledDate.minute.toString().padLeft(2, '0')}:00',
       'scheduled_date': scheduledDate.toIso8601String(),
+      'scheduled_day':
+          '${anchorDay.year.toString().padLeft(4, '0')}-'
+          '${anchorDay.month.toString().padLeft(2, '0')}-'
+          '${anchorDay.day.toString().padLeft(2, '0')}',
     });
 
-    final notificationId =
-        medicineId * 1000000 +
-        scheduleTimeId * 1000 +
-        (scheduledDate.millisecondsSinceEpoch % 1000);
+    final notificationId = _snoozeNotificationId(
+      medicineId: medicineId,
+      date: anchorDay,
+      timeIndex: t,
+    );
 
     final notificationDetails = reminderType == _reminderTypeFullScreen
         ? _fullScreenNotificationDetails()
@@ -1126,6 +1278,50 @@ class NotificationService {
       notificationDetails: notificationDetails,
       payload: payload,
     );
+  }
+
+  DateTime? _lastResync;
+
+  Future<void> resyncMedicines(
+    List<MedicineModel> medicines, {
+    int preReminderMinutes = 30,
+    bool force = false,
+  }) async {
+    final now = DateTime.now();
+    if (!force &&
+        _lastResync != null &&
+        now.difference(_lastResync!).inHours < 12) {
+      return;
+    }
+    _lastResync = now;
+
+    late final Map<int, int> counts;
+    try {
+      final pending = await _notifications.pendingNotificationRequests();
+      counts = {};
+      for (final p in pending) {
+        final mid = p.id ~/ 1000000;
+        counts[mid] = (counts[mid] ?? 0) + 1;
+      }
+    } catch (_) {
+      return;
+    }
+
+    for (final medicine in medicines) {
+      try {
+        if (medicine.id == null || !medicine.isActive) continue;
+        final perDay =
+            medicine.scheduleTimes.isEmpty ? 1 : medicine.scheduleTimes.length;
+        final threshold = (perDay * 4).clamp(20, 60);
+        if ((counts[medicine.id] ?? 0) < threshold) {
+          await scheduleMedicineNotifications(
+            medicine: medicine,
+            preReminderMinutes: preReminderMinutes,
+          );
+        }
+        await Future.delayed(const Duration(milliseconds: 10));
+      } catch (_) {}
+    }
   }
 
   Future<void> stopMedicineAlarm() async {

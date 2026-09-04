@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Smart Antibiotik v1.0.0',
+                            'Smart Antibiotik v1.0.2',
                             style: AppTextStyles.bodySmall.copyWith(
                               fontSize: 13,
                               color: AppColors.textMuted,

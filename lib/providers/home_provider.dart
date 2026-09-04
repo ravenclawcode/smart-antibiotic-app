@@ -85,6 +85,18 @@ class HomeProvider extends ChangeNotifier {
 
       medicines = _parseHomeSchedules(schedules, dateString);
 
+      final seen = <int>{};
+      final distinct = <MedicineModel>[];
+      for (final item in medicines) {
+        final id = item.medicine.id;
+        if (id != null && seen.add(id)) distinct.add(item.medicine);
+      }
+      if (distinct.isNotEmpty) {
+        NotificationService.instance
+            .resyncMedicines(distinct)
+            .catchError((_) {});
+      }
+
       if (showLoading) {
         await Future.delayed(const Duration(milliseconds: 600));
       }

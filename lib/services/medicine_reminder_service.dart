@@ -23,14 +23,14 @@ class MedicineReminderService {
   }
 
   Future<void> cancelDose({
-    required int medicineId,
+    required MedicineModel medicine,
     required int scheduleTimeId,
-    required int occurrenceIndex,
+    required DateTime scheduledDate,
   }) async {
-    await _notificationService.cancelMedicineDose(
-      medicineId: medicineId,
+    await _notificationService.cancelMedicineDoseByDate(
+      medicine: medicine,
       scheduleTimeId: scheduleTimeId,
-      occurrenceIndex: occurrenceIndex,
+      scheduledDate: scheduledDate,
     );
   }
 }

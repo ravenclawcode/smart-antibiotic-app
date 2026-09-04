@@ -24,6 +24,7 @@ class CustomReminder extends StatefulWidget {
   final String? scheduledTime;
   final int? scheduleTimeId;
   final String? scheduledDate;
+  final int timeIndex;
 
   const CustomReminder({
     super.key,
@@ -35,6 +36,7 @@ class CustomReminder extends StatefulWidget {
     this.scheduledTime,
     this.scheduleTimeId,
     this.scheduledDate,
+    this.timeIndex = 0,
   });
 
   @override
@@ -285,6 +287,8 @@ class _CustomReminderState extends State<CustomReminder> {
                   dosageUnit: widget.dosageUnit ?? '',
                   instruction: widget.instruction ?? '',
                   scheduledDateTime: rescheduledDateTime,
+                  originalScheduledDate: widget.scheduledDate,
+                  timeIndex: widget.timeIndex,
                 );
               }
 

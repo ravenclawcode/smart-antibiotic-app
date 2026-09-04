@@ -221,7 +221,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
           instruction: args['instruction']?.toString(),
           scheduleTimeId: args['schedule_time_id'] as int?,
           scheduledTime: args['scheduled_time']?.toString(),
-          scheduledDate: args['scheduled_date']?.toString(),
+          scheduledDate: (args['scheduled_day']?.toString() ??
+                  args['scheduled_date']?.toString()),
+          timeIndex:
+              int.tryParse(args['time_index']?.toString() ?? '') ?? 0,
         ),
       );
 
